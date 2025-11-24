@@ -169,25 +169,25 @@ const SubmitTaskUI: React.FC<SubmitTaskProps> = ({ taskData }) => {
   }, [taskData, id, domainFromUrl]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  if (!e.target.files) return;
+    if (!e.target.files) return;
 
-  const filesArray: File[] = [];
+    const filesArray: File[] = [];
 
-  Array.from(e.target.files).forEach((file) => {
-    if (file.type === "application/json") {
-      // OVH FIX → change MIME to text/plain
-      const newFile = new File([file], file.name, { type: "text/plain" });
-      filesArray.push(newFile);
-    } else {
-      filesArray.push(file);
-    }
-  });
+    Array.from(e.target.files).forEach((file) => {
+      if (file.type === "application/json") {
+        // OVH FIX → change MIME to text/plain
+        const newFile = new File([file], file.name, { type: "text/plain" });
+        filesArray.push(newFile);
+      } else {
+        filesArray.push(file);
+      }
+    });
 
-  setSubmission((prev) => ({
-    ...prev,
-    outputFiles: filesArray,
-  }));
-};
+    setSubmission((prev) => ({
+      ...prev,
+      outputFiles: filesArray,
+    }));
+  };
 
 
   const handleChange = (
@@ -276,6 +276,18 @@ const SubmitTaskUI: React.FC<SubmitTaskProps> = ({ taskData }) => {
       if (!githubPattern.test(submission.githubLink.trim())) newErrors.githubLink = "Enter a valid GitHub repository URL.";
     }
 
+    // ❌ If user uploads a JSON file in outputFiles → show error
+    if (submission.outputFiles && submission.outputFiles.length > 0) {
+      const hasJson = submission.outputFiles.some((file: File) =>
+        file.name.toLowerCase().endsWith(".json")
+      );
+
+      if (hasJson) {
+        newErrors.outputFiles = "JSON file is not uploadable. Please upload a JSON file link instead.";
+      }
+    }
+
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -287,7 +299,7 @@ const SubmitTaskUI: React.FC<SubmitTaskProps> = ({ taskData }) => {
 
     try {
       const formData = new FormData();
-      
+
       formData.append("domain", submission.domain || "");
       (submission.country || []).forEach((c) => formData.append("country[]", c));
       formData.append("approxVolume", submission.approxVolume || "");
@@ -337,10 +349,10 @@ const SubmitTaskUI: React.FC<SubmitTaskProps> = ({ taskData }) => {
         return;
       }
 
-      
+
       toast.success("✅ Task submitted successfully!");
       setTimeout(() => navigate("/tasks"), 1500);
-      
+
     } catch (err: any) {
       console.error(err);
       toast.error("❌ Error submitting task! " + (err?.message || String(err)));
@@ -348,8 +360,8 @@ const SubmitTaskUI: React.FC<SubmitTaskProps> = ({ taskData }) => {
       setLoading(false);
     }
   };
-  
-  
+
+
   // const handleSubmit = async (e: React.FormEvent) => {
   //   e.preventDefault();
 
@@ -359,8 +371,8 @@ const SubmitTaskUI: React.FC<SubmitTaskProps> = ({ taskData }) => {
   //   try {
   //     const formData = new FormData();
 
-     
-    
+
+
   //     formData.append("domain", submission.domain || "");
   //     submission.country.forEach((c) => formData.append("country[]", c)); // convert array to JSON string
 
@@ -419,7 +431,7 @@ const SubmitTaskUI: React.FC<SubmitTaskProps> = ({ taskData }) => {
   //     });
 
   //     console.log("res:",res);
-      
+
 
   //     if (!res.ok) {
   //       const errText = await res.text();

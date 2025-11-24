@@ -159,6 +159,13 @@ const CreateTaskUI: React.FC = () => {
     if (task.domainDetails.length === 0)
       newErrors.domain = "At least one platform entry is required";
 
+    //duplicat domain name
+    const extractedDomains = task.domainDetails.map((d) => d.domain.trim());
+    const duplicates = extractedDomains.filter((name, index) => name && extractedDomains.indexOf(name) !== index);
+    if (duplicates.length > 0) {
+      newErrors.domain = "Duplicate domain names are not allowed.";
+    }
+
     if (task.sampleFileRequired && !task.requiredValumeOfSampleFile)
       newErrors.requiredValumeOfSampleFile = "Required volume is mandatory when sample file is required";
     // if (!(task.inputUrls || []).some((u) => u.trim() !== "")) newErrors.inputUrls = "Input URL is required";

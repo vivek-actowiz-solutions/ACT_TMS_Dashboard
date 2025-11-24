@@ -289,20 +289,25 @@ const ReopenTask: React.FC = () => {
     if (!task.domainDetails || task.domainDetails.length === 0) newErrors.domain = "At least one platform entry is required";
     if (task.sampleFileRequired && !task.requiredValumeOfSampleFile) newErrors.requiredValumeOfSampleFile = "Required volume is mandatory when sample file is required";
     if (task.domainDetails && task.domainDetails.length > 0) {
-      const domainNames = task.domainDetails.map(
-        (d) => (d.name || "").trim().toLowerCase()
-      );
 
-      const nonEmpty = domainNames.filter((n) => n !== "");
-
-      const duplicates = nonEmpty.filter(
-        (name, index) => nonEmpty.indexOf(name) !== index
-      );
-
-      if (duplicates.length > 0) {
-        newErrors.domain = "Duplicate domain names are not allowed.";
-      }
+  const extractedDomains = task.domainDetails.map((d) => {
+    try {
+      const host = new URL(d.domain.trim()).hostname.toLowerCase();
+      return host.startsWith("www.") ? host.slice(4) : host;
+    } catch (e) {
+      return ""; // ignore invalid URLs, already validated earlier
     }
+  });
+
+  const duplicates = extractedDomains.filter(
+    (name, index) => name && extractedDomains.indexOf(name) !== index
+  );
+
+  if (duplicates.length > 0) {
+    newErrors.domain = "Duplicate domain names are not allowed.";
+  }
+}
+
 
 
 
@@ -674,7 +679,7 @@ const ReopenTask: React.FC = () => {
 
             <div className="flex justify-end">
               <button type="submit" className="px-8 py-3 bg-[#3C01AF] text-white font-semibold rounded-lg hover:bg-blue-700" disabled={loading}>
-                {loading ? "Saving..." : "Save New Version"}
+                {loading ? "Saving..." : "Update"}
               </button>
             </div>
 
