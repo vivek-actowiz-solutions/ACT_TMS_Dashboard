@@ -23,9 +23,9 @@ const HistoryModal: React.FC<HistoryModalProps> =  ({ open, onClose, task,domain
   setLoading(true);
 
   if (task?._id && domainName && open) {
-console.log("Fetching logs for task:", task._id, "domain:", domainName);
+//console.log("Fetching logs for task:", task._id, "domain:", domainName);
 
-    
+       
     axios.get(
   `${import.meta.env.VITE_API_URL}/activity/${task._id}/logs/${encodeURIComponent(domainName)}`
 )

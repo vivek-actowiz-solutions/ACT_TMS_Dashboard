@@ -127,8 +127,8 @@ const safeParseArray = (value) => {
 // CREATE TASK
 export const createTask = async (req, res) => {
 
-  console.log("🔍 Received Domains in Backend:", req.body);
-  console.log("Received File:", req.file);
+  // console.log("🔍 Received Domains in Backend:", req.body);
+  // console.log("Received File:", req.file);
 
 
   try {
@@ -247,7 +247,7 @@ export const createTask = async (req, res) => {
         ? `<@${assignedToUser.slackId}>`
         : assignedToUser?.email;
 
-    const dashboardUrl = `${process.env.FRONTEND_URL}tasks`;
+    const dashboardUrl = `${process.env.FRONTEND_URL}/tasks`;
 
     const slackMessage = `
         :bell: *New Task Assigned*
@@ -501,7 +501,7 @@ export const updateTask = async (req, res) => {
           .map(d => d.slackId ? `<@${d.slackId}>` : d.email)
           .join(", ");
 
-        const taskUrl = `${process.env.FRONTEND_URL}tasks`;
+        const taskUrl = `${process.env.FRONTEND_URL}/tasks`;
 
 
 
@@ -538,8 +538,8 @@ export const submitTask = async (req, res) => {
 
     const body = req.body;   // ← DO NOT CLEAN FILE FORM DATA!
 
-    console.log(req.body);
-    console.log("this nkodsmnvpifs", req.files)
+    // console.log(req.body);
+    // console.log("this nkodsmnvpifs", req.files)
     const task = await Task.findById(id);
     if (!task) return res.status(404).json({ error: "Task not found" });
 
@@ -809,7 +809,7 @@ export const submitTask = async (req, res) => {
       //   : `:satellite: Proxy: No`;
 
 
-      const taskUrl = `${process.env.FRONTEND_URL}tasks`;
+      const taskUrl = `${process.env.FRONTEND_URL}/tasks`;
 
 
 
@@ -1612,7 +1612,7 @@ export const updateTaskDomainStatus = async (req, res) => {
       const dev = await User.findById(submittedDevId).lean();
 
       const space = "   ";
-      const taskUrl = `${process.env.FRONTEND_URL}tasks`;
+      const taskUrl = `${process.env.FRONTEND_URL}/tasks`;
 
       const DomainName = `\`${domain.name}\``
 
@@ -1919,7 +1919,7 @@ task.targetDate = targetDate;
         });
       }
 
-      console.log("Activity logs created for domains:", domainList);
+     
 
     } catch (err) {
       console.error("Failed to create ActivityLog:", err);
@@ -1928,7 +1928,7 @@ task.targetDate = targetDate;
 
 
 
-    const dashboardUrl = `${process.env.FRONTEND_URL}tasks`;
+    const dashboardUrl = `${process.env.FRONTEND_URL}/tasks`;
     const assignedByName = task.assignedBy?.slackId
       ? `<@${task.assignedBy.slackId}>`
       : task.assignedBy?.name;
@@ -1945,7 +1945,7 @@ ${space}:briefcase: Task: ${task.title}
 ${space}:bust_in_silhouette: Assigned By: ${assignedByName}(Sales Team)
 ${space}:date:Assigned To: ${assignedToName} (R&D ATL)
 ${space}:memo: Details: The task has been reopened due to required updates. Please review the changes and proceed accordingly.
-${space}:link:<${dashboardUrl}|Open Dashboard>
+${space}:link: <${dashboardUrl} |Open Dashboard>
 CC: <@${process.env.SLACK_RND_MANAGER_ID}>, <@${process.env.SLACK_SALES_MANAGER_ID}>
 `
      await sendSlackMessage(process.env.SALES_RD_CHANNEL_TEST, slackMessage);

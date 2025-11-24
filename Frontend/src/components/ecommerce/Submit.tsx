@@ -961,7 +961,7 @@ const SubmitTaskUI: React.FC<SubmitTaskProps> = ({ taskData }) => {
                       </div>
                     </div>
                     <p className="text-sm text-gray-600 mt-1">
-                      Note: JSON file is not uploadable. Please upload a JSON file link instead.
+                      <span className="text-red-500">Note:</span> JSON file is not uploadable. Please upload a <span className="text-red-500">JSON file link instead.</span>
                     </p>
 
                     {/* Sample Output File OR Output Document URL */}

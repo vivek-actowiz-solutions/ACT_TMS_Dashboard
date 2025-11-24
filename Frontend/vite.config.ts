@@ -3,7 +3,8 @@ import react from "@vitejs/plugin-react";
 import svgr from "vite-plugin-svgr";
 
 
-const PORT = Number((import.meta as any).env?.PORT) || 3000;
+//const PORT = import.meta.env.VITE_PORT;
+const PORT = 3002;
 // https://vite.dev/config/
 export default defineConfig({
 

@@ -317,14 +317,10 @@ const TaskPage: React.FC = () => {
       });
 
       const data = await res.json();
-      console.log("data",data);
+      
       
       setTasks(data.tasks || []);
-      //       setTasks(prev =>
-      //   prev.map(t =>
-      //     t._id === updatedTask._id ? { ...t, ...updatedTask } : t
-      //   )
-      // );
+      
 
       setTotalPages(data.totalPages || 1);
     } catch (err) {

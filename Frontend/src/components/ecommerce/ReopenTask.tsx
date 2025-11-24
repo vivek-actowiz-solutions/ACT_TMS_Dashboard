@@ -82,8 +82,8 @@ const ReopenTask: React.FC = () => {
   const [selectedFormats, setSelectedFormats] = useState<any[]>([]);
   const [originalTask, setOriginalTask] = useState<any>(null);
 
-  
-const [editingIndex, setEditingIndex] = useState<number | null>(null);
+
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
 
   const DeliveryTypes = [
@@ -99,7 +99,7 @@ const [editingIndex, setEditingIndex] = useState<number | null>(null);
     { label: "Parquet", value: "parquet" },
   ];
 
- 
+
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -117,69 +117,69 @@ const [editingIndex, setEditingIndex] = useState<number | null>(null);
   }, [apiUrl]);
 
 
-useEffect(() => {
-  const load = async () => {
-    if (!id) return;
+  useEffect(() => {
+    const load = async () => {
+      if (!id) return;
 
-    try {
-      const res = await fetch(`${apiUrl}/tasks/${id}/reopen-data`, {
-        method: "GET",
-        credentials: "include",
-      });
+      try {
+        const res = await fetch(`${apiUrl}/tasks/${id}/reopen-data`, {
+          method: "GET",
+          credentials: "include",
+        });
 
-      const data = await res.json();
+        const data = await res.json();
 
-      setOriginalTask({
-  ...data,
-  assignedTo: data.assignedTo?._id || ""   // normalize
-});
+        setOriginalTask({
+          ...data,
+          assignedTo: data.assignedTo?._id || ""   // normalize
+        });
 
 
-      setTask({
-        title: data.title || "",
-        assignedTo: data.assignedTo?._id || data.assignedTo || "",
-        description: data.description || "",
-        sampleFileRequired: !!data.sampleFileRequired,
-        requiredValumeOfSampleFile: data.requiredValumeOfSampleFile || "",
-        taskAssignedDate: data.taskAssignedDate ? data.taskAssignedDate.substring(0, 10) : "",
-        targetDate: data.targetDate ? data.targetDate.substring(0, 10) : "",
-        completeDate: data.completeDate || "",
-        domainDetails: data.domains?.map((d: any) => ({
-          domain: d.name,
-          typeOfPlatform: d.typeOfPlatform,
-          domainRemarks: d.domainRemarks,
-        })) || [],
-        typeOfDelivery: data.typeOfDelivery || "",
-        mandatoryFields: data.mandatoryFields || "",
-        optionalFields: data.optionalFields || "",
-        frequency: data.frequency || "",
-        oputputFormat: data.oputputFormat || [],
-        status: data.status || "pending",
-        sowFile: [],
-        sowUrls: data.sowUrls || [],
-        inputFile: [],
-        inputUrls: data.inputUrls || [],
-        clientSampleSchemaFiles: [],
-        clientSampleSchemaUrls: data.clientSampleSchemaUrls || [],
-      });
+        setTask({
+          title: data.title || "",
+          assignedTo: data.assignedTo?._id || data.assignedTo || "",
+          description: data.description || "",
+          sampleFileRequired: !!data.sampleFileRequired,
+          requiredValumeOfSampleFile: data.requiredValumeOfSampleFile || "",
+          taskAssignedDate: data.taskAssignedDate ? data.taskAssignedDate.substring(0, 10) : "",
+          targetDate: data.targetDate ? data.targetDate.substring(0, 10) : "",
+          completeDate: data.completeDate || "",
+          domainDetails: data.domains?.map((d: any) => ({
+            domain: d.name,
+            typeOfPlatform: d.typeOfPlatform,
+            domainRemarks: d.domainRemarks,
+          })) || [],
+          typeOfDelivery: data.typeOfDelivery || "",
+          mandatoryFields: data.mandatoryFields || "",
+          optionalFields: data.optionalFields || "",
+          frequency: data.frequency || "",
+          oputputFormat: data.oputputFormat || [],
+          status: data.status || "pending",
+          sowFile: [],
+          sowUrls: data.sowUrls || [],
+          inputFile: [],
+          inputUrls: data.inputUrls || [],
+          clientSampleSchemaFiles: [],
+          clientSampleSchemaUrls: data.clientSampleSchemaUrls || [],
+        });
 
-      setSelectedFormats(
-  (typeof data.oputputFormat === "string"
-    ? data.oputputFormat.split(",")
-    : data.oputputFormat || []
-  ).map((f: string) => ({
-    label: f.toUpperCase(),
-    value: f
-  }))
-);
+        setSelectedFormats(
+          (typeof data.oputputFormat === "string"
+            ? data.oputputFormat.split(",")
+            : data.oputputFormat || []
+          ).map((f: string) => ({
+            label: f.toUpperCase(),
+            value: f
+          }))
+        );
 
-    } catch (err) {
-      console.error("Failed to load task:", err);
-    }
-  };
+      } catch (err) {
+        console.error("Failed to load task:", err);
+      }
+    };
 
-  if (apiUrl) load();
-}, [apiUrl, id]);
+    if (apiUrl) load();
+  }, [apiUrl, id]);
 
 
 
@@ -197,7 +197,7 @@ useEffect(() => {
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  
+
   // domain add/remove
   // const handleDomainAdd = () => {
   //   const trimmed = domainInput.trim();
@@ -225,48 +225,48 @@ useEffect(() => {
   // };
 
   const handleDomainAdd = () => {
-  const trimmed = domainInput.trim();
-  const newErrors: any = {};
-  if (!trimmed || !/^https?:\/\//i.test(trimmed)) {
-    newErrors.domain = "Platform must start with http:// or https://";
-  }
-  if (!domainPlatform) newErrors.domainPlatform = "Domain Platform is required";
+    const trimmed = domainInput.trim();
+    const newErrors: any = {};
+    if (!trimmed || !/^https?:\/\//i.test(trimmed)) {
+      newErrors.domain = "Platform must start with http:// or https://";
+    }
+    if (!domainPlatform) newErrors.domainPlatform = "Domain Platform is required";
 
-  if (Object.keys(newErrors).length > 0) {
-    setErrors((prev) => ({ ...prev, ...newErrors }));
-    return;
-  }
+    if (Object.keys(newErrors).length > 0) {
+      setErrors((prev) => ({ ...prev, ...newErrors }));
+      return;
+    }
 
-  const newDomain: DomainDetail = {
-    domain: trimmed,
-    typeOfPlatform: domainPlatform,
-    domainRemarks: domainRemark || "",
+    const newDomain: DomainDetail = {
+      domain: trimmed,
+      typeOfPlatform: domainPlatform,
+      domainRemarks: domainRemark || "",
+    };
+
+    setTask((prev) => {
+      const domainsCopy = [...prev.domainDetails];
+      if (editingIndex !== null) {
+        domainsCopy[editingIndex] = newDomain;
+      } else {
+        domainsCopy.push(newDomain);
+      }
+      return { ...prev, domainDetails: domainsCopy };
+    });
+
+    // Clear input & reset editingIndex
+    setDomainInput("");
+    setDomainPlatform("");
+    setDomainRemark("");
+    setEditingIndex(null);
   };
 
-  setTask((prev) => {
-    const domainsCopy = [...prev.domainDetails];
-    if (editingIndex !== null) {
-      domainsCopy[editingIndex] = newDomain;
-    } else {
-      domainsCopy.push(newDomain);
-    }
-    return { ...prev, domainDetails: domainsCopy };
-  });
-
-  // Clear input & reset editingIndex
-  setDomainInput("");
-  setDomainPlatform("");
-  setDomainRemark("");
-  setEditingIndex(null);
-};
-
-const handleDomainEdit = (index: number) => {
-  const domain = task.domainDetails[index];
-  setDomainInput(domain.domain);
-  setDomainPlatform(domain.typeOfPlatform);
-  setDomainRemark(domain.domainRemarks || "");
-  setEditingIndex(index);
-};
+  const handleDomainEdit = (index: number) => {
+    const domain = task.domainDetails[index];
+    setDomainInput(domain.domain);
+    setDomainPlatform(domain.typeOfPlatform);
+    setDomainRemark(domain.domainRemarks || "");
+    setEditingIndex(index);
+  };
 
 
   const handleDomainRemove = (index: number) => {
@@ -288,157 +288,165 @@ const handleDomainEdit = (index: number) => {
     if (!selectedFormats || selectedFormats.length === 0) newErrors.oputputFormat = "Please select at least one file format.";
     if (!task.domainDetails || task.domainDetails.length === 0) newErrors.domain = "At least one platform entry is required";
     if (task.sampleFileRequired && !task.requiredValumeOfSampleFile) newErrors.requiredValumeOfSampleFile = "Required volume is mandatory when sample file is required";
-   if (task.domainDetails && task.domainDetails.length > 0) {
-    const domainNames = task.domainDetails.map(d => d.name?.trim().toLowerCase());
-    const duplicates = domainNames.filter((name, index) => domainNames.indexOf(name) !== index);
+    if (task.domainDetails && task.domainDetails.length > 0) {
+      const domainNames = task.domainDetails.map(
+        (d) => (d.name || "").trim().toLowerCase()
+      );
 
-    if (duplicates.length > 0) {
-      newErrors.domain = "Duplicate domain names are not allowed.";
+      const nonEmpty = domainNames.filter((n) => n !== "");
+
+      const duplicates = nonEmpty.filter(
+        (name, index) => nonEmpty.indexOf(name) !== index
+      );
+
+      if (duplicates.length > 0) {
+        newErrors.domain = "Duplicate domain names are not allowed.";
+      }
     }
-  }
-    
+
+
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const getChangedFields = (original: any, updated: any) => {
-  const changed: any = {};
+    const changed: any = {};
 
-  const compare = (o: any, u: any, key: string) => {
-    if (Array.isArray(o) || Array.isArray(u)) {
-      if (JSON.stringify(o) !== JSON.stringify(u)) {
+    const compare = (o: any, u: any, key: string) => {
+      if (Array.isArray(o) || Array.isArray(u)) {
+        if (JSON.stringify(o) !== JSON.stringify(u)) {
+          changed[key] = u;
+        }
+      } else if (typeof o === "object" && typeof u === "object") {
+        if (JSON.stringify(o) !== JSON.stringify(u)) {
+          changed[key] = u;
+        }
+      } else if (o !== u) {
         changed[key] = u;
       }
-    } else if (typeof o === "object" && typeof u === "object") {
-      if (JSON.stringify(o) !== JSON.stringify(u)) {
-        changed[key] = u;
-      }
-    } else if (o !== u) {
-      changed[key] = u;
-    }
+    };
+
+    compare(original.title, updated.title, "title");
+    compare(
+      original.assignedTo?._id || original.assignedTo,
+      updated.assignedTo,
+      "assignedTo"
+    );
+
+    compare(original.description, updated.description, "description");
+    compare(original.typeOfDelivery, updated.typeOfDelivery, "typeOfDelivery");
+    compare(original.mandatoryFields, updated.mandatoryFields, "mandatoryFields");
+    compare(original.optionalFields, updated.optionalFields, "optionalFields");
+    compare(original.frequency, updated.frequency, "frequency");
+    compare(original.oputputFormat, updated.oputputFormat, "oputputFormat");
+    compare(original.domains, updated.domainDetails, "domains");
+    compare(original.inputUrls, updated.inputUrls, "inputUrls");
+    compare(original.clientSampleSchemaUrls, updated.clientSampleSchemaUrls, "clientSampleSchemaUrls");
+
+    // ✅ ADD THESE TWO
+    compare(original.sampleFileRequired, updated.sampleFileRequired, "sampleFileRequired");
+    compare(original.requiredValumeOfSampleFile, updated.requiredValumeOfSampleFile, "requiredValumeOfSampleFile");
+
+    return changed;
   };
-
-  compare(original.title, updated.title, "title");
-  compare(
-  original.assignedTo?._id || original.assignedTo,
-  updated.assignedTo,
-  "assignedTo"
-);
-
-  compare(original.description, updated.description, "description");
-  compare(original.typeOfDelivery, updated.typeOfDelivery, "typeOfDelivery");
-  compare(original.mandatoryFields, updated.mandatoryFields, "mandatoryFields");
-  compare(original.optionalFields, updated.optionalFields, "optionalFields");
-  compare(original.frequency, updated.frequency, "frequency");
-  compare(original.oputputFormat, updated.oputputFormat, "oputputFormat");
-  compare(original.domains, updated.domainDetails, "domains");
-  compare(original.inputUrls, updated.inputUrls, "inputUrls");
-  compare(original.clientSampleSchemaUrls, updated.clientSampleSchemaUrls, "clientSampleSchemaUrls");
-
-  // ✅ ADD THESE TWO
-  compare(original.sampleFileRequired, updated.sampleFileRequired, "sampleFileRequired");
-  compare(original.requiredValumeOfSampleFile, updated.requiredValumeOfSampleFile, "requiredValumeOfSampleFile");
-
-  return changed;
-};
 
 
 
   // Submit as new version via PUT /tasks/:id/reopen
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  if (!validateForm()) return;
-  if (!originalTask) return toast.error("Original task not loaded.");
+    e.preventDefault();
+    if (!validateForm()) return;
+    if (!originalTask) return toast.error("Original task not loaded.");
 
-  setLoading(true);
+    setLoading(true);
 
-  try {
-    // Format domains into backend structure
-    const finalDomains = task.domainDetails.map((d) => ({
-      name: d.domain,
-      typeOfPlatform: d.typeOfPlatform,
-      domainRemarks: d.domainRemarks || "",
-    }));
+    try {
+      // Format domains into backend structure
+      const finalDomains = task.domainDetails.map((d) => ({
+        name: d.domain,
+        typeOfPlatform: d.typeOfPlatform,
+        domainRemarks: d.domainRemarks || "",
+      }));
 
-    // 🔥 Normalize values BEFORE compare
-    const updatedTask = {
-      ...task,
- assignedTo: task.assignedTo,
-      // DB stores: "csv,excel"
-      oputputFormat: Array.isArray(task.oputputFormat)
-        ? task.oputputFormat.join(",")
-        : task.oputputFormat,
+      // 🔥 Normalize values BEFORE compare
+      const updatedTask = {
+        ...task,
+        assignedTo: task.assignedTo,
+        // DB stores: "csv,excel"
+        oputputFormat: Array.isArray(task.oputputFormat)
+          ? task.oputputFormat.join(",")
+          : task.oputputFormat,
 
-      // DB expects string ENUM
-      requiredValumeOfSampleFile: String(task.requiredValumeOfSampleFile || ""),
+        // DB expects string ENUM
+        requiredValumeOfSampleFile: String(task.requiredValumeOfSampleFile || ""),
 
-      domains: finalDomains,
-    };
+        domains: finalDomains,
+      };
 
-    const changedFields = getChangedFields(originalTask, updatedTask);
+      const changedFields = getChangedFields(originalTask, updatedTask);
 
-    if (Object.keys(changedFields).length === 0) {
-      toast.info("No changes detected.");
+      if (Object.keys(changedFields).length === 0) {
+        toast.info("No changes detected.");
+        setLoading(false);
+        return;
+      }
+
+      const formData = new FormData();
+
+      for (const key in changedFields) {
+
+        // send domains correctly
+        if (key === "domains") {
+          formData.append("domains", JSON.stringify(finalDomains));
+          continue;
+        }
+
+        // send oputputFormat as string
+        if (key === "oputputFormat") {
+          formData.append("oputputFormat", updatedTask.oputputFormat);
+          continue;
+        }
+
+        // send requiredValumeOfSampleFile as string
+        if (key === "requiredValumeOfSampleFile") {
+          formData.append("requiredValumeOfSampleFile", updatedTask.requiredValumeOfSampleFile);
+          continue;
+        }
+
+        // normal fields
+        if (
+          Array.isArray(changedFields[key]) ||
+          typeof changedFields[key] === "object"
+        ) {
+          formData.append(key, JSON.stringify(changedFields[key]));
+        } else {
+          formData.append(key, changedFields[key]);
+        }
+      }
+
+      const res = await fetch(`${apiUrl}/tasks/${id}/reopen`, {
+        method: "PUT",
+        credentials: "include",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.message || "Failed to save version");
+        return;
+      }
+
+      toast.success("Task reopened successfully!");
+      setTimeout(() => navigate("/tasks"), 900);
+
+    } catch (error) {
+      toast.error("Unexpected error");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const formData = new FormData();
-
-    for (const key in changedFields) {
-
-      // send domains correctly
-      if (key === "domains") {
-        formData.append("domains", JSON.stringify(finalDomains));
-        continue;
-      }
-
-      // send oputputFormat as string
-      if (key === "oputputFormat") {
-        formData.append("oputputFormat", updatedTask.oputputFormat);
-        continue;
-      }
-
-      // send requiredValumeOfSampleFile as string
-      if (key === "requiredValumeOfSampleFile") {
-        formData.append("requiredValumeOfSampleFile", updatedTask.requiredValumeOfSampleFile);
-        continue;
-      }
-
-      // normal fields
-      if (
-        Array.isArray(changedFields[key]) ||
-        typeof changedFields[key] === "object"
-      ) {
-        formData.append(key, JSON.stringify(changedFields[key]));
-      } else {
-        formData.append(key, changedFields[key]);
-      }
-    }
-
-    const res = await fetch(`${apiUrl}/tasks/${id}/reopen`, {
-      method: "PUT",
-      credentials: "include",
-      body: formData,
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      toast.error(data.message || "Failed to save version");
-      return;
-    }
-
-    toast.success("Task reopened successfully!");
-    setTimeout(() => navigate("/tasks"), 900);
-
-  } catch (error) {
-    toast.error("Unexpected error");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
 
 
@@ -509,7 +517,7 @@ const handleDomainEdit = (index: number) => {
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-gray-700 font-medium mb-2">Task Name <span className="text-red-500">*</span></label>
-                      <input type="text" name="title" value={task.title} onChange={handleChange} className="w-full border rounded-lg p-3" readOnly/>
+                      <input type="text" name="title" value={task.title} onChange={handleChange} className="w-full border rounded-lg p-3" readOnly />
                       {renderError("title")}
                     </div>
 
@@ -547,20 +555,20 @@ const handleDomainEdit = (index: number) => {
                     </div>
 
                     {task.domainDetails.length > 0 && (
-  <div className="space-y-2">
-    {task.domainDetails.map((d, i) => (
-      <div key={i} className="flex flex-col sm:flex-row justify-between items-center bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
-        <span className="text-sm font-medium text-gray-800 mb-2 sm:mb-0">{d.domain}</span>
-        <span className="text-xs bg-blue-100 text-blue-700 font-semibold px-3 py-1 rounded-full">{d.typeOfPlatform || "-"}</span>
-        {d.domainRemarks && <span className="text-xs bg-blue-100 text-blue-800 px-3 py-1 rounded-full">{d.domainRemarks}</span>}
-        <div className="flex gap-2 mt-2 sm:mt-0">
-          <button type="button" onClick={() => handleDomainEdit(i)} className="text-yellow-500 text-sm hover:text-yellow-700">✏️</button>
-          <button type="button" onClick={() => handleDomainRemove(i)} className="text-red-500 text-sm hover:text-red-700">❌</button>
-        </div>
-      </div>
-    ))}
-  </div>
-)}
+                      <div className="space-y-2">
+                        {task.domainDetails.map((d, i) => (
+                          <div key={i} className="flex flex-col sm:flex-row justify-between items-center bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
+                            <span className="text-sm font-medium text-gray-800 mb-2 sm:mb-0">{d.domain}</span>
+                            <span className="text-xs bg-blue-100 text-blue-700 font-semibold px-3 py-1 rounded-full">{d.typeOfPlatform || "-"}</span>
+                            {d.domainRemarks && <span className="text-xs bg-blue-100 text-blue-800 px-3 py-1 rounded-full">{d.domainRemarks}</span>}
+                            <div className="flex gap-2 mt-2 sm:mt-0">
+                              <button type="button" onClick={() => handleDomainEdit(i)} className="text-yellow-500 text-sm hover:text-yellow-700">✏️</button>
+                              <button type="button" onClick={() => handleDomainRemove(i)} className="text-red-500 text-sm hover:text-red-700">❌</button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
 
                     {errors.domain && <p className="text-red-500 text-sm">{errors.domain}</p>}
@@ -649,14 +657,14 @@ const handleDomainEdit = (index: number) => {
                       <label className="block text-gray-700 font-medium mb-2">Input Document URL </label>
                       <input type="text" name="inputUrls" value={task.inputUrls[0] || ""} onChange={(e) => handleSingleInputUrlChange(e.target.value)} className="w-full border rounded-lg p-3" />
                       {renderError("inputUrls")}
-                     
+
                     </div>
 
                     <div>
                       <label className="block text-gray-700 font-medium mb-2">Client Sample Schema Document URL </label>
                       <input type="text" name="clientSampleSchemaUrls" value={task.clientSampleSchemaUrls[0] || ""} onChange={(e) => handleSingleClientSampleSchemaUrlChange(e.target.value)} className="w-full border rounded-lg p-3" />
                       {renderError("clientSampleSchemaUrls")}
-                      
+
                     </div>
                   </div>
                 )}
