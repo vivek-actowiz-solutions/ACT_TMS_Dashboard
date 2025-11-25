@@ -23,8 +23,17 @@ const storage = multer.diskStorage({
 
     // --------------------- FIXED ---------------------
     let projectName = "project";
-    if (req.body.title) projectName = req.body.title.replace(/\s+/g, "_");
-    if (req.query.title) projectName = req.query.title.replace(/\s+/g, "_");
+    if (req.body.title) {
+      projectName = req.body.title
+        .replace(/\s+/g, "_")                // replace spaces
+        .replace(/[^a-zA-Z0-9._-]/g, "_");   // remove illegal characters
+    }
+
+    if (req.query.title) {
+      projectName = req.query.title
+        .replace(/\s+/g, "_")
+        .replace(/[^a-zA-Z0-9._-]/g, "_");
+    }
 
     let fileType = "file";
 

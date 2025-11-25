@@ -166,6 +166,11 @@ const CreateTaskUI: React.FC = () => {
       newErrors.domain = "Duplicate domain names are not allowed.";
     }
 
+    if (task.inputUrls.some((url) => url && !/^https?:\/\//i.test(url.trim()))) {
+      newErrors.inputUrls = "All Input URLs must start with http:// or https://";
+    }
+
+
     if (task.sampleFileRequired && !task.requiredValumeOfSampleFile)
       newErrors.requiredValumeOfSampleFile = "Required volume is mandatory when sample file is required";
     // if (!(task.inputUrls || []).some((u) => u.trim() !== "")) newErrors.inputUrls = "Input URL is required";

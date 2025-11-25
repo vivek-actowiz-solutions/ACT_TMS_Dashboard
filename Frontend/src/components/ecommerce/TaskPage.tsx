@@ -9,7 +9,7 @@ import { FiEye, FiEdit2, FiRotateCw } from "react-icons/fi";
 import { GrCompliance } from "react-icons/gr"; // View, Edit, Submit
 
 import "react-toastify/dist/ReactToastify.css";
-import { FiClipboard, FiClock, FiCheckCircle, FiAlertCircle, FiPlay, FiBox,FiAlertTriangle} from "react-icons/fi";
+import { FiClipboard, FiClock, FiCheckCircle, FiAlertCircle, FiPlay, FiBox, FiAlertTriangle } from "react-icons/fi";
 import { FaThumbtack } from "react-icons/fa";
 import { FaFileExcel } from "react-icons/fa";
 import { MdReplay } from "react-icons/md";
@@ -223,7 +223,7 @@ const TaskPage: React.FC = () => {
         delayed = 0,
         inRD = 0,
         completed = 0;
-        let Reopened = 0;
+      let Reopened = 0;
 
       Object.values(data).forEach((d) => {
         total += d.total || 0;
@@ -235,7 +235,7 @@ const TaskPage: React.FC = () => {
         Reopened += d.Reopened || 0;
       });
 
-      setStats({ total, pending, inProgress, delayed, inRD, completed,Reopened });
+      setStats({ total, pending, inProgress, delayed, inRD, completed, Reopened });
     } catch (err) {
       console.error("Stats fetch error:", err);
     } finally {
@@ -317,10 +317,10 @@ const TaskPage: React.FC = () => {
       });
 
       const data = await res.json();
-      
-      
+
+
       setTasks(data.tasks || []);
-      
+
 
       setTotalPages(data.totalPages || 1);
     } catch (err) {
@@ -333,7 +333,7 @@ const TaskPage: React.FC = () => {
 
   useEffect(() => {
     fetchTasks();
-}, [searchText, statusFilter, assignedByFilter, page, pageSize]);
+  }, [searchText, statusFilter, assignedByFilter, page, pageSize]);
 
   const expandedRows = useMemo(() => {
     const rows: any[] = [];
@@ -561,38 +561,38 @@ const TaskPage: React.FC = () => {
         }}
       />
       <div className="mb-5 text-black">
-  {/* First row: 2 cards */}
-  <div className="grid grid-cols-2 gap-4 mb-4">
-    {cards.slice(0, 2).map((card, idx) => (
-      <div
-        key={idx}
-        className={`${card.bgColor} rounded-lg p-4 text-center shadow hover:shadow-lg transition text-black flex flex-col items-center justify-center`}
-      >
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <span className="text-2xl">{card.icon}</span>
-          <h3 className="text-lg font-medium whitespace-nowrap">{card.label}</h3>
+        {/* First row: 2 cards */}
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          {cards.slice(0, 2).map((card, idx) => (
+            <div
+              key={idx}
+              className={`${card.bgColor} rounded-lg p-4 text-center shadow hover:shadow-lg transition text-black flex flex-col items-center justify-center`}
+            >
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <span className="text-2xl">{card.icon}</span>
+                <h3 className="text-lg font-medium whitespace-nowrap">{card.label}</h3>
+              </div>
+              <p className="text-2xl font-bold">{card.value}</p>
+            </div>
+          ))}
         </div>
-        <p className="text-2xl font-bold">{card.value}</p>
-      </div>
-    ))}
-  </div>
 
-  {/* Second row: remaining cards */}
-  <div className="grid grid-cols-5 gap-4">
-    {cards.slice(2).map((card, idx) => (
-      <div
-        key={idx}
-        className={`${card.bgColor} rounded-lg p-4 text-center shadow hover:shadow-lg transition text-black flex flex-col items-center justify-center`}
-      >
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <span className="text-2xl">{card.icon}</span>
-          <h3 className="text-lg font-medium whitespace-nowrap">{card.label}</h3>
+        {/* Second row: remaining cards */}
+        <div className="grid grid-cols-5 gap-4">
+          {cards.slice(2).map((card, idx) => (
+            <div
+              key={idx}
+              className={`${card.bgColor} rounded-lg p-4 text-center shadow hover:shadow-lg transition text-black flex flex-col items-center justify-center`}
+            >
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <span className="text-2xl">{card.icon}</span>
+                <h3 className="text-lg font-medium whitespace-nowrap">{card.label}</h3>
+              </div>
+              <p className="text-2xl font-bold">{card.value}</p>
+            </div>
+          ))}
         </div>
-        <p className="text-2xl font-bold">{card.value}</p>
       </div>
-    ))}
-  </div>
-</div>
       {(role === "Admin" || role === "Sales" || role === "Manager" || role === "TL") && (
         <div className="my-5 text-xl flex items-center font-semibold">
           <FaThumbtack className="inline-block mr-2 text-blue-600" />
@@ -632,20 +632,20 @@ const TaskPage: React.FC = () => {
               </option>
             ))}
           </select>
-          {(role === "Admin" || role === "Sales" || role === "Manager" || role === "TL")&& (
+          {(role === "Admin" || role === "Sales" || role === "Manager" || role === "TL") && (
             <select
-            value={assignedByFilter}
-            onChange={(e) => { setAssignedByFilter(e.target.value); setPage(1); }}
-            className="w-full md:w-48 p-2 rounded-lg border border-gray-300 bg-white text-gray-800"
-          >
-            <option value="" hidden>Assigned By</option>
+              value={assignedByFilter}
+              onChange={(e) => { setAssignedByFilter(e.target.value); setPage(1); }}
+              className="w-full md:w-48 p-2 rounded-lg border border-gray-300 bg-white text-gray-800"
+            >
+              <option value="" hidden>Assigned By</option>
 
-            {salesList.map((user) => (
-              <option key={user._id} value={user.name}>
-                {user.name}
-              </option>
-            ))}
-          </select>
+              {salesList.map((user) => (
+                <option key={user._id} value={user.name}>
+                  {user.name}
+                </option>
+              ))}
+            </select>
           )}
 
 
@@ -771,29 +771,29 @@ const TaskPage: React.FC = () => {
                     ),
                 },
                 {
-  field: "feasible",
-  headerName: "Feasible",
-  width: 120,
-  renderCell: (params) => {
-    const val = params.row.feasible;
+                  field: "feasible",
+                  headerName: "Feasible",
+                  width: 120,
+                  renderCell: (params) => {
+                    const val = params.row.feasible;
 
-    if (val === "true" || val === true)
-      return (
-        <span className="text-green-600 text-xl font-bold">
-          ✔
-        </span>
-      );
+                    if (val === "true" || val === true)
+                      return (
+                        <span className="text-green-600 text-xl font-bold">
+                          ✔
+                        </span>
+                      );
 
-    if (val === "false" || val === false)
-      return (
-        <span className="text-red-600 text-xl font-bold">
-          ✘
-        </span>
-      );
+                    if (val === "false" || val === false)
+                      return (
+                        <span className="text-red-600 text-xl font-bold">
+                          ✘
+                        </span>
+                      );
 
-    return <span>–</span>; // no submission exists
-  },
-},
+                    return <span>–</span>; // no submission exists
+                  },
+                },
 
                 { field: "assignedDate", headerName: "Assigned Date", flex: 1 },
                 { field: "completionDate", headerName: "Completion Date", flex: 1 },
@@ -932,8 +932,8 @@ const TaskPage: React.FC = () => {
                           e.stopPropagation(); // prevent row click issues
 
                           const url = `/tasks/${params.row.task._id}${params.row.domainName
-                              ? `?domain=${encodeURIComponent(params.row.domainName)}`
-                              : ""
+                            ? `?domain=${encodeURIComponent(params.row.domainName)}`
+                            : ""
                             }`;
 
                           window.open(url, "_blank"); // 🔥 opens in new tab
@@ -1020,16 +1020,16 @@ const TaskPage: React.FC = () => {
                         />
                       }
                       {(role === "Admin" || role === "Manager" || role === "Sales") &&
-  params.row.status?.trim().toLowerCase() === "submitted" &&
-  params.row.reopenCount === 0 &&
-   (
-    <MdReplay
-      onClick={() => navigate(`/tasks/${params.row.task._id}/reopen`)}
-      className="cursor-pointer text-red-600 hover:text-red-700"
-      title="Reopen Task"
-      size={18}
-    />
-)}
+                        params.row.status?.trim().toLowerCase() === "submitted" &&
+                        params.row.reopenCount === 0 &&
+                        (
+                          <MdReplay
+                            onClick={() => navigate(`/tasks/${params.row.task._id}/reopen`)}
+                            className="cursor-pointer text-red-600 hover:text-red-700"
+                            title="Reopen Task"
+                            size={18}
+                          />
+                        )}
 
 
                     </div>
