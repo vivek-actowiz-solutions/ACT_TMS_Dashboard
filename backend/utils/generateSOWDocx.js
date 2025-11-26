@@ -187,7 +187,7 @@ export const generateSOWDocxFromTemplate = async (task,
             children: [
               new TextRun({
                 text: `This document outlines the research and feasibility evaluation for implementing a data collection and delivery solution through ${task.typeOfDelivery || "-"
-                  } model.`,
+                  } model.  `,
                 size: 24,
               }),
               new TextRun({
@@ -796,9 +796,6 @@ export const generateSOWDocxFromTemplate = async (task,
                     dividerLine,
                   ];
                 }
-
-
-
 
                 // ⭐ DEFAULT FOR OTHER FIELDS
                 return [

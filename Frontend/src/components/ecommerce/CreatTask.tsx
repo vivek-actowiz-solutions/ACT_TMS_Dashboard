@@ -87,7 +87,7 @@ const CreateTaskUI: React.FC = () => {
   const options = [
     { label: "CSV", value: "csv" },
     { label: "JSON", value: "json" },
-    { label: "Excel", value: "excel" },
+    { label: "Excel ", value: "excel" },
     { label: "Parquet", value: "parquet" },
 
   ];
@@ -144,6 +144,10 @@ const CreateTaskUI: React.FC = () => {
     setTask({ ...task, domainDetails: updated });
   };
 
+  const clearError = (field) => {
+    setErrors((prev) => ({ ...prev, [field]: "" }));
+  };
+
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
     if (!task.title.trim()) newErrors.title = "Title is required";
@@ -166,13 +170,17 @@ const CreateTaskUI: React.FC = () => {
       newErrors.domain = "Duplicate domain names are not allowed.";
     }
 
-    if (task.inputUrls.some((url) => url && !/^https?:\/\//i.test(url.trim()))) {
-      newErrors.inputUrls = "All Input URLs must start with http:// or https://";
-    }
-
-
     if (task.sampleFileRequired && !task.requiredValumeOfSampleFile)
       newErrors.requiredValumeOfSampleFile = "Required volume is mandatory when sample file is required";
+
+    // if (task.inputUrls.some((url) => url && !/^https?:\/\//i.test(url.trim()))) {
+    //   newErrors.inputUrls = "All Input URLs must start with http:// or https://";
+    // }
+
+    if (task.clientSampleSchemaUrls.some((url) => url && !/^https?:\/\//i.test(url.trim()))) {
+      newErrors.clientSampleSchemaUrls = "All Client Sample Schema URLs must start with http:// or https://";
+    }
+
     // if (!(task.inputUrls || []).some((u) => u.trim() !== "")) newErrors.inputUrls = "Input URL is required";
     // if (!(task.clientSampleSchemaUrls || []).some((u) => u.trim() !== ""))
     //   newErrors.clientSampleSchemaUrls = "Client Sample Schema URL is required";
@@ -299,13 +307,13 @@ const CreateTaskUI: React.FC = () => {
                         }
                       }} placeholder="https://www.xyz.com/" className="flex-1 border rounded-lg p-3" />
                       <select value={domainPlatform} onChange={(e) => {
-  setDomainPlatform(e.target.value);
+                        setDomainPlatform(e.target.value);
 
-  // remove platform error instantly
-  if (e.target.value) {
-    setErrors(prev => ({ ...prev, domainPlatform: "" }));
-  }
-}}className="border rounded-lg p-3">
+                        // remove platform error instantly
+                        if (e.target.value) {
+                          setErrors(prev => ({ ...prev, domainPlatform: "" }));
+                        }
+                      }} className="border rounded-lg p-3">
                         <option value="" hidden>Select Platform Type</option>
                         <option value="web">Web</option>
                         <option value="app">App</option>
@@ -499,13 +507,19 @@ const CreateTaskUI: React.FC = () => {
                 {section.id === 4 && (
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-gray-700 font-medium mb-2">Input Document URL </label>
-                      <input type="text" name="inputUrls" value={task.inputUrls[0] || ""} onChange={(e) => setTask({ ...task, inputUrls: [e.target.value.trim()] })} className="w-full border rounded-lg p-3" />
-                      {renderError("inputUrls")}
+                      <label className="block text-gray-700 font-medium mb-2">Input Document URL/Input Keywords</label>
+                      <input type="text" name="inputUrls" value={task.inputUrls[0] || ""} onChange={(e) => {
+                        setTask({ ...task, inputUrls: [e.target.value.trim()] });
+                        
+                      }} className="w-full border rounded-lg p-3" />
+                     
                     </div>
                     <div>
                       <label className="block text-gray-700 font-medium mb-2">Client Sample Schema Document URL </label>
-                      <input type="text" name="clientSampleSchemaUrls" value={task.clientSampleSchemaUrls[0] || ""} onChange={(e) => setTask({ ...task, clientSampleSchemaUrls: [e.target.value.trim()] })} className="w-full border rounded-lg p-3" />
+                      <input type="text" name="clientSampleSchemaUrls" value={task.clientSampleSchemaUrls[0] || ""} onChange={(e) => {
+                        setTask({ ...task, clientSampleSchemaUrls: [e.target.value.trim()] });
+                        clearError("clientSampleSchemaUrls"); // 🔥 remove error instantly
+                      }} className="w-full border rounded-lg p-3" />
                       {renderError("clientSampleSchemaUrls")}
                     </div>
                   </div>

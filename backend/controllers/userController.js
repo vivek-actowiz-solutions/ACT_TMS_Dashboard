@@ -2,10 +2,10 @@ import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
- 
+
 // Create a new user
 export const createUser = async (req, res) => {
-  const { name, email, password, department, designation, role ,slackId} = req.body;
+  const { name, email, password, department, designation, role, slackId } = req.body;
 
   if (!name || !email || !password) {
     return res.status(400).json({ message: "Name, email, and password are required." });
@@ -36,8 +36,6 @@ export const createUser = async (req, res) => {
     maxAge: 24 * 60 * 60 * 1000, // 1 day
   });
 
-
-
   await newUser.save();
   res.status(201).json({ message: "User registered successfully" });
 
@@ -61,21 +59,20 @@ export const loginUser = async (req, res) => {
 
   const token = jwt.sign({ id: user._id, role: user.role, email: user.email, name: user.name }, JWT_SECRET, { expiresIn: "1d" });
   // req.cookies.token = token;
-
   res.cookie("token", token, {
     httpOnly: false,
     sameSite: "lax",
-secure: false,
+    secure: false,
     maxAge: 24 * 60 * 60 * 1000,
   });
 
   //console.log("Created JWT:", token);
 
   res.json({ message: "Login successful" });
-// server login response
-// res
-//   .cookie("token", token, { httpOnly: true })
-//   .json({ role: user.role, name: user.name }); // send minimal info
+  // server login response
+  // res
+  //   .cookie("token", token, { httpOnly: true })
+  //   .json({ role: user.role, name: user.name }); // send minimal info
 
 }
 

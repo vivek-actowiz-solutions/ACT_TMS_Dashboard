@@ -35,6 +35,8 @@ const storage = multer.diskStorage({
         .replace(/[^a-zA-Z0-9._-]/g, "_");
     }
 
+
+
     let fileType = "file";
 
     if (file.fieldname === "file") fileType = "file";
@@ -56,7 +58,7 @@ const fileFilter = (req, file, cb) => {
   if (
     file.mimetype === "application/json" ||
     file.mimetype === "text/json" ||
-    file.mimetype === "application/octet-stream"||
+    file.mimetype === "application/octet-stream" ||
     file.mimetype === "text/plain"
   ) {
     cb(null, true);

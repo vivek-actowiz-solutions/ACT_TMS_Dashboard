@@ -18,6 +18,8 @@ import AdminDashboard from "./components/ecommerce/AdminDashboard";
 import PrivateRoute from "./pages/Auth/PrivateRoute";
 import AdminRoute from "./pages/Auth/AdminRoute";
 import ReopenTask from "./components/ecommerce/ReopenTask";
+import POC from "./components/ecommerce/POC";
+import GeneratePOC from "./components/ecommerce/GeneratePOC";
 
 export default function App() {
   return (
@@ -38,8 +40,8 @@ export default function App() {
               <Route path="/tasks/:id" element={<TaskDetail />} />
               <Route path="/tasks/:id/edit-submit" element={<EditSubmitPage />} />
               <Route path="/tasks/:id/reopen" element={<ReopenTask />} />
-
-
+              <Route path="/poc/create/:taskId" element={<POC />} />
+              <Route path="/generate-poc" element={<GeneratePOC />} />
               
               
               <Route element={<AdminRoute />}>

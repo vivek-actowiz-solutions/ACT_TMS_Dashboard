@@ -4,6 +4,7 @@ import cors from 'cors';
 import taskRoutes from './routes/taskRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import activityRoutes from './routes/activityRoutes.js';
+import POCRoutes from './routes/POCRoutes.js';
 import path from "path";
 import { fileURLToPath } from "url";
 import cookieParser from "cookie-parser";
@@ -34,13 +35,15 @@ app.use(
   })
 );
 
+app.use("/api/uploads/poc", express.static(path.join(process.cwd(), "uploads/poc")));
+
 
 connectDB();
 
 const PORT=process.env.PORT 
 
 const allowedOrigins = [
-  process.env.FRONTEND_URL,
+  process.env.FRONTEND_URL, 
 ];
 app.use(
   cors({
@@ -58,10 +61,10 @@ app.use(
 app.use(express.json());
 
 
-
 app.use("/api", taskRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/activity", activityRoutes);
+app.use("/api/poc", POCRoutes);
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running at http://0.0.0.0:${PORT}`);

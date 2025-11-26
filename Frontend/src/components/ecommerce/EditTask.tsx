@@ -80,7 +80,7 @@ const EditTaskUI: React.FC<{ taskData?: Task }> = ({ taskData }) => {
   }, []);
 
   // Filtered user options
-  const developerOptions = users.filter((u) => u.role === "Developer");
+  const developerOptions = users.filter((u) => u.role === "Developer" || u.role === "TL");
 
 
   const normalizeUserId = (user: any) => {

@@ -10,6 +10,9 @@ import { GrCompliance } from "react-icons/gr"; // View, Edit, Submit
 
 import "react-toastify/dist/ReactToastify.css";
 import { FiClipboard, FiClock, FiCheckCircle, FiAlertCircle, FiPlay, FiBox, FiAlertTriangle } from "react-icons/fi";
+import { GoIssueReopened } from "react-icons/go";
+import { LuClockAlert } from "react-icons/lu";
+
 import { FaThumbtack } from "react-icons/fa";
 import { FaFileExcel } from "react-icons/fa";
 import { MdReplay } from "react-icons/md";
@@ -20,6 +23,7 @@ import { Popover, Typography } from "@mui/material";
 import HistoryModal from "./HistoryModal";
 import { createPortal } from "react-dom";
 import { toast, ToastContainer } from "react-toastify";
+import GeneratePOCModal from "./GeneratePOC";
 
 
 
@@ -136,6 +140,13 @@ const TaskPage: React.FC = () => {
   const [assignedByFilter, setAssignedByFilter] = useState("");
 
   const [salesList, setSalesList] = useState<any[]>([]);
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [openStatusDropdown, setOpenStatusDropdown] = useState(false);
+  const [showPOCModal, setShowPOCModal] = useState(false);
+  const [showPOCForm, setShowPOCForm] = useState(false);
+
+
+
 
   const fetchSalesUsers = async () => {
     try {
@@ -266,9 +277,9 @@ const TaskPage: React.FC = () => {
     { label: "Completed ", value: stats.completed, icon: <FiCheckCircle />, bgColor: "bg-green-50", textColor: "text-gray-500" },
     { label: "Pending ", value: stats.pending, icon: <FiClock />, bgColor: "bg-yellow-50", textColor: "text-gray-500" },
     { label: "In-Progress ", value: stats.inProgress, icon: <FiPlay />, bgColor: "bg-purple-50", textColor: "text-gray-500" },
-    { label: "Delayed ", value: stats.delayed, icon: <FiAlertCircle />, bgColor: "bg-red-50", textColor: "text-gray-500" },
+    { label: "Delayed ", value: stats.delayed, icon: <LuClockAlert />, bgColor: "bg-red-50", textColor: "text-gray-500" },
     { label: "In-R&D", value: stats.inRD, icon: <FiBox />, bgColor: "bg-orange-50", textColor: "text-gray-500" },
-    { label: "Reopened", value: stats.Reopened, icon: <FiAlertTriangle />, bgColor: "bg-amber-50", textColor: "text-gray-500" },
+    { label: "Reopened", value: stats.Reopened, icon: <GoIssueReopened />, bgColor: "bg-amber-50", textColor: "text-gray-500" },
   ];
 
   if (token) {
@@ -300,7 +311,7 @@ const TaskPage: React.FC = () => {
 
       const queryParams = new URLSearchParams({
         search: searchText,
-        status: statusParam,
+        status: selectedStatuses.join(","),
         page: page.toString(),
         assignedBy: assignedByFilter,
 
@@ -333,7 +344,7 @@ const TaskPage: React.FC = () => {
 
   useEffect(() => {
     fetchTasks();
-  }, [searchText, statusFilter, assignedByFilter, page, pageSize]);
+  }, [searchText, selectedStatuses, assignedByFilter, page, pageSize]);
 
   const expandedRows = useMemo(() => {
     const rows: any[] = [];
@@ -456,10 +467,6 @@ const TaskPage: React.FC = () => {
       </div>
     );
   }
-
-
-
-
 
   const avatarColor = (name: string) => {
     const colors = ["#FFCA28", "#29B6F6", "#AB47BC", "#FF7043", "#66BB6A"];
@@ -621,7 +628,7 @@ const TaskPage: React.FC = () => {
           />
 
 
-          <select
+          {/* <select
             value={statusFilter}
             onChange={(e) => { setStatusFilter(e.target.value); setPage(1) }}
             className="w-full md:w-48 p-2 rounded-lg border border-gray-300 bg-white text-gray-800"
@@ -631,7 +638,10 @@ const TaskPage: React.FC = () => {
                 {s}
               </option>
             ))}
-          </select>
+          </select> */}
+
+
+
           {(role === "Admin" || role === "Sales" || role === "Manager" || role === "TL") && (
             <select
               value={assignedByFilter}
@@ -650,18 +660,75 @@ const TaskPage: React.FC = () => {
 
 
           {/* RESET FILTER BUTTON */}
-          <button
-            onClick={() => {
-              setSearchText("");
-              setStatusFilter("");
-              setAssignedByFilter("");
-              setPage(1);
-            }}
-            className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg"
-          >
-            Clear Filters
-          </button>
+
         </div>
+        <div className="relative w-48">
+          <div
+            className="border rounded-lg px-3 py-3 bg-white  flex items-center justify-between cursor-pointer"
+            onClick={() => setOpenStatusDropdown(!openStatusDropdown)}
+          >
+            <span className="text-sm text-gray-700">
+              {selectedStatuses.length === 0
+                ? "Select Status"
+                : selectedStatuses.join(", ")}
+            </span>
+
+            <svg
+              className={`w-4 h-4 transform transition ${openStatusDropdown ? "rotate-180" : ""
+                }`}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+
+          {openStatusDropdown && (
+            <div className="absolute left-0 right-0 mt-1 bg-white border rounded shadow-lg z-10 p-2 max-h-48 overflow-y-auto">
+              {[
+                "pending",
+                "in-progress",
+                "Reopened",
+                "submitted",
+                "delayed",
+                "in-R&D",
+              ].map((status) => (
+                <label
+                  key={status}
+                  className="flex items-center gap-2 p-1 cursor-pointer text-sm"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedStatuses.includes(status)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedStatuses([...selectedStatuses, status]);
+                      } else {
+                        setSelectedStatuses(selectedStatuses.filter((s) => s !== status));
+                      }
+                    }}
+                  />
+                  {status}
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <button
+          onClick={() => {
+            setSearchText("");
+            setSelectedStatuses([]);
+            setAssignedByFilter("");
+            setPage(1);
+          }}
+          className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg"
+        >
+          Clear Filters
+        </button>
+
         {(role === "Admin" || role === "Sales" || role === "Manager") && (
           <button
             onClick={() => navigate("/create")}
@@ -669,6 +736,15 @@ const TaskPage: React.FC = () => {
           >
             + Create Task
           </button>
+        )}
+        {(role === "Admin" || role === "Manager" || role === "Sales") && (
+          <button
+            onClick={() => setShowPOCModal(true)}
+            className="bg-[#3C01AF] hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-semibold"
+          >
+            💡 Generate POC File
+          </button>
+
         )}
       </div>
       {tableloading ? <>  <div className="flex justify-center items-center min-h-screen">
@@ -682,7 +758,7 @@ const TaskPage: React.FC = () => {
               width: "100%",
               overflowX: "auto", // ✅ horizontal scroll for smaller screens
               "& .MuiDataGrid-root": {
-                minWidth: 900, // ✅ Prevent squishing columns
+                minWidth: "100%", // ✅ Prevent squishing columns
               },
               "@media (max-width: 768px)": {
                 "& .MuiDataGrid-columnHeaders": { fontSize: "0.75rem" },
@@ -692,6 +768,7 @@ const TaskPage: React.FC = () => {
             }}
           >
             <DataGrid
+              disableColumnResize
               disableColumnMenu
               disableColumnSelector
               disableColumnFilter
@@ -717,12 +794,18 @@ const TaskPage: React.FC = () => {
                 reopenCount: row.task.reopenCount,
               }))}
               columns={[
+                // ✅ No. column
                 { field: "srNo", headerName: "No.", width: 70 },
-                { field: "projectCode", headerName: "Project Code", flex: 1 },
+
+                // ✅ Project Code column
+                { field: "projectCode", headerName: "Project Code", width: 100 },
+
+
+                // ✅ Platform column with clickable URL
                 {
                   field: "platform",
                   headerName: "Platform",
-                  flex: 2,
+                  width: 200,
                   renderCell: (params) => {
                     const platform = params.row.platform || "-";
 
@@ -759,7 +842,9 @@ const TaskPage: React.FC = () => {
                   },
                 }
                 ,
-                { field: "project", headerName: "Project", flex: 1 },
+                // ✅ Project column
+                { field: "project", headerName: "Project", width: 180 },
+                // ✅ Assigned By column
                 {
                   field: "assignedBy",
                   headerName: "Assigned By",
@@ -770,6 +855,7 @@ const TaskPage: React.FC = () => {
                       params.row.id + "-by"
                     ),
                 },
+                // ✅ Feasible column
                 {
                   field: "feasible",
                   headerName: "Feasible",
@@ -794,10 +880,11 @@ const TaskPage: React.FC = () => {
                     return <span>–</span>; // no submission exists
                   },
                 },
-
+                // ✅ Assigned Date column
                 { field: "assignedDate", headerName: "Assigned Date", flex: 1 },
-                { field: "completionDate", headerName: "Completion Date", flex: 1 },
 
+                // ✅ Completion Date column
+                { field: "completionDate", headerName: "Completion Date", flex: 1 },
 
                 // ✅ Developers column
                 {
@@ -886,6 +973,7 @@ const TaskPage: React.FC = () => {
                   renderCell: (params) => (
                     <span
                       onClick={() => {
+                        if (params.row.status === "submitted") return;
                         if (["TL", "Manager", "Admin"].includes(role)) {
                           const domainObj =
                             params.row.task?.domains?.find(
@@ -1258,6 +1346,17 @@ const TaskPage: React.FC = () => {
         />
 
       )}
+
+      {showPOCModal && (
+        <GeneratePOCModal
+          onClose={() => setShowPOCModal(false)}
+          onSelect={(taskId: string) => {
+            setShowPOCModal(false);
+            navigate(`/poc/create/${taskId}`);
+          }}
+        />
+      )}
+
 
 
     </>

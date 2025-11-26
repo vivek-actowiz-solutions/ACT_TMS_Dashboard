@@ -84,6 +84,8 @@ const ReopenTask: React.FC = () => {
 
 
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [isChanged, setIsChanged] = useState(false);
+
 
 
   const DeliveryTypes = [
@@ -98,6 +100,38 @@ const ReopenTask: React.FC = () => {
     { label: "Excel", value: "excel" },
     { label: "Parquet", value: "parquet" },
   ];
+
+  const normalize = (task: any) => {
+  return {
+    ...task,
+    // Normalize Output Format
+    oputputFormat: Array.isArray(task.oputputFormat)
+      ? task.oputputFormat
+      : (task.oputputFormat || "").split(",").map((s: string) => s.trim()),
+
+    // Normalize Domains (rename name → domain)
+    domains: (task.domains || []).map((d: any) => ({
+      domain: d.name || "",
+      typeOfPlatform: d.typeOfPlatform || "",
+      domainRemarks: d.domainRemarks || "",
+    })),
+
+    // Normalize inputUrls
+    inputUrls: Array.isArray(task.inputUrls)
+      ? task.inputUrls
+      : task.inputUrls
+        ? [task.inputUrls]
+        : [""] ,
+
+    // Normalize clientSampleSchemaUrls
+    clientSampleSchemaUrls: Array.isArray(task.clientSampleSchemaUrls)
+      ? task.clientSampleSchemaUrls
+      : task.clientSampleSchemaUrls
+        ? [task.clientSampleSchemaUrls]
+        : [""],
+  };
+};
+
 
 
   useEffect(() => {
@@ -129,10 +163,12 @@ const ReopenTask: React.FC = () => {
 
         const data = await res.json();
 
-        setOriginalTask({
-          ...data,
-          assignedTo: data.assignedTo?._id || ""   // normalize
-        });
+        // setOriginalTask({
+        //   ...data,
+        //   assignedTo: data.assignedTo?._id || ""   // normalize
+        // });
+        setOriginalTask(normalize(data));
+
 
 
         setTask({
@@ -196,6 +232,23 @@ const ReopenTask: React.FC = () => {
     }));
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
+
+  useEffect(() => {
+    if (!originalTask) return;
+
+    const updatedTask = normalize({
+      ...task,
+      oputputFormat: Array.isArray(task.oputputFormat)
+        ? task.oputputFormat
+        : (task.oputputFormat || "").split(","),
+      domains: task.domainDetails
+    });
+
+    const changed = getChangedFields(originalTask, updatedTask);
+
+    setIsChanged(Object.keys(changed).length > 0);
+  }, [task, originalTask]);
+
 
 
   // domain add/remove
@@ -290,23 +343,23 @@ const ReopenTask: React.FC = () => {
     if (task.sampleFileRequired && !task.requiredValumeOfSampleFile) newErrors.requiredValumeOfSampleFile = "Required volume is mandatory when sample file is required";
     if (task.domainDetails && task.domainDetails.length > 0) {
 
-  const extractedDomains = task.domainDetails.map((d) => {
-    try {
-      const host = new URL(d.domain.trim()).hostname.toLowerCase();
-      return host.startsWith("www.") ? host.slice(4) : host;
-    } catch (e) {
-      return ""; // ignore invalid URLs, already validated earlier
+      const extractedDomains = task.domainDetails.map((d) => {
+        try {
+          const host = new URL(d.domain.trim()).hostname.toLowerCase();
+          return host.startsWith("www.") ? host.slice(4) : host;
+        } catch (e) {
+          return ""; // ignore invalid URLs, already validated earlier
+        }
+      });
+
+      const duplicates = extractedDomains.filter(
+        (name, index) => name && extractedDomains.indexOf(name) !== index
+      );
+
+      if (duplicates.length > 0) {
+        newErrors.domain = "Duplicate domain names are not allowed.";
+      }
     }
-  });
-
-  const duplicates = extractedDomains.filter(
-    (name, index) => name && extractedDomains.indexOf(name) !== index
-  );
-
-  if (duplicates.length > 0) {
-    newErrors.domain = "Duplicate domain names are not allowed.";
-  }
-}
 
 
 
@@ -355,6 +408,9 @@ const ReopenTask: React.FC = () => {
 
     return changed;
   };
+
+
+  
 
 
 
@@ -452,12 +508,6 @@ const ReopenTask: React.FC = () => {
       setLoading(false);
     }
   };
-
-
-
-
-
-
 
 
   // Helper to update single-element arrays for inputUrls and clientSampleSchemaUrls (as Create UI uses single-line inputs)
@@ -678,9 +728,16 @@ const ReopenTask: React.FC = () => {
             ))}
 
             <div className="flex justify-end">
-              <button type="submit" className="px-8 py-3 bg-[#3C01AF] text-white font-semibold rounded-lg hover:bg-blue-700" disabled={loading}>
-                {loading ? "Saving..." : "Update"}
-              </button>
+             <button
+  type="submit"
+  disabled={!isChanged || loading}
+  className={`px-8 py-3 font-semibold rounded-lg text-white
+    ${!isChanged || loading ? "bg-gray-400 cursor-not-allowed" : "bg-[#3C01AF] hover:bg-blue-700"}`}
+>
+  {loading ? "Saving..." : "Update"}
+</button>
+
+
             </div>
 
           </form>

@@ -593,7 +593,7 @@ const TaskDetail: React.FC = () => {
                   buildFileUrl={buildFileUrl}
                 />
                 <AttachmentGroup
-                  label="Input Documents"
+                  label="Input Documents/Keywords"
                   files={task.inputFiles}
                   urls={task.inputUrls}
                   buildFileUrl={buildFileUrl}
@@ -776,37 +776,105 @@ const TimelineItem: React.FC<{ label: string; value: string }> = ({ label, value
   </div>
 );
 
+// const AttachmentGroup: React.FC<{
+//   label: string;
+//   files?: string[];
+//   urls?: string[];
+//   buildFileUrl: (file: string | undefined) => string;
+// }> = ({ label, files = [], urls = [], buildFileUrl }) => (
+//   <div className="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+//     <p className="text-sm font-semibold text-gray-700 mb-3">{label}</p>
+//     {[...files, ...urls].length > 0 ? (
+//       <div className="space-y-2">
+//         {[...files, ...urls].map((f, idx) => {
+//           const isUrl = f.startsWith("http");
+//           return (
+//             <a
+//               key={idx}
+//               href={isUrl ? f : buildFileUrl(f)}
+//               target="_blank"
+//               rel="noreferrer"
+//               className="flex items-center gap-2 p-2 bg-slate-50 hover:bg-slate-100 rounded border border-slate-200 text-sm text-slate-700 hover:text-slate-900 transition group"
+//             >
+//               {isUrl ? <Globe size={16} /> : <FileText size={16} />}
+//               <span className="flex-1">Version {idx + 1}</span>
+//               {isUrl ? <span className="text-xs text-slate-500">URL</span> : <Download size={14} className="text-slate-400 group-hover:text-slate-600" />}
+//             </a>
+//           );
+//         })}
+//       </div>
+//     ) : (
+//       <p className="text-sm text-gray-500 italic py-2">No files or URLs available</p>
+//     )}
+//   </div>
+// );
+
 const AttachmentGroup: React.FC<{
   label: string;
   files?: string[];
   urls?: string[];
   buildFileUrl: (file: string | undefined) => string;
-}> = ({ label, files = [], urls = [], buildFileUrl }) => (
-  <div className="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
-    <p className="text-sm font-semibold text-gray-700 mb-3">{label}</p>
-    {[...files, ...urls].length > 0 ? (
-      <div className="space-y-2">
-        {[...files, ...urls].map((f, idx) => {
-          const isUrl = f.startsWith("http");
-          return (
-            <a
-              key={idx}
-              href={isUrl ? f : buildFileUrl(f)}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-2 p-2 bg-slate-50 hover:bg-slate-100 rounded border border-slate-200 text-sm text-slate-700 hover:text-slate-900 transition group"
-            >
-              {isUrl ? <Globe size={16} /> : <FileText size={16} />}
-              <span className="flex-1">Version {idx + 1}</span>
-              {isUrl ? <span className="text-xs text-slate-500">URL</span> : <Download size={14} className="text-slate-400 group-hover:text-slate-600" />}
-            </a>
-          );
-        })}
-      </div>
-    ) : (
-      <p className="text-sm text-gray-500 italic py-2">No files or URLs available</p>
-    )}
-  </div>
-);
+}> = ({ label, files = [], urls = [], buildFileUrl }) => {
+
+  const combined = [...files, ...urls];
+
+  const renderItem = (item: string, idx: number) => {
+    const isUrl = item.startsWith("http");
+    const isKeywordList = item.includes(",") && !isUrl;
+
+    if (isKeywordList) {
+      const keywords = item.split(",").map(k => k.trim());
+
+      return (
+        <div
+          key={idx}
+          className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg"
+        >
+         
+          <ul className="list-disc list-inside text-sm text-gray-700">
+            {keywords.map((k, i) => (
+              <li key={i}>{k}</li>
+            ))}
+          </ul>
+        </div>
+      );
+    }
+
+    return (
+      <a
+        key={idx}
+        href={isUrl ? item : buildFileUrl(item)}
+        target="_blank"
+        rel="noreferrer"
+        className="flex items-center gap-2 p-2 bg-slate-50 hover:bg-slate-100 
+                  rounded border border-slate-200 text-sm text-slate-700 
+                  hover:text-slate-900 transition group"
+      >
+        {isUrl ? <Globe size={16} /> : <FileText size={16} />}
+        <span className="flex-1">Version {idx + 1}</span>
+        {isUrl ? (
+          <span className="text-xs text-slate-500">URL</span>
+        ) : (
+          <Download size={14} className="text-slate-400 group-hover:text-slate-600" />
+        )}
+      </a>
+    );
+  };
+
+  return (
+    <div className="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+      <p className="text-sm font-semibold text-gray-700 mb-3">{label}</p>
+
+      {combined.length > 0 ? (
+        <div className="space-y-2">
+          {combined.map((item, idx) => renderItem(item, idx))}
+        </div>
+      ) : (
+        <p className="text-sm text-gray-500 italic py-2">No URLs available</p>
+      )}
+    </div>
+  );
+};
+
 
 export default TaskDetail;

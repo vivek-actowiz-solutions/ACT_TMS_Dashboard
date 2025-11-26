@@ -8,10 +8,11 @@ import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
 import { generateSOWDocxFromTemplate } from "../utils/generateSOWDocx.js";
-import { ExternalHyperlink, TextRun, Paragraph } from "docx";
 
-import { CLIENT_RENEG_LIMIT } from "tls";
-import { log } from "console";
+
+import POC from "../models/POC.js";
+
+
 
 dotenv.config();
 
@@ -71,7 +72,6 @@ const normalizeEnum = (value, allowedValues, defaultValue) => {
   const match = allowedValues.find(v => v.toLowerCase() === formatted);
   return match || defaultValue;
 };
-
 
 export const computeTaskOverallStatus = (task) => {
   if (!task.domains || !task.domains.length) return task.status;
@@ -259,7 +259,7 @@ export const createTask = async (req, res) => {
         CC: <@${process.env.SLACK_RND_MANAGER_ID}>, <@${process.env.SLACK_SALES_MANAGER_ID}>
       `;
 
-     await sendSlackMessage(process.env.SALES_RD_CHANNEL_TEST, slackMessage);
+    await sendSlackMessage(process.env.SALES_RD_CHANNEL_TEST, slackMessage);
 
     const obj = task.toObject();
     obj.developers = decodeDevelopers(obj.developers || {});
@@ -844,7 +844,7 @@ CC: <@${process.env.SLACK_RND_MANAGER_ID}>,<@${process.env.SLACK_RND_TL_ID}>
       // ✅ Send to 2 channels
       try {
         if (allDomainsSubmitted) {
-           await sendSlackMessage(process.env.SALES_RD_CHANNEL_TEST, slackMsg);
+          await sendSlackMessage(process.env.SALES_RD_CHANNEL_TEST, slackMsg);
         }
       } catch (e) {
         console.error("Slack 1 failed:", e.message);
@@ -954,55 +954,7 @@ export const editDomainSubmission = async (req, res) => {
   }
 };
 
-// const updateDelayedDomainsDebug = async () => {
-
-//   const now = new Date();
-//   console.log("⏳ Checking delayed domains at:", now);
-
-//   const tasks = await Task.find({});
-
-//   for (const task of tasks) {
-//     console.log("\n🔍 Task:", task.projectCode, "| Target:", task.targetDate);
-
-//     let updated = false;
-
-//     task.domains = task.domains.map((domain) => {
-//       console.log(
-//         ` → Domain: ${domain.name} | Status: ${domain.status} | Target: ${task.targetDate}`
-//       );
-
-//       // Skip allowed statuses
-//       if (["submitted", "in-R&D", "delayed"].includes(domain.status)) {
-//         console.log("   ✅ Allowed status, no change.");
-//         return domain;
-//       }
-
-//       // Check if overdue
-//       if (task.targetDate < now && domain.status !== "delayed") {
-//         console.log("   ⚠️ OVERDUE! Changing to delayed");
-//         updated = true;
-//         return { ...domain, status: "delayed" };
-//       }
-
-//       console.log("   ➡️ Not overdue yet, no change.");
-//       return domain;
-//     });
-
-//     if (updated) {
-//       task.markModified("domains");
-//       await task.save();
-//       console.log("💾 Saved update for", task.projectCode);
-//     } else {
-//       console.log("❎ No change for", task.projectCode);
-//     }
-//   }
-// };
-
-// get all tasks
-
-
 // Get All Tasks
-
 export const getTask = async (req, res) => {
   try {
 
@@ -1046,8 +998,11 @@ export const getTask = async (req, res) => {
     }
 
     if (status) {
-      match["domains.status"] = { $regex: new RegExp(`^${status}$`, "i") };
+      const statusArray = status.split(",").map(s => s.trim());
+
+      match["domains.status"] = { $in: statusArray };
     }
+
 
 
     const tasksAggregate = await Task.aggregate([
@@ -1072,16 +1027,15 @@ export const getTask = async (req, res) => {
 
       // 🔹 Unwind domains so each domain is a separate row
       { $unwind: { path: "$domains", preserveNullAndEmptyArrays: true } },
-      ...(status // <--- This block correctly filters *after* domains are unwound
+      ...(status
         ? [
           {
             $match: {
-              "domains.status": { $regex: new RegExp(`^${status}$`, "i") },
+              "domains.status": { $in: status.split(",").map(s => s.trim()) },
             },
           },
         ]
         : []),
-
 
       // 🔹 Lookup developers for this domain
       {
@@ -1178,6 +1132,99 @@ export const getTask = async (req, res) => {
     res.status(500).json({ error: err.message || "Server error" });
   }
 };
+
+export const getTaskList = async (req, res) => {
+  try {
+    // Read token from cookie
+    const token =
+      req.cookies?.token ||
+      req.cookies?.accessToken ||
+      req.cookies?.jwt;
+
+    let userId = null;
+
+    // Decode user
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        userId =
+          decoded.id ||
+          decoded._id ||
+          decoded.userId ||
+          decoded.user?._id ||
+          decoded.user?.id;
+
+        
+      } catch (e) {
+        console.log("JWT decode error", e);
+      }
+    }
+
+    if (!userId) {
+      console.log("No user id found from cookie");
+      return res.json({ tasks: [] });
+    }
+
+    // Fetch tasks for the logged-in user
+    const tasks = await Task.find({
+      assignedBy: new mongoose.Types.ObjectId(userId),
+    })
+      .select("title projectCode assignedBy")
+      .populate("assignedBy", "name role")
+      .sort({ createdAt: -1 });
+
+    // Attach POC information to each task
+    const tasksWithPOC = await Promise.all(
+      tasks.map(async (task) => {
+        const poc = await POC.findOne({ taskId: task._id });
+
+        return {
+          ...task.toObject(),
+          hasPOC: poc?.generatedPOCFile ? true : false,
+          pocFileName: poc?.generatedPOCFile || null,
+          pocId: poc?._id || null,
+        };
+      })
+    );
+
+    // FINAL RETURN (only this one)
+    return res.status(200).json({ tasks: tasksWithPOC });
+
+  } catch (err) {
+    console.error("Task List Error", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+};
+
+export const getSingleTaskList = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid task ID" });
+    }
+
+    const task = await Task.findById(id)
+      .populate("assignedBy", "name email")       // assignedBy details
+      .populate("frequency")                      // if frequency is ref
+      .populate("oputputFormat")                  // if outputFormat is ref
+      .populate("domains")                        // optional
+      .populate("domains")                  // optional
+      .populate("oputputFormat")                   // optional
+      .lean();
+
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    return res.status(200).json({ task });
+  } catch (err) {
+    console.error("Error fetching single task:", err);
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
 
 // GET SINGLE TASK 
 export const getSingleTask = async (req, res) => {
@@ -1650,7 +1697,6 @@ CC: <@${process.env.SLACK_RND_MANAGER_ID}>,<@${process.env.SLACK_SALES_MANAGER_I
   }
 };
 
-
 export const getReopenTaskData = async (req, res) => {
   try {
     const { id } = req.params;
@@ -1671,7 +1717,6 @@ export const getReopenTaskData = async (req, res) => {
   }
 };
 
-
 export const reOpenTask = async (req, res) => {
   try {
     const { id } = req.params;
@@ -1690,20 +1735,20 @@ export const reOpenTask = async (req, res) => {
         message: "Task can be reopened only once"
       });
     }
-    
+
 
     // taskAssignedDate → reset to now
-const assignedDate = new Date();
-task.taskAssignedDate = assignedDate;
+    const assignedDate = new Date();
+    task.taskAssignedDate = assignedDate;
 
-// completeDate → reset
-task.completeDate = null;
+    // completeDate → reset
+    task.completeDate = null;
 
-// targetDate → +2 days from assigned date
-const targetDate = new Date(assignedDate);
-targetDate.setDate(assignedDate.getDate() + 2);
+    // targetDate → +2 days from assigned date
+    const targetDate = new Date(assignedDate);
+    targetDate.setDate(assignedDate.getDate() + 2);
 
-task.targetDate = targetDate;
+    task.targetDate = targetDate;
 
 
 
@@ -1766,14 +1811,12 @@ task.targetDate = targetDate;
     }
 
 
-
-
     // 🔥 BUILD changedFields CORRECTLY (NEW VALUES ONLY)
     const changedFields = {};
 
     Object.keys(updateData).forEach((key) => {
-       const skipFields = ["sampleFileRequired", "requiredValumeOfSampleFile"];
-       if (skipFields.includes(key)) return;
+      const skipFields = ["sampleFileRequired", "requiredValumeOfSampleFile"];
+      if (skipFields.includes(key)) return;
 
       if (key === "domains") return;
 
@@ -1811,10 +1854,59 @@ task.targetDate = targetDate;
     let oldSowFiles = [];
     let newSowFile = null;
 
-    let oldDomainsForCompare = JSON.parse(JSON.stringify(task.domains || []));
+    // let oldDomainsForCompare = JSON.parse(JSON.stringify(task.domains || []));
+    // // 1️⃣ Update domains
+    // if (updateData.domains) {
+    //   if (!Array.isArray(task.previousDomain)) task.previousDomain = [];
 
-    // 1️⃣ Update domains
+    //   task.previousDomain.push({
+    //     oldValue: JSON.parse(JSON.stringify(task.domains)),
+    //     changedAt: new Date(),
+    //   });
+
+    //   const parsedDomains = Array.isArray(updateData.domains)
+    //     ? updateData.domains
+    //     : JSON.parse(updateData.domains);
+
+    //   task.domains = parsedDomains.map((d) => ({
+    //     ...d,
+    //     status: "Reopened",
+    //   }));
+    // }
+
+    // ------------------------------------------
+    // DOMAIN CHANGE DETECTION (CRITICAL LOGIC)
+    // ------------------------------------------
+    let oldDomainsForCompare = JSON.parse(JSON.stringify(task.domains || []));
+    let newDomains = [];
+
     if (updateData.domains) {
+      newDomains = Array.isArray(updateData.domains)
+        ? updateData.domains
+        : JSON.parse(updateData.domains);
+    } else {
+      newDomains = oldDomainsForCompare; // no changes sent
+    }
+
+    // Normalize for comparison (remove status field)
+    const normalize = (arr) =>
+      arr.map((d) => ({
+        name: d.name,
+        typeOfPlatform: d.typeOfPlatform,
+        domainRemarks: d.domainRemarks || "",
+      }));
+
+    const hasDomainChanged =
+      JSON.stringify(normalize(oldDomainsForCompare)) !== JSON.stringify(normalize(newDomains));
+
+    console.log("DOMAIN CHANGED?", hasDomainChanged);
+
+    // ------------------------------------------
+    // UPDATE DOMAIN ONLY IF CHANGED
+    // ------------------------------------------
+    if (hasDomainChanged) {
+      console.log("➡ Updating domain status to Reopened");
+
       if (!Array.isArray(task.previousDomain)) task.previousDomain = [];
 
       task.previousDomain.push({
@@ -1822,44 +1914,46 @@ task.targetDate = targetDate;
         changedAt: new Date(),
       });
 
-      const parsedDomains = Array.isArray(updateData.domains)
-        ? updateData.domains
-        : JSON.parse(updateData.domains);
-
-      task.domains = parsedDomains.map((d) => ({
+      task.domains = newDomains.map((d) => ({
         ...d,
         status: "Reopened",
       }));
+
+      // Add to changedFields so SOW is generated
+      changedFields.domains = normalize(newDomains);
+    } else {
+      console.log("➡ Domains unchanged → NOT updating domain status");
     }
+
 
     let changedDomainList = [];
-    
+
 
     if (updateData.domains) {
-  const newDomains = Array.isArray(updateData.domains)
-    ? updateData.domains
-    : JSON.parse(updateData.domains);
+      const newDomains = Array.isArray(updateData.domains)
+        ? updateData.domains
+        : JSON.parse(updateData.domains);
 
-  const onlyNewDomains = [];
+      const onlyNewDomains = [];
 
-  newDomains.forEach((newD) => {
-    const oldD = oldDomainsForCompare.find(od => od.name === newD.name);
+      newDomains.forEach((newD) => {
+        const oldD = oldDomainsForCompare.find(od => od.name === newD.name);
 
-    // ✅ It is NEW if NOT found in old list
-    if (!oldD) {
-      onlyNewDomains.push({
-        name: newD.name || "-",
-        typeOfPlatform: newD.typeOfPlatform || "-",
-        domainRemarks: newD.domainRemarks || "-"
+        // ✅ It is NEW if NOT found in old list
+        if (!oldD) {
+          onlyNewDomains.push({
+            name: newD.name || "-",
+            typeOfPlatform: newD.typeOfPlatform || "-",
+            domainRemarks: newD.domainRemarks || "-"
+          });
+        }
       });
-    }
-  });
 
-  // If new domains exist → add ONLY them to changedFields
-  if (onlyNewDomains.length > 0) {
-    changedFields.domains = onlyNewDomains;
-  }
-}
+      // If new domains exist → add ONLY them to changedFields
+      if (onlyNewDomains.length > 0) {
+        changedFields.domains = onlyNewDomains;
+      }
+    }
 
 
 
@@ -1891,8 +1985,10 @@ task.targetDate = targetDate;
     } else {
       console.log("⚠ No changed fields → SOW not generated");
     }
+    if (newSowFile) {
+      task.reopenCount = (task.reopenCount || 0) + 1;
+    }
 
-    task.reopenCount = (task.reopenCount || 0) + 1;
     // 4️⃣ Save task
     await task.save();
 
@@ -1919,7 +2015,7 @@ task.targetDate = targetDate;
         });
       }
 
-     
+
 
     } catch (err) {
       console.error("Failed to create ActivityLog:", err);
@@ -1948,7 +2044,12 @@ ${space}:memo: Details: The task has been reopened due to required updates. Plea
 ${space}:link: <${dashboardUrl} |Open Dashboard>
 CC: <@${process.env.SLACK_RND_MANAGER_ID}>, <@${process.env.SLACK_SALES_MANAGER_ID}>
 `
-     await sendSlackMessage(process.env.SALES_RD_CHANNEL_TEST, slackMessage);
+
+    // send slack message whene files are uploaded
+    if (newSowFile) {
+      await sendSlackMessage(process.env.SALES_RD_CHANNEL_TEST, slackMessage);
+    }
+
     return res.json({
       message: "Task reopened and SOW generated",
       newSowFile,

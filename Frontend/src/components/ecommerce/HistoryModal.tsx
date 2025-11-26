@@ -14,37 +14,37 @@ interface HistoryModalProps {
 }
 
 
-const HistoryModal: React.FC<HistoryModalProps> =  ({ open, onClose, task,domainName }) => {
+const HistoryModal: React.FC<HistoryModalProps> = ({ open, onClose, task, domainName }) => {
   const [logs, setLogs] = useState<Record<string, any[]>>({});
 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-  setLoading(true);
+    setLoading(true);
 
-  if (task?._id && domainName && open) {
-//console.log("Fetching logs for task:", task._id, "domain:", domainName);
-
-       
-    axios.get(
-  `${import.meta.env.VITE_API_URL}/activity/${task._id}/logs/${encodeURIComponent(domainName)}`
-)
-
-      .then((res) => {
-        setLogs(res.data || []);
-      })
-      .catch((err) => {
-        console.error("Failed to fetch logs:", err);
-        setLogs([]);
-      })
-      .finally(() => setLoading(false));
-  }
-}, [task, open, domainName]);
-
-const decodedDomain = decodeURIComponent(domainName || "");
+    if (task?._id && domainName && open) {
+      //console.log("Fetching logs for task:", task._id, "domain:", domainName);
 
 
- 
+      axios.get(
+        `${import.meta.env.VITE_API_URL}/activity/${task._id}/logs/${encodeURIComponent(domainName)}`
+      )
+
+        .then((res) => {
+          setLogs(res.data || []);
+        })
+        .catch((err) => {
+          console.error("Failed to fetch logs:", err);
+          setLogs([]);
+        })
+        .finally(() => setLoading(false));
+    }
+  }, [task, open, domainName]);
+
+  const decodedDomain = decodeURIComponent(domainName || "");
+
+
+
 
   if (loading)
     return (
@@ -74,7 +74,6 @@ const decodedDomain = decodeURIComponent(domainName || "");
         sx={{
           width: { xs: "90%", md: "600px" },
           margin: "100px auto",
-
           outline: "none",
           maxHeight: "80vh",
           overflowY: "auto",
@@ -103,76 +102,73 @@ const decodedDomain = decodeURIComponent(domainName || "");
             </TableRow>
           </TableHead>
           <TableBody>
-  {logs && logs.length > 0 ? (
-    logs.map((log, i) => {
-      const actionColors: Record<string, string> = {
-        "Task Created": "text-green-600 bg-green-50",
-        "Task Updated": "text-blue-600 bg-blue-50",
-        "Task Submitted": "text-purple-600 bg-purple-50",
-        "Status Update to In-R&D": "text-orange-600 bg-orange-50",
-        "Domain submission edited": "text-gray-600 bg-gray-100",
-        "Task Reopened": "text-gray-600 bg-gray-100",
-      };
+            {logs && logs.length > 0 ? (
+              logs.map((log, i) => {
+                const actionColors: Record<string, string> = {
+                  "Task Created": "text-green-600 bg-green-50",
+                  "Task Updated": "text-blue-600 bg-blue-50",
+                  "Task Submitted": "text-purple-600 bg-purple-50",
+                  "Status Update to In-R&D": "text-orange-600 bg-orange-50",
+                  "Domain submission edited": "text-gray-600 bg-gray-100",
+                  "Task Reopened": "text-gray-600 bg-gray-100",
+                };
 
-      const colorClass =
-        actionColors[log.action] || "text-gray-700 bg-gray-100";
+                const colorClass =
+                  actionColors[log.action] || "text-gray-700 bg-gray-100";
 
-      return (
-        <TableRow key={i} className="hover:bg-gray-50 transition-all">
-          <TableCell>
-            <div
-              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full font-medium text-sm ${colorClass}`}
-            >
-              {log.action === "Task Created" && "➕"}
-              {log.action === "Task Updated" && "✏️"}
-              {log.action === "Task Submitted" && "📤"}
-              {log.action === "Status Update to In-R&D" && "🔄"}
-              {log.action === "Domain submission edited" && "✏️"}
-              {log.action === "Task Reopened" && "🔄"}
-              <span>{log.action}</span>
-            </div>
-          </TableCell>
+                return (
+                  <TableRow key={i} className="hover:bg-gray-50 transition-all">
+                    <TableCell>
+                      <div
+                        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full font-medium text-sm ${colorClass}`}
+                      >
+                        {log.action === "Task Created" && "➕"}
+                        {log.action === "Task Updated" && "✏️"}
+                        {log.action === "Task Submitted" && "📤"}
+                        {log.action === "Status Update to In-R&D" && "🔄"}
+                        {log.action === "Domain submission edited" && "✏️"}
+                        {log.action === "Task Reopened" && "🔄"}
+                        <span>{log.action}</span>
+                      </div>
+                    </TableCell>
 
-          <TableCell>
-            <div className="flex items-center gap-2 text-gray-700">
-              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100">
-                <FiUser className="text-gray-600" />
-              </div>
-              <div className="flex flex-col">
-                <span className="font-semibold text-sm">{log.changedBy}</span>
-                <span className="text-xs text-gray-500">{log.role}</span>
-              </div>
-            </div>
-          </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2 text-gray-700">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100">
+                          <FiUser className="text-gray-600" />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-sm">{log.changedBy}</span>
+                          <span className="text-xs text-gray-500">{log.role}</span>
+                        </div>
+                      </div>
+                    </TableCell>
 
-          <TableCell>
-            <div className="flex items-center gap-2 text-gray-600">
-              <FiClock className="text-gray-500" size={15} />
-              <span className="text-sm">
-                {new Date(log.timestamp).toLocaleString("en-IN", {
-                  day: "2-digit",
-                  month: "short",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </span>
-            </div>
-          </TableCell>
-        </TableRow>
-      );
-    })
-  ) : (
-    <TableRow>
-      <TableCell colSpan={3} className="text-center py-6 text-gray-500">
-        No history available
-      </TableCell>
-    </TableRow>
-  )}
-</TableBody>
-
-
- 
+                    <TableCell>
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <FiClock className="text-gray-500" size={15} />
+                        <span className="text-sm">
+                          {new Date(log.timestamp).toLocaleString("en-IN", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            ) : (
+              <TableRow>
+                <TableCell colSpan={3} className="text-center py-6 text-gray-500">
+                  No history available
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
         </Table>
 
         <div className="mt-4 flex justify-end">

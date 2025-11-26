@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { FiClipboard, FiClock, FiCheckCircle, FiAlertCircle, FiPlay, FiBox,FiAlertTriangle } from "react-icons/fi";
+import { GoIssueReopened } from "react-icons/go";
+import { LuClockAlert } from "react-icons/lu";
 
 interface DomainStats {
   total: number;
@@ -153,10 +155,10 @@ const Dashboard: React.FC = () => {
     { label: "Completed", value: stats.completed, icon: <FiCheckCircle />, bgColor: "bg-green-50", textColor: "text-gray-500" },
     { label: "Pending", value: stats.pending, icon: <FiClock />, bgColor: "bg-yellow-50", textColor: "text-gray-500" },
     { label: "In-Progress", value: stats.inProgress, icon: <FiPlay />, bgColor: "bg-purple-50", textColor: "text-gray-500" },
-    { label: "Delayed", value: stats.delayed, icon: <FiAlertCircle />, bgColor: "bg-red-50", textColor: "text-gray-500" },
+    { label: "Delayed", value: stats.delayed, icon: <LuClockAlert />, bgColor: "bg-red-50", textColor: "text-gray-500" },
     
     { label: "In-R&D", value: stats.inRD, icon: <FiBox />, bgColor: "bg-orange-50", textColor: "text-gray-500" },
-    { label: "Reopened", value: stats.Reopened, icon: <FiAlertTriangle />, bgColor: "bg-pink-50", textColor: "text-gray-500" },
+    { label: "Reopened", value: stats.Reopened, icon: <GoIssueReopened />, bgColor: "bg-pink-50", textColor: "text-gray-500" },
   ];
 
   const sortedDevelopers = [...developers].sort((a, b) => {
