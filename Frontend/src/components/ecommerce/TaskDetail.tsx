@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router";
-import { FileText, Users, Calendar, Folder, ArrowLeft, CheckCircle2, XCircle, Info, Code, Server, Lock, Globe, Download, StickyNote, Link2,MessageSquare } from "lucide-react";
+import { FileText, Users, Calendar, Folder, ArrowLeft, CheckCircle2, XCircle, Info, Code, Server, Lock, Globe, Download, StickyNote, Link2, MessageSquare } from "lucide-react";
 import PageBreadcrumb from "../common/PageBreadCrumb";
-
+import { useAuth } from "../../hooks/useAuth";
 
 interface Submission {
   files?: string[];
@@ -71,6 +71,10 @@ const TaskDetail: React.FC = () => {
   const apiUrl = import.meta.env.VITE_API_URL as string;
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+
+  const { user } = useAuth();   // <-- this gives user object (name, role, email etc.)
+const role = user?.role || "";  
+const userName = user?.name  || ""; 
 
   useEffect(() => {
     const fetchTask = async () => {
@@ -148,6 +152,21 @@ const TaskDetail: React.FC = () => {
   const showSubmissionSection =
     domainObj && domainObj.status?.toLowerCase() === "submitted";
 
+    const developerList = domainObj?.developers?.map(d => d.name.toLowerCase()) || [];
+
+   
+
+const canSubmit =
+  domainObj &&
+  domainObj.status?.toLowerCase() !== "submitted" &&
+  domainObj.status?.toLowerCase() !== "terminated" &&
+  developerList.length > 0 &&
+  (
+    ["Admin", "TL", "Manager"].includes(role) || 
+    developerList.includes(userName.toLowerCase())
+  );
+
+
   return (
     <>
       <PageBreadcrumb
@@ -167,7 +186,7 @@ const TaskDetail: React.FC = () => {
 
 
               {/* Responsive grid — stacked on mobile, 2 columns on large screens */}
-              <div className="grid grid-cols-1 lg:grid-cols-[65%_35%] w-full gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-[65%_33%] w-full gap-6">
 
                 {/* 🟦 LEFT SECTION (Project Details) */}
 
@@ -198,17 +217,17 @@ const TaskDetail: React.FC = () => {
                   {displayedDomain && (
                     <div className="grid grid-cols-2  gap-2 text-gray-600">
                       <div className="flex items-center gap-2">
-                      <Server size={16} />
-                      <span className="text-sm font-medium ">Platform:</span>
-                      <span className="text-sm font-semibold text-gray-900 mr-4">{displayedDomain}</span>
+                        <Server size={16} />
+                        <span className="text-sm font-medium ">Platform:</span>
+                        <span className="text-sm font-semibold text-gray-900 mr-4">{displayedDomain}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                      <MessageSquare size={16} />
-                      <span className="text-sm font-medium ">Remarks:</span>
-                      <span className="text-sm font-semibold text-gray-900">{domainObj?.domainRemarks}</span>
+                        <MessageSquare size={16} />
+                        <span className="text-sm font-medium ">Remarks:</span>
+                        <span className="text-sm font-semibold text-gray-900">{domainObj?.domainRemarks}</span>
                       </div>
                     </div>
-                    
+
                   )}
 
                   {task.description && (
@@ -278,7 +297,12 @@ const TaskDetail: React.FC = () => {
 
                 {/* 🟨 RIGHT SECTION (Delivery & Platform) */}
                 <div className="bg-white shadow-sm rounded-xl border border-gray-200 p-5">
-                  <div className="bg-slate-50 rounded-lg border border-slate-200 p-5 mt-5">
+                  <InfoCard
+                      label="Sample File Format"
+                      value={task.oputputFormat || "Not specified"}
+                      icon={<Info size={18} className="text-slate-600" />}
+                    />
+                  <div className="bg-slate-50 rounded-lg border border-slate-200 p-4 mt-4">
                     <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                       <StickyNote size={18} className="text-slate-600" />
                       Delivery & Platform
@@ -296,31 +320,31 @@ const TaskDetail: React.FC = () => {
                         </span>
                       </div>
                       <div>
-                       {task.domains && task.domains.length > 0 ? (
-  <div className="flex flex-col gap-2">
+                        {task.domains && task.domains.length > 0 ? (
+                          <div className="flex flex-col gap-2">
 
-    {(domainParam
-      ? task.domains.filter((d) => d.name === domainParam)  // 👈 show only selected
-      : task.domains                                         // 👈 show all if none selected
-    ).map((d, i) => {
-      const platform =
-        d.typeOfPlatform || task.typeOfPlatform || "Not specified";
+                            {(domainParam
+                              ? task.domains.filter((d) => d.name === domainParam)  // 👈 show only selected
+                              : task.domains                                         // 👈 show all if none selected
+                            ).map((d, i) => {
+                              const platform =
+                                d.typeOfPlatform || task.typeOfPlatform || "Not specified";
 
-      return (
-        <div key={i} className="flex items-center gap-2">
-          <span className="inline-block bg-sky-100 text-sky-700 text-xs font-semibold px-3 py-1 rounded-full">
-            {platform}
-          </span>
-        </div>
-      );
-    })}
+                              return (
+                                <div key={i} className="flex items-center gap-2">
+                                  <span className="inline-block bg-sky-100 text-sky-700 text-xs font-semibold px-3 py-1 rounded-full">
+                                    {platform}
+                                  </span>
+                                </div>
+                              );
+                            })}
 
-  </div>
-) : (
-  <span className="text-gray-500 text-sm">
-    {task.typeOfPlatform || "No domains available"}
-  </span>
-)}
+                          </div>
+                        ) : (
+                          <span className="text-gray-500 text-sm">
+                            {task.typeOfPlatform || "No domains available"}
+                          </span>
+                        )}
 
                       </div>
 
@@ -348,6 +372,8 @@ const TaskDetail: React.FC = () => {
                         icon={<Info size={18} className="text-slate-600" />}
                       />
                     )}
+
+                    
                   </div>
                 </div>
               </div>
@@ -390,66 +416,66 @@ const TaskDetail: React.FC = () => {
                 </div>
                 <div className="grid md:grid-cols-1 gap-6">
                   <SubmissionCard title="Output Sample Documents" icon={<Download size={20} className="text-emerald-600" />}>
-  <div className="space-y-3">
+                    <div className="space-y-3">
 
-    {/* Combine both arrays safely */}
-    {(() => {
-      const files = submission.outputFiles || [];
-      const urls = submission.outputUrls || [];
+                      {/* Combine both arrays safely */}
+                      {(() => {
+                        const files = submission.outputFiles || [];
+                        const urls = submission.outputUrls || [];
 
-      const combined = [
-        ...files.map((file) => ({ type: "file", value: file })),
-        ...urls.map((url) => ({ type: "url", value: url })),
-      ];
+                        const combined = [
+                          ...files.map((file) => ({ type: "file", value: file })),
+                          ...urls.map((url) => ({ type: "url", value: url })),
+                        ];
 
-      if (combined.length === 0) {
-        return (
-          <p className="text-sm text-gray-500 italic py-4 text-center">
-            No Output Provided
-          </p>
-        );
-      }
+                        if (combined.length === 0) {
+                          return (
+                            <p className="text-sm text-gray-500 italic py-4 text-center">
+                              No Output Provided
+                            </p>
+                          );
+                        }
 
-      return combined.map((item, idx) => {
-        const isFile = item.type === "file";
+                        return combined.map((item, idx) => {
+                          const isFile = item.type === "file";
 
-        const link = isFile
-          ? buildFileUrl(item.value)
-          : item.value.startsWith("http")
-          ? item.value
-          : `https://${item.value}`;
+                          const link = isFile
+                            ? buildFileUrl(item.value)
+                            : item.value.startsWith("http")
+                              ? item.value
+                              : `https://${item.value}`;
 
-        return (
-          <a
-            key={idx}
-            href={link}
-            target="_blank"
-            rel="noreferrer"
-            className={`flex items-center gap-3 p-3 rounded-lg border transition group
-              ${isFile ? "bg-slate-50 hover:bg-slate-100 border-slate-200" 
-                       : "bg-blue-50 hover:bg-blue-100 border-blue-200"}`}
-          >
-            {isFile ? (
-              <FileText size={18} className="text-slate-600" />
-            ) : (
-              <Globe size={18} className="text-blue-600" />
-            )}
+                          return (
+                            <a
+                              key={idx}
+                              href={link}
+                              target="_blank"
+                              rel="noreferrer"
+                              className={`flex items-center gap-3 p-3 rounded-lg border transition group
+              ${isFile ? "bg-slate-50 hover:bg-slate-100 border-slate-200"
+                                  : "bg-blue-50 hover:bg-blue-100 border-blue-200"}`}
+                            >
+                              {isFile ? (
+                                <FileText size={18} className="text-slate-600" />
+                              ) : (
+                                <Globe size={18} className="text-blue-600" />
+                              )}
 
-            <span className="text-sm font-medium text-slate-700 group-hover:text-slate-900">
-              Version {idx + 1}
-            </span>
+                              <span className="text-sm font-medium text-slate-700 group-hover:text-slate-900">
+                                Version {idx + 1}
+                              </span>
 
-            {isFile ? (
-              <Download size={14} className="ml-auto text-slate-400 group-hover:text-slate-600" />
-            ) : (
-              <ArrowLeft size={14} className="ml-auto text-blue-400 group-hover:text-blue-600 rotate-180" />
-            )}
-          </a>
-        );
-      });
-    })()}
-  </div>
-</SubmissionCard>
+                              {isFile ? (
+                                <Download size={14} className="ml-auto text-slate-400 group-hover:text-slate-600" />
+                              ) : (
+                                <ArrowLeft size={14} className="ml-auto text-blue-400 group-hover:text-blue-600 rotate-180" />
+                              )}
+                            </a>
+                          );
+                        });
+                      })()}
+                    </div>
+                  </SubmissionCard>
                 </div>
 
                 {/* Main Content Grid */}
@@ -666,13 +692,38 @@ const TaskDetail: React.FC = () => {
             </div>
           </Section>
           {/* Back Button */}
-          <div className="flex justify-start">
-            <button
-              onClick={() => navigate("/tasks")}
-              className="flex items-center gap-2 bg-slate-700 hover:bg-slate-800 text-white px-6 py-3 rounded-lg shadow-sm hover:shadow-md transition font-medium"
-            >
-              <ArrowLeft size={18} /> Back
-            </button>
+          <div className="flex justify-end mt-4">
+            
+            
+            <div className="flex justify-end gap-3 mt-4">
+  
+  {/* Back Button */}
+  <button
+    onClick={() => navigate("/tasks")}
+    className="flex items-center gap-2 bg-slate-700 hover:bg-slate-800 text-white px-6 py-3 rounded-lg shadow-sm hover:shadow-md transition font-medium"
+  >
+    <ArrowLeft size={18} /> Back
+  </button>
+
+  {/* Submit Button */}
+  {canSubmit && (
+    <button
+      onClick={() =>
+        navigate(
+          `/submit/${task.id}?domain=${encodeURIComponent(displayedDomain || "")}`
+        )
+      }
+      className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg shadow-sm hover:shadow-md transition font-medium"
+    >
+      Submit
+    </button>
+  )}
+
+
+</div>
+
+
+
           </div>
         </div>
       </div>
@@ -830,7 +881,7 @@ const AttachmentGroup: React.FC<{
           key={idx}
           className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg"
         >
-         
+
           <ul className="list-disc list-inside text-sm text-gray-700">
             {keywords.map((k, i) => (
               <li key={i}>{k}</li>

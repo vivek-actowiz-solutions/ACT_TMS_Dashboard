@@ -94,6 +94,9 @@ import mongoose from "mongoose";
 const POCSchema = new mongoose.Schema({
 
   taskId: { type: mongoose.Schema.Types.ObjectId, ref: "Task", required: true },
+   
+  projectName: { type: String, required: false },
+
 
   date: { type: Date, default: Date.now },
 

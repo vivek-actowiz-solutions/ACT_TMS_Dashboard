@@ -251,7 +251,7 @@ const ReopenTask: React.FC = () => {
 
 
 
-  // domain add/remove
+  
   // const handleDomainAdd = () => {
   //   const trimmed = domainInput.trim();
   //   const newErrors: any = {};
@@ -260,10 +260,21 @@ const ReopenTask: React.FC = () => {
   //   }
   //   if (!domainPlatform) newErrors.domainPlatform = "Domain Platform is required";
 
+   
+
+  //   const INVALID_REMARK_REGEX = /[^a-zA-Z0-9\s.,-]/;
+  //   if (domainRemark && INVALID_REMARK_REGEX.test(domainRemark)) {
+  //     errors.domainRemark = "Special characters are not allowed in remark";
+      
+  //   }
+
   //   if (Object.keys(newErrors).length > 0) {
   //     setErrors((prev) => ({ ...prev, ...newErrors }));
   //     return;
   //   }
+
+    
+
 
   //   const newDomain: DomainDetail = {
   //     domain: trimmed,
@@ -271,47 +282,66 @@ const ReopenTask: React.FC = () => {
   //     domainRemarks: domainRemark || "",
   //   };
 
-  //   setTask((prev) => ({ ...prev, domainDetails: [...prev.domainDetails, newDomain] }));
+  //   setTask((prev) => {
+  //     const domainsCopy = [...prev.domainDetails];
+  //     if (editingIndex !== null) {
+  //       domainsCopy[editingIndex] = newDomain;
+  //     } else {
+  //       domainsCopy.push(newDomain);
+  //     }
+  //     return { ...prev, domainDetails: domainsCopy };
+  //   });
+
+  //   // Clear input & reset editingIndex
   //   setDomainInput("");
   //   setDomainPlatform("");
   //   setDomainRemark("");
+  //   setEditingIndex(null);
   // };
 
   const handleDomainAdd = () => {
-    const trimmed = domainInput.trim();
-    const newErrors: any = {};
-    if (!trimmed || !/^https?:\/\//i.test(trimmed)) {
-      newErrors.domain = "Platform must start with http:// or https://";
-    }
-    if (!domainPlatform) newErrors.domainPlatform = "Domain Platform is required";
+  const trimmed = domainInput.trim();
+  const newErrors: any = {};
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors((prev) => ({ ...prev, ...newErrors }));
-      return;
-    }
+  if (!trimmed || !/^https?:\/\//i.test(trimmed)) {
+    newErrors.domain = "Platform must start with http:// or https://";
+  }
+  if (!domainPlatform) newErrors.domainPlatform = "Domain Platform is required";
 
-    const newDomain: DomainDetail = {
-      domain: trimmed,
-      typeOfPlatform: domainPlatform,
-      domainRemarks: domainRemark || "",
-    };
+  const INVALID_REMARK_REGEX = /[^a-zA-Z0-9\s.,-]/;
+  if (domainRemark && INVALID_REMARK_REGEX.test(domainRemark)) {
+    newErrors.domainRemark = "Special characters are not allowed in remark";
+  }
 
-    setTask((prev) => {
-      const domainsCopy = [...prev.domainDetails];
-      if (editingIndex !== null) {
-        domainsCopy[editingIndex] = newDomain;
-      } else {
-        domainsCopy.push(newDomain);
-      }
-      return { ...prev, domainDetails: domainsCopy };
-    });
+  // ❗ STOP here if any validation fail
+  if (Object.keys(newErrors).length > 0) {
+    setErrors((prev) => ({ ...prev, ...newErrors }));
+    return;
+  }
 
-    // Clear input & reset editingIndex
-    setDomainInput("");
-    setDomainPlatform("");
-    setDomainRemark("");
-    setEditingIndex(null);
+  const newDomain: DomainDetail = {
+    domain: trimmed,
+    typeOfPlatform: domainPlatform,
+    domainRemarks: domainRemark || "",
   };
+
+  setTask((prev) => {
+    const domainsCopy = [...prev.domainDetails];
+    if (editingIndex !== null) {
+      domainsCopy[editingIndex] = newDomain;
+    } else {
+      domainsCopy.push(newDomain);
+    }
+    return { ...prev, domainDetails: domainsCopy };
+  });
+
+  // reset
+  setDomainInput("");
+  setDomainPlatform("");
+  setDomainRemark("");
+  setEditingIndex(null);
+};
+
 
   const handleDomainEdit = (index: number) => {
     const domain = task.domainDetails[index];
@@ -355,6 +385,15 @@ const ReopenTask: React.FC = () => {
       const duplicates = extractedDomains.filter(
         (name, index) => name && extractedDomains.indexOf(name) !== index
       );
+
+      //remarks
+
+      if(domainRemark){
+        const INVALID_REMARK_REGEX = /[^a-zA-Z0-9\s.,-]/;
+        if (domainRemark && INVALID_REMARK_REGEX.test(domainRemark)) {
+          newErrors.domainRemark = "Special characters are not allowed in remark";
+        }
+      }
 
       if (duplicates.length > 0) {
         newErrors.domain = "Duplicate domain names are not allowed.";
@@ -574,7 +613,7 @@ const ReopenTask: React.FC = () => {
                       <label className="block text-gray-700 font-medium mb-2">Task Name <span className="text-red-500">*</span></label>
                       <input type="text" name="title" value={task.title} onChange={handleChange} className="w-full border rounded-lg p-3" readOnly />
                       {renderError("title")}
-                    </div>
+                    </div> 
 
                     <div>
                       <label className="block text-gray-700 font-medium mb-2">Assigned To <span className="text-red-500">*</span></label>
@@ -589,7 +628,10 @@ const ReopenTask: React.FC = () => {
 
                     <div className="md:col-span-2">
                       <label className="block text-gray-700 font-medium mb-2">Description <span className="text-red-500">*</span></label>
-                      <textarea name="description" value={task.description} onChange={handleChange} className="w-full border rounded-lg p-3 h-28" />
+                      <textarea name="description" value={task.description} onChange={handleChange} className="w-full border rounded-lg p-3 h-28" maxLength={200}/>
+                      <div className="text-right text-sm text-gray-500 mt-1">
+                        {task.description.length}/200 characters
+                      </div>
                       {renderError("description")}
                     </div>
                   </div>
@@ -605,7 +647,16 @@ const ReopenTask: React.FC = () => {
                         <option value="app">App</option>
                         <option value="both (app & web)">Both (App & Web)</option>
                       </select>
-                      <input type="text" value={domainRemark} onChange={(e) => setDomainRemark(e.target.value)} placeholder="Remark (optional)" className="flex-1 border rounded-lg p-3" />
+                      <input type="text" value={domainRemark} onChange={(e) => {setDomainRemark(e.target.value)
+                        if (e.target.value) {
+                          
+                          
+                            setErrors(prev => ({ ...prev, domainRemark: "" }));
+                          
+                        }
+                      }
+                      
+                    } placeholder="Remark (optional)" className="flex-1 border rounded-lg p-3" maxLength={100}/>
                       <button type="button" onClick={handleDomainAdd} className="bg-[#3C01AF] hover:bg-blue-700 text-white px-5 py-2 rounded-lg"> {editingIndex !== null ? "Update" : "Add"}</button>
                     </div>
 
@@ -628,6 +679,9 @@ const ReopenTask: React.FC = () => {
 
                     {errors.domain && <p className="text-red-500 text-sm">{errors.domain}</p>}
                     {errors.domainPlatform && <p className="text-red-500 text-sm">{errors.domainPlatform}</p>}
+                    {errors.domainRemark && (
+                      <p className="text-red-500 text-sm">{errors.domainRemark}</p>
+                    )}
                   </>
                 )}
 
@@ -654,9 +708,37 @@ const ReopenTask: React.FC = () => {
                       {renderError("optionalFields")}
                     </div>
 
-                    <div>
+                    {/* <div>
                       <label className="block text-gray-700 font-medium mb-2">Frequency <span className="text-red-500">*</span></label>
                       <input type="text" name="frequency" placeholder="Ex:-Daily , Weekly,..." value={task.frequency} onChange={handleChange} className="w-full border rounded-lg p-3" />
+                      {renderError("frequency")}
+                    </div> */}
+
+                    <div>
+                      <label className="block text-gray-700 font-medium mb-2">
+                        Frequency <span className="text-red-500">*</span>
+                      </label>
+
+                      <select
+                        name="frequency"
+                        value={task.frequency}
+                        onChange={(e) => {
+                          handleChange(e); // keeps your existing handler logic for task state
+                          // clear frequency error immediately
+                          setErrors(prev => ({ ...prev, frequency: "" }));
+                        }}
+                        className="w-full border rounded-lg p-3 bg-white" 
+                      >
+                        <option value="" hidden>Select Frequency</option>
+                        <option value="Daily">Daily</option>
+                        <option value="Weekly">Weekly</option>
+                        <option value="Bi-Weekly">Bi-Weekly</option>
+                        <option value="Monthly">Monthly</option>
+                        <option value="Bi-Monthly">Bi-Monthly</option>
+                        <option value="Once-Off">Once-Off</option>
+                        <option value="Hourly">Hourly</option>
+                      </select>
+
                       {renderError("frequency")}
                     </div>
 
@@ -709,7 +791,7 @@ const ReopenTask: React.FC = () => {
                 {section.id === 4 && (
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-gray-700 font-medium mb-2">Input Document URL </label>
+                      <label className="block text-gray-700 font-medium mb-2">Input Document URL/Input Keywords</label>
                       <input type="text" name="inputUrls" value={task.inputUrls[0] || ""} onChange={(e) => handleSingleInputUrlChange(e.target.value)} className="w-full border rounded-lg p-3" />
                       {renderError("inputUrls")}
 

@@ -111,6 +111,7 @@ const HistoryModal: React.FC<HistoryModalProps> = ({ open, onClose, task, domain
                   "Status Update to In-R&D": "text-orange-600 bg-orange-50",
                   "Domain submission edited": "text-gray-600 bg-gray-100",
                   "Task Reopened": "text-gray-600 bg-gray-100",
+                  "Domain Terminated": "text-red-600 bg-red-50",
                 };
 
                 const colorClass =
@@ -128,6 +129,8 @@ const HistoryModal: React.FC<HistoryModalProps> = ({ open, onClose, task, domain
                         {log.action === "Status Update to In-R&D" && "🔄"}
                         {log.action === "Domain submission edited" && "✏️"}
                         {log.action === "Task Reopened" && "🔄"}
+                        {log.action === "Domain Terminated" && "❌"}
+
                         <span>{log.action}</span>
                       </div>
                     </TableCell>

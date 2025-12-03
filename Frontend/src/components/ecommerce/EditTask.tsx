@@ -80,8 +80,9 @@ const EditTaskUI: React.FC<{ taskData?: Task }> = ({ taskData }) => {
   }, []);
 
   // Filtered user options
-  const developerOptions = users.filter((u) => u.role === "Developer" || u.role === "TL");
-
+ const developerOptions = users.filter(
+  (u) => (u.role === "Developer" || u.role === "TL") && u.isActive
+);
 
   const normalizeUserId = (user: any) => {
     if (!user) return "";
@@ -91,8 +92,6 @@ const EditTaskUI: React.FC<{ taskData?: Task }> = ({ taskData }) => {
     const mapped = users.find((u) => u.name === user);
     return mapped ? mapped._id : "";
   };
-
-
 
 
   // Simplified validateForm - only checking domain array length

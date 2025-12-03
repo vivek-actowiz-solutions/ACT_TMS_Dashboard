@@ -8,12 +8,7 @@ import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
 import { generateSOWDocxFromTemplate } from "../utils/generateSOWDocx.js";
-
-
 import POC from "../models/POC.js";
-
-
-
 dotenv.config();
 
 /* ------------------ Helpers ------------------ */
@@ -940,6 +935,23 @@ export const editDomainSubmission = async (req, res) => {
       changedBy: req.user?.name || "Unknown",
     });
 
+    // 9. slack message
+    const editor =`<@${req.user?.slackId || ""}>`; 
+
+    const taskUrl = `${process.env.FRONTEND_URL}/tasks`;
+    
+    const slackMessage = `
+      :pencil: *Domain Submission Edited*
+      :briefcase: *Task:* ${task.title}
+      :page_facing_up: *Domain:* \`${domainName}\`
+      :bust_in_silhouette: *Edited By:* ${editor}
+      :link: *View Task:* <${taskUrl}|Open Dashboard>
+    `;
+
+
+    await sendSlackMessage(process.env.SALES_RD_CHANNEL_TEST, slackMessage);
+
+
     res.json({
       message: "Domain submission updated successfully",
       task,
@@ -1154,7 +1166,7 @@ export const getTaskList = async (req, res) => {
           decoded.user?._id ||
           decoded.user?.id;
 
-        
+
       } catch (e) {
         console.log("JWT decode error", e);
       }
@@ -1172,6 +1184,9 @@ export const getTaskList = async (req, res) => {
       .select("title projectCode assignedBy")
       .populate("assignedBy", "name role")
       .sort({ createdAt: -1 });
+
+      
+      
 
     // Attach POC information to each task
     const tasksWithPOC = await Promise.all(
@@ -1206,13 +1221,14 @@ export const getSingleTaskList = async (req, res) => {
     }
 
     const task = await Task.findById(id)
-      .populate("assignedBy", "name email")       // assignedBy details
-      .populate("frequency")                      // if frequency is ref
-      .populate("oputputFormat")                  // if outputFormat is ref
-      .populate("domains")                        // optional
-      .populate("domains")                  // optional
-      .populate("oputputFormat")                   // optional
+      .populate("assignedBy", "name email")
+      .populate("frequency")
+      .populate("oputputFormat")
+      .populate("domains")
+      .populate("domains")
+      .populate("oputputFormat")
       .lean();
+
 
     if (!task) {
       return res.status(404).json({ message: "Task not found" });
@@ -1224,7 +1240,6 @@ export const getSingleTaskList = async (req, res) => {
     return res.status(500).json({ message: "Server error", error: err.message });
   }
 };
-
 
 // GET SINGLE TASK 
 export const getSingleTask = async (req, res) => {
@@ -1476,6 +1491,9 @@ export const getDomainStats = async (req, res) => {
           },
           Reopened: {
             $sum: { $cond: [{ $eq: ["$domains.status", "Reopened"] }, 1, 0] },
+          },
+          Terminated: {
+            $sum: { $cond: [{ $eq: ["$domains.status", "Terminated"] }, 1, 0] },
           }
         },
       },
@@ -1490,7 +1508,8 @@ export const getDomainStats = async (req, res) => {
           "in-R&D": "$inRAndD",
           submitted: 1,
           deployed: 1,
-          Reopened: 1
+          Reopened: 1,
+          Terminated: 1,
         },
       },
     ]);
@@ -1504,7 +1523,8 @@ export const getDomainStats = async (req, res) => {
       "in-R&D": 0,
       submitted: 0,
       deployed: 0,
-      Reopened: 0
+      Reopened: 0,
+      Terminated: 0
     };
 
     res.status(200).json({
@@ -1721,11 +1741,18 @@ export const reOpenTask = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // const task = await Task.findById(id).select(
+    //   "title projectCode description typeOfDelivery mandatoryFields optionalFields frequency oputputFormat domains inputUrls clientSampleSchemaUrls sowFiles sampleFileRequired requiredValumeOfSampleFile assignedBy assignedTo reopenCount status taskAssignedDate targetDate completeDate"
+    // ).populate("assignedBy", "name slackId")
+    //   .populate("assignedTo", "name slackId")
+    //   .populate("domains", "name");
+
     const task = await Task.findById(id).select(
-      "title projectCode description typeOfDelivery mandatoryFields optionalFields frequency oputputFormat domains inputUrls clientSampleSchemaUrls sowFiles sampleFileRequired requiredValumeOfSampleFile assignedBy assignedTo reopenCount status taskAssignedDate targetDate completeDate"
-    ).populate("assignedBy", "name slackId")
-      .populate("assignedTo", "name slackId")
-      .populate("domains", "name");
+      "title projectCode description typeOfDelivery mandatoryFields optionalFields frequency oputputFormat domains inputUrls clientSampleSchemaUrls sowFiles sampleFileRequired requiredValumeOfSampleFile assignedBy assignedTo reopenCount taskAssignedDate targetDate completeDate"
+    )
+      .populate("assignedBy", "name slackId")
+      .populate("assignedTo", "name slackId");
+
 
     if (!task) return res.status(404).json({ message: "Task not found" });
 
@@ -1918,9 +1945,11 @@ export const reOpenTask = async (req, res) => {
         ...d,
         status: "Reopened",
       }));
+      task.markModified("domains");
 
       // Add to changedFields so SOW is generated
       changedFields.domains = normalize(newDomains);
+
     } else {
       console.log("➡ Domains unchanged → NOT updating domain status");
     }
@@ -1961,6 +1990,7 @@ export const reOpenTask = async (req, res) => {
     Object.keys(updateData).forEach((key) => {
       if (key !== "domains") task[key] = updateData[key];
     });
+
 
 
 
@@ -2023,7 +2053,6 @@ export const reOpenTask = async (req, res) => {
 
 
 
-
     const dashboardUrl = `${process.env.FRONTEND_URL}/tasks`;
     const assignedByName = task.assignedBy?.slackId
       ? `<@${task.assignedBy.slackId}>`
@@ -2060,5 +2089,134 @@ CC: <@${process.env.SLACK_RND_MANAGER_ID}>, <@${process.env.SLACK_SALES_MANAGER_
   } catch (err) {
     console.error("ReOpenTask Error:", err);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+// TERMINATE DOMAIN (domain-wise)
+export const terminateDomain = async (req, res) => {
+  try {
+    const { taskId, domainName } = req.body;
+    const { reason } = req.body;
+
+    if (!taskId || !domainName) {
+      return res.status(400).json({ message: "taskId and domainName are required" });
+    }
+
+    const task = await Task.findById(taskId);
+    if (!task) return res.status(404).json({ message: "Task not found" });
+
+    // find domain
+    const domain = task.domains.find((d) => d.name === domainName);
+    if (!domain)
+      return res.status(404).json({ message: "Domain not found in this task" });
+
+    // Update domain
+    domain.status = "Terminated";
+    
+
+    // update task overall status IF NEEDED
+    const allTerminated = task.domains.every((d) => d.status === "Terminated");
+    
+
+    await task.save();
+
+    // Log entry
+    await ActivityLog.create({
+      taskId: task._id,
+      domainName,
+      action: "Domain Terminated",
+      changedBy: req.user?.name || "Unknown User",
+      role: req.user?.role || "Unknown Role",
+      timestamp: new Date(),
+      remark: reason || "",
+    });
+
+    return res.json({
+      message: "Domain terminated successfully",
+      domain,
+      taskStatus: task.status,
+    });
+
+  } catch (error) {
+    console.error("terminateDomain Error:", error);
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// GET ALL USERS + TASKS CREATED BY EACH USER + STATUS COUNT
+export const getAllUsersTaskCreatedStats = async (req, res) => {
+  try {
+    // 1️⃣ Get all users
+    const users = await User.find()
+      .select("_id name email role")
+      .lean();
+
+    if (!users.length) {
+      return res.status(200).json({
+        success: true,
+        data: []
+      });
+    }
+
+    // 2️⃣ Build stats for each user
+    const stats = await Task.aggregate([
+      { $unwind: "$domains" },
+
+      {
+        $group: {
+          _id: {
+            userId: "$assignedBy",
+            status: "$domains.status"
+          },
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // 3️⃣ Format result by user
+    const result = users.map((user) => {
+      const userStats = stats.filter(
+        (s) => String(s._id.userId) === String(user._id)
+      );
+
+      const formatted = {
+        userId: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+
+        total: 0,
+        pending: 0,
+        "in-progress": 0,
+        delayed: 0,
+        "in-R&D": 0,
+        submitted: 0,
+        deployed: 0,
+        Reopened: 0,
+        Terminated: 0
+      };
+
+      userStats.forEach((row) => {
+        const status = row._id.status;
+        formatted[status] = row.count;
+        formatted.total += row.count;
+      });
+
+      return formatted;
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: result
+    });
+
+  } catch (err) {
+    console.error("getAllUsersTaskCreatedStats Error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: err.message,
+    });
   }
 };

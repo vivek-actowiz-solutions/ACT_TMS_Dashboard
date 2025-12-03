@@ -1,11 +1,11 @@
 import React, { useState, ChangeEvent, FormEvent, useEffect } from "react";
 import { User } from "./types.ts";
-import { jwtDecode } from "jwt-decode";
+
 
 interface EditUserModalProps {
   isOpen: boolean;
   onClose: () => void;
-  user: User | null;
+  user: User | null; 
   onUpdate: (updatedUser: User) => void;
 }
 
@@ -15,6 +15,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, user, on
 
   const apiUrl = import.meta.env.VITE_API_URL;
   useEffect(() => {
+    console.log("Editing User:", user);
     setForm(user);
   }, [user]);
 
@@ -58,7 +59,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, user, on
 
 
   return (
-  <div className="fixed inset-0  bg-opacity-40 flex items-center justify-center z-30">
+ <div className="fixed inset-0 bg-black/30 backdrop-filter backdrop-blur-md flex items-center justify-center z-[9999]">
     <div className="bg-white p-8 rounded-2xl w-full max-w-md shadow-lg">
       <h2 className="text-2xl font-bold mb-6 text-gray-800 text-center">Edit User</h2>
       
@@ -82,7 +83,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, user, on
         />
         <input
           name="department"
-          placeholder="Department"
+          placeholder="Department" 
           value={form.department || ""}
           onChange={handleChange}
           className="w-full border border-gray-300 p-3 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -107,6 +108,13 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, user, on
           <option value={"Manager"}>Manager</option>
           <option value="Developer">Developer</option>
         </select>
+        <input
+          name="slackId"
+          placeholder="Slack ID"
+          value={form.slackId || ""}
+          onChange={handleChange}
+          className="w-full border border-gray-300 p-3 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
 
         <div className="flex justify-end gap-3 mt-6">
           <button

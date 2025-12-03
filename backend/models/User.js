@@ -7,7 +7,10 @@ const userSchema = new mongoose.Schema({
   department: { type: String },
   designation:{type:String},
   role: { type: String,enum:["Admin", "Sales", "TL","Developer","Manager"] },
-  slackId: { type: String, default: null }
+  slackId: { type: String, default: null },
+  isActive: { type: Boolean, default: true },
+  resetPasswordOTP: { type: String },
+  resetPasswordExpires: { type: Date },
 });
 
 const User = mongoose.model('User', userSchema);

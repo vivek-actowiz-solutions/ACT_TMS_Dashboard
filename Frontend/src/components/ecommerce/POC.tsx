@@ -214,8 +214,8 @@ const CreatePOC = () => {
           : [],
 
         Timeline: form.Timeline
-    ? form.Timeline.toISOString().split("T")[0]
-    : "",  
+          ? form.Timeline.toISOString().split("T")[0]
+          : "",
       };
 
       const res = await fetch(`${apiUrl}/poc/create`, {
@@ -253,288 +253,11 @@ const CreatePOC = () => {
     }
   };
 
-  if (loading) return <div className="p-4">Loading...</div>;
+  if (loading) return <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-600 border-solid"></div>
+      </div>;
 
-  //   return (
-  //     <div className="p-6 bg-white min-h-screen">
-  //       <h1 className="text-2xl font-bold text-[#3C01AF] mb-4">
-  //         Create POC – {task?.title}
-  //       </h1>
-
-  //       {/* FORM */}
-  //       <div className="grid grid-cols-2 gap-4">
-
-  //         <input 
-  //           name="ProjectName"
-  //           placeholder="Project Name"
-  //           value={form.projectName}
-  //           onChange={handleChange}
-  //           className="border p-2 rounded"
-  //         />
-
-  //         <input
-  //           name="PurposeOftheProject"
-  //           placeholder="Purpose Of Project"
-  //           value={form.PurposeOftheProject}
-  //           onChange={handleChange}
-  //           className="border p-2 rounded"
-  //         />
-
-  //         <input
-  //           name="asignedBy"
-  //           placeholder="Asigned By"
-  //           value={form.asignedBy}
-  //           onChange={handleChange}
-  //           className="border p-2 rounded"
-  //         />
-
-
-  //         <div className="col-span-2">
-  //   <label className="block font-semibold mb-1">Target Websites</label>
-
-  //   <div className="flex gap-2 flex-wrap">
-  //     {form.TargetWebsite.map((site, index) => (
-  //       <div
-  //         key={index}
-  //         className="flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full"
-  //       >
-  //         <span>{site}</span>
-  //         <button
-  //           onClick={() => {
-  //             const updated = form.TargetWebsite.filter((_, i) => i !== index);
-  //             setForm({ ...form, TargetWebsite: updated });
-  //           }}
-  //           className="ml-2 text-red-600 font-bold"
-  //         >
-  //           ×
-  //         </button>
-  //       </div>
-  //     ))}
-  //   </div>
-
-  //   {/* Add new domain input */}
-  //   <div className="flex gap-2 mt-3">
-  //     <input
-  //       type="text"
-  //       placeholder="Add new domain..."
-  //       value={newDomain}
-  //       onChange={(e) => setNewDomain(e.target.value)}
-  //       className="border p-2 rounded w-full"
-  //     />
-  //     <button
-  //       onClick={() => {
-  //         if (!newDomain.trim()) return;
-  //         setForm({
-  //           ...form,
-  //           TargetWebsite: [...form.TargetWebsite, newDomain.trim()],
-  //         });
-  //         setNewDomain("");
-  //       }}
-  //       className="bg-green-500 text-white px-3 py-2 rounded"
-  //     >
-  //       Add
-  //     </button>
-  //   </div>
-  // </div>
-
-
-  //         <input
-  //           name="ProjectCode"
-  //           value={form.ProjectCode}
-  //           onChange={handleChange}
-  //           placeholder="project code"
-  //           className="border p-2 rounded "
-  //         />
-
-  //         <input
-  //           name="RecordCount"
-  //           placeholder="Record Count"
-  //           value={form.RecordCount}
-  //           onChange={handleChange}
-  //           className="border p-2 rounded"
-  //         />
-
-  //         <input
-  //           name="TaskIdForPOC"
-  //           placeholder="Task ID"
-  //           value={form.TaskIdForPOC}
-  //           onChange={handleChange}
-  //           className="border p-2 rounded"
-  //         />
-
-  //         <input
-  //           name="BitrixURL"
-  //           placeholder="Bitrix URL"
-  //           value={form.BitrixURL}
-  //           onChange={handleChange}
-  //           className="border p-2 rounded"
-  //         />
-
-  //         <input
-  //           name="Industry"
-  //           placeholder="Industry"
-  //           value={form.Industry}
-  //           onChange={handleChange}
-  //           className="border p-2 rounded"
-  //         />
-
-  //         <input
-  //           name="ClientGeography"
-  //           placeholder="Client Geography"
-  //           value={form.ClientGeography}
-  //           onChange={handleChange}
-  //           className="border p-2 rounded"
-  //         />
-
-  //         <input
-  //           name="LocationCoverage"
-  //           placeholder="Location Coverage"
-  //           value={form.LocationCoverage}
-  //           onChange={handleChange}
-  //           className="border p-2 rounded"
-  //         />
-
-  //         <input
-  //           name="InputParameter"
-  //           placeholder="Input Parameter"
-  //           value={form.InputParameter}
-  //           onChange={handleChange}
-  //           className="border p-2 rounded"
-  //         />
-
-  //         <input
-  //           name="ScopeOfData"
-  //           placeholder="Scope Of Data"
-  //           value={form.ScopeOfData}
-  //           onChange={handleChange}
-  //           className="border p-2 rounded"
-  //         />
-
-  //         <input
-  //           name="OutputAttributes"
-  //           placeholder="Output Attributes"
-  //           value={form.OutputAttributes}
-  //           onChange={handleChange}
-  //           className="border p-2 rounded"
-  //         />
-
-  //         <input
-  //           name="OutputFormat"
-  //           value={form.OutputFormat}
-  //           onChange={handleChange}
-  //           className="border p-2 rounded"
-  //         />
-
-  //         <input
-  //           name="OutputDeliveryMode"
-  //           placeholder="Output Delivery Mode"
-  //           value={form.OutputDeliveryMode}
-  //           onChange={handleChange}
-  //           className="border p-2 rounded"
-  //         />
-
-  //         <input
-  //           name="Frequency"
-  //           value={form.Frequency}
-  //           onChange={handleChange}
-  //           className="border p-2 rounded bg-gray-100"
-  //         />
-
-  //         <DatePicker
-  //   selected={form.Timeline ? new Date(form.Timeline) : null}
-  //   onChange={(date) =>
-  //     setForm({
-  //       ...form,
-  //       Timeline: date.toISOString().split("T")[0]
-  //     })
-  //   }
-  //   dateFormat="yyyy-MM-dd"
-  //   placeholderText="Select Timeline"
-  //   className="border p-2 rounded w-full"
-  //   showWeekDays
-  //   renderCustomHeader={({ date, decreaseMonth, increaseMonth }) => (
-  //     <div className="flex items-center justify-between px-2 py-1">
-  //       <button onClick={decreaseMonth}>◀</button>
-  //       <span className="font-semibold">
-  //         {date.toLocaleString("default", { month: "long" })}{" "}
-  //         {date.getFullYear()}
-  //       </span>
-  //       <button onClick={increaseMonth}>▶</button>
-  //     </div>
-  //   )}
-  //   calendarStartDay={1}
-  // />
-
-
-
-
-  //         <input
-  //           name="AdditionalNotes"
-  //           placeholder="Additional Notes"
-  //           value={form.AdditionalNotes}
-  //           onChange={handleChange}
-  //           className="border p-2 rounded"
-  //         />
-
-  //       </div>
-
-  //       {/* Mandatory Fields */}
-  //       <h3 className="text-lg font-semibold mt-6">Mandatory Fields</h3>
-
-  //       {form.MandatoryFields.map((m, i) => (
-  //   <div key={i} className="grid grid-cols-2 gap-4 my-2">
-  //     <input
-  //       name={`fieldName-${i}`}
-  //       value={m.fieldName}
-  //       onChange={(e) => {
-  //         const newFields = [...form.MandatoryFields];
-  //         newFields[i].fieldName = e.target.value;
-  //         setForm({ ...form, MandatoryFields: newFields });
-  //       }}
-  //       placeholder="Field Name"
-  //       className="border p-2 rounded"
-  //     />
-
-  //     <input
-  //       name={`description-${i}`}
-  //       value={m.description}
-  //       onChange={(e) => {
-  //         const newFields = [...form.MandatoryFields];
-  //         newFields[i].description = e.target.value;
-  //         setForm({ ...form, MandatoryFields: newFields });
-  //       }}
-  //       placeholder="Description"
-  //       className="border p-2 rounded"
-  //     />
-  //   </div>
-  // ))}
-
-
-  //       <button
-  //         onClick={addMandatory}
-  //         className="mt-3 bg-green-500 text-white px-3 py-1 rounded"
-  //       >
-  //         + Add Mandatory Field
-  //       </button>
-
-  //       {/* Buttons */}
-  //       <div className="mt-6 flex gap-3">
-  //         <button
-  //           onClick={() => navigate(-1)}
-  //           className="bg-gray-300 px-4 py-2 rounded"
-  //         >
-  //           Cancel
-  //         </button>
-
-  //         <button
-  //           onClick={submitForm}
-  //           className="bg-blue-600 text-white px-4 py-2 rounded"
-  //         >
-  //           Save POC
-  //         </button>
-  //       </div>
-  //     </div>
-  //   );
+ 
 
   return (
     <>
@@ -927,38 +650,38 @@ const CreatePOC = () => {
                 )}
               </div>
               <div>
-                  <label className="font-semibold text-gray-700">Frequency<span className="text-red-500">*</span></label>
-                  <input
-                    name="Frequency"
-                    value={form.Frequency}
-                    onChange={handleChange}
-                    className="border p-3 rounded-lg w-full"
-                  />
-                  {formErrors.Frequency && (
-                    <p className="text-red-500 text-sm mt-1">{formErrors.Frequency}</p>
-                  )}
-                </div>
+                <label className="font-semibold text-gray-700">Frequency<span className="text-red-500">*</span></label>
+                <input
+                  name="Frequency"
+                  value={form.Frequency}
+                  onChange={handleChange}
+                  className="border p-3 rounded-lg w-full"
+                />
+                {formErrors.Frequency && (
+                  <p className="text-red-500 text-sm mt-1">{formErrors.Frequency}</p>
+                )}
+              </div>
 
               <div>
-                
-                
+
+
                 <div className="grid grid-cols-1">
                   <label className="font-semibold text-gray-700">Timeline<span className="text-red-500">*</span></label>
                   <DatePicker
                     selected={form.Timeline || null}
                     onChange={(date) => {
-  if (date instanceof Date && !isNaN(date)) {
-    setForm({ ...form, Timeline: date }); // store raw Date
+                      if (date instanceof Date && !isNaN(date)) {
+                        setForm({ ...form, Timeline: date }); // store raw Date
 
-    if (formErrors.Timeline) {
-      setFormErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors.Timeline;
-        return newErrors;
-      });
-    }
-  }
-}}
+                        if (formErrors.Timeline) {
+                          setFormErrors((prev) => {
+                            const newErrors = { ...prev };
+                            delete newErrors.Timeline;
+                            return newErrors;
+                          });
+                        }
+                      }
+                    }}
 
                     dateFormat="yyyy-MM-dd"
                     placeholderText="Select Timeline"
@@ -966,14 +689,15 @@ const CreatePOC = () => {
                     showPopperArrow={false}
                     // ❌ Disable manual typing
                     onKeyDown={(e) => e.preventDefault()}
+                    maxDate={new Date()}
                   />
                   {formErrors.Timeline && (
-                  <p className="text-red-500 text-sm mt-1">{formErrors.Timeline}</p>
-                )}
+                    <p className="text-red-500 text-sm mt-1">{formErrors.Timeline}</p>
+                  )}
                 </div>
 
 
-                
+
               </div>
 
               <div className="md:col-span-2">

@@ -8,10 +8,16 @@ import { jwtDecode } from "jwt-decode";
 import { FiEye, FiEdit2, FiRotateCw } from "react-icons/fi";
 import { GrCompliance } from "react-icons/gr"; // View, Edit, Submit
 
+import TopPopupPortal from "../TopPopupPortal";
+import { useRef } from "react";
+import { RiIndeterminateCircleFill } from "react-icons/ri";
+
+
 import "react-toastify/dist/ReactToastify.css";
-import { FiClipboard, FiClock, FiCheckCircle, FiAlertCircle, FiPlay, FiBox, FiAlertTriangle } from "react-icons/fi";
+import { FiClipboard, FiClock, FiCheckCircle, FiPlay, FiBox } from "react-icons/fi";
 import { GoIssueReopened } from "react-icons/go";
 import { LuClockAlert } from "react-icons/lu";
+import { MdDeleteOutline } from "react-icons/md";
 
 import { FaThumbtack } from "react-icons/fa";
 import { FaFileExcel } from "react-icons/fa";
@@ -35,6 +41,7 @@ interface Stats {
   inProgress: number;
   inRD: number;
   Reopened: number;
+  Terminated?: number;
 }
 
 interface Domain {
@@ -69,13 +76,7 @@ interface TokenPayload {
   exp?: number;
 }
 
-interface DeveloperTask {
-  name: string;
-  assigned: number;
-  completed: number;
-  inProgress: number;
-  inRD: number;
-}
+
 
 interface DomainStats {
   total: number;
@@ -85,6 +86,7 @@ interface DomainStats {
   "in-R&D": number;
   submitted: number;
   Reopened: number;
+  Terminated: number;
 }
 
 const TaskPage: React.FC = () => {
@@ -118,6 +120,7 @@ const TaskPage: React.FC = () => {
     inProgress: 0,
     inRD: 0,
     Reopened: 0,
+    Terminated: 0,
   });
 
   const [userRole, setUserRole] = useState<string>("");
@@ -143,9 +146,26 @@ const TaskPage: React.FC = () => {
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [openStatusDropdown, setOpenStatusDropdown] = useState(false);
   const [showPOCModal, setShowPOCModal] = useState(false);
-  const [showPOCForm, setShowPOCForm] = useState(false);
+  // const [showPOCForm, setShowPOCForm] = useState(false);
 
 
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpenStatusDropdown(false); // close dropdown
+      }
+    };
+
+    if (openStatusDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [openStatusDropdown]);
 
 
   const fetchSalesUsers = async () => {
@@ -181,6 +201,9 @@ const TaskPage: React.FC = () => {
   const open = Boolean(anchorEl);
   const [loading, setLoading] = useState(true);
   const [tableloading, setTableLoading] = useState(false)
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupData, setPopupData] = useState(null);
+
 
   // --- openStatusModal (update so domain includes id + status) ---
   const openStatusModal = (
@@ -235,6 +258,7 @@ const TaskPage: React.FC = () => {
         inRD = 0,
         completed = 0;
       let Reopened = 0;
+      let Terminated = 0;
 
       Object.values(data).forEach((d) => {
         total += d.total || 0;
@@ -244,9 +268,10 @@ const TaskPage: React.FC = () => {
         inRD += d["in-R&D"] || 0;
         completed += d.submitted || 0;
         Reopened += d.Reopened || 0;
+        Terminated += d.Terminated || 0;
       });
 
-      setStats({ total, pending, inProgress, delayed, inRD, completed, Reopened });
+      setStats({ total, pending, inProgress, delayed, inRD, completed, Reopened, Terminated });
     } catch (err) {
       console.error("Stats fetch error:", err);
     } finally {
@@ -279,7 +304,8 @@ const TaskPage: React.FC = () => {
     { label: "In-Progress ", value: stats.inProgress, icon: <FiPlay />, bgColor: "bg-purple-50", textColor: "text-gray-500" },
     { label: "Delayed ", value: stats.delayed, icon: <LuClockAlert />, bgColor: "bg-red-50", textColor: "text-gray-500" },
     { label: "In-R&D", value: stats.inRD, icon: <FiBox />, bgColor: "bg-orange-50", textColor: "text-gray-500" },
-    { label: "Reopened", value: stats.Reopened, icon: <GoIssueReopened />, bgColor: "bg-amber-50", textColor: "text-gray-500" },
+    { label: "Reopened", value: stats.Reopened, icon: <GoIssueReopened />, bgColor: "bg-pink-50", textColor: "text-gray-500" },
+    { label: "Terminated", value: stats.Terminated || 0, icon: <MdDeleteOutline />, bgColor: "bg-gray-50", textColor: "text-gray-500" },
   ];
 
   if (token) {
@@ -297,8 +323,20 @@ const TaskPage: React.FC = () => {
     "Delayed",
     "In-R&D",
     "Reopened",
+    "Terminated",
   ];
+  const statusDisplayMap = {
+    "pending": "Pending",
+    "in-progress": "In-Progress",
+    "submitted": "Submitted",
+    "delayed": "Delayed",
+    "in-R&D": "In-R&D",
+    "Reopened": "Reopened",
+    "Terminated": "Terminated",
+  };
 
+
+  
 
 
 
@@ -396,6 +434,10 @@ const TaskPage: React.FC = () => {
       case "in-r&d":
       case "in-rd":
         return "bg-orange-100 text-orange-800";
+      case "Reopened":
+        return "bg-pink-100 text-pink-800";
+      case "Terminated":
+        return "bg-gray-200 text-gray-800";
       default:
         return "bg-orange-100 text-orange-800";
     }
@@ -537,6 +579,41 @@ const TaskPage: React.FC = () => {
     </div>
   );
 
+  const handleTerminateDomain = async (taskId, domainName) => {
+    try {
+      const response = await fetch(`${apiUrl}/tasks/domain/terminate`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        credentials: "include", // ⭐ VERY IMPORTANT for cookie auth
+        body: JSON.stringify({
+          taskId,
+          domainName,
+          reason: "Terminated by user"
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.message || "Failed to terminate");
+        return;
+      }
+
+      toast.success("Domain terminated successfully");
+
+      fetchTasks();
+      fetchStats(token);
+
+    } catch (error) {
+      console.error("Terminate error", error);
+      toast.error("Something went wrong");
+    }
+  };
+
+
+
 
 
 
@@ -567,10 +644,11 @@ const TaskPage: React.FC = () => {
           zIndex: 99999
         }}
       />
-      <div className="mb-5 text-black">
-        {/* First row: 2 cards */}
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          {cards.slice(0, 2).map((card, idx) => (
+      <div className="mb-5 text-black w-full">
+
+        {/* First row: 3 cards (responsive) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+          {cards.slice(0, 3).map((card, idx) => (
             <div
               key={idx}
               className={`${card.bgColor} rounded-lg p-4 text-center shadow hover:shadow-lg transition text-black flex flex-col items-center justify-center`}
@@ -584,9 +662,9 @@ const TaskPage: React.FC = () => {
           ))}
         </div>
 
-        {/* Second row: remaining cards */}
-        <div className="grid grid-cols-5 gap-4">
-          {cards.slice(2).map((card, idx) => (
+        {/* Second row: remaining cards (responsive) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {cards.slice(3).map((card, idx) => (
             <div
               key={idx}
               className={`${card.bgColor} rounded-lg p-4 text-center shadow hover:shadow-lg transition text-black flex flex-col items-center justify-center`}
@@ -599,7 +677,10 @@ const TaskPage: React.FC = () => {
             </div>
           ))}
         </div>
+
       </div>
+
+
       {(role === "Admin" || role === "Sales" || role === "Manager" || role === "TL") && (
         <div className="my-5 text-xl flex items-center font-semibold">
           <FaThumbtack className="inline-block mr-2 text-blue-600" />
@@ -611,7 +692,7 @@ const TaskPage: React.FC = () => {
 
       )}
 
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+      {/* <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div className="flex gap-2 flex-1">
           <input
             type="text"
@@ -628,17 +709,7 @@ const TaskPage: React.FC = () => {
           />
 
 
-          {/* <select
-            value={statusFilter}
-            onChange={(e) => { setStatusFilter(e.target.value); setPage(1) }}
-            className="w-full md:w-48 p-2 rounded-lg border border-gray-300 bg-white text-gray-800"
-          >
-            {statuses.map((s) => (
-              <option key={s} value={s === "All" ? "" : s}>
-                {s}
-              </option>
-            ))}
-          </select> */}
+          
 
 
 
@@ -659,15 +730,17 @@ const TaskPage: React.FC = () => {
           )}
 
 
-          {/* RESET FILTER BUTTON */}
+          
 
         </div>
-        <div className="relative w-48">
+        <div className="relative w-48" ref={dropdownRef}>
           <div
             className="border rounded-lg px-3 py-3 bg-white  flex items-center justify-between cursor-pointer"
-            onClick={() => setOpenStatusDropdown(!openStatusDropdown)}
+            onClick={() => setOpenStatusDropdown(!openStatusDropdown)
+
+            }
           >
-            <span className="text-sm text-gray-700">
+            <span className="text-sm text-gray-700 text-bold">
               {selectedStatuses.length === 0
                 ? "Select Status"
                 : selectedStatuses.join(", ")}
@@ -685,36 +758,48 @@ const TaskPage: React.FC = () => {
             </svg>
           </div>
 
+          
+
           {openStatusDropdown && (
-            <div className="absolute left-0 right-0 mt-1 bg-white border rounded shadow-lg z-10 p-2 max-h-48 overflow-y-auto">
-              {[
-                "pending",
-                "in-progress",
-                "Reopened",
-                "submitted",
-                "delayed",
-                "in-R&D",
-              ].map((status) => (
-                <label
-                  key={status}
-                  className="flex items-center gap-2 p-1 cursor-pointer text-sm"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedStatuses.includes(status)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedStatuses([...selectedStatuses, status]);
-                      } else {
-                        setSelectedStatuses(selectedStatuses.filter((s) => s !== status));
-                      }
-                    }}
-                  />
-                  {status}
-                </label>
-              ))}
-            </div>
-          )}
+  <div
+    ref={dropdownRef}
+    className="absolute left-0 right-0 mt-1 bg-white border rounded shadow-lg z-10 p-2 max-h-48 overflow-y-auto"
+  >
+    {[
+      "pending",
+      "in-progress",
+      "Reopened",
+      "submitted",
+      "delayed",
+      "in-R&D",
+      "Terminated",
+    ].map((status) => (
+      <label
+        key={status}
+      
+        className="flex items-center gap-2 p-1 cursor-pointer text-sm"
+      >
+        <input
+          type="checkbox"
+          checked={selectedStatuses.includes(status)}
+          onChange={(e) => {
+            if (e.target.checked) {
+              setSelectedStatuses([...selectedStatuses, status]);
+            } else {
+              setSelectedStatuses(
+                selectedStatuses.filter((s) => s !== status)
+              );
+            }
+          }}
+        />
+
+        {statusDisplayMap[status]}
+      </label>
+    ))}
+  </div>
+)}
+
+
         </div>
 
         <button
@@ -723,6 +808,7 @@ const TaskPage: React.FC = () => {
             setSelectedStatuses([]);
             setAssignedByFilter("");
             setPage(1);
+            setOpenStatusDropdown(false);
           }}
           className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg"
         >
@@ -746,7 +832,121 @@ const TaskPage: React.FC = () => {
           </button>
 
         )}
+      </div> */}
+
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 flex-wrap">
+        <div className="flex flex-col sm:flex-row gap-2 flex-1 w-full">
+          <input
+            type="text"
+            placeholder="Search by project, code, or developer"
+            value={searchText}
+            onChange={(e) => {
+              setSearchText(e.target.value);
+              setPage(1);
+            }}
+            autoFocus
+            className="flex-grow w-full sm:w-64 md:w-80 p-2 rounded-lg border border-gray-300 bg-white text-gray-800"
+          />
+
+          {(role === "Admin" || role === "Sales" || role === "Manager" || role === "TL") && (
+            <select
+              value={assignedByFilter}
+              onChange={(e) => {
+                setAssignedByFilter(e.target.value);
+                setPage(1);
+              }}
+              className="w-full sm:w-48 p-2 rounded-lg border border-gray-300 bg-white text-gray-800"
+            >
+              <option value="" hidden>Assigned By</option>
+              {salesList.map((user) => (
+                <option key={user._id} value={user.name}>
+                  {user.name}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+
+        <div className="relative w-full sm:w-48" ref={dropdownRef}>
+          <div
+            className="border rounded-lg px-3 py-3 bg-white flex items-center justify-between cursor-pointer"
+            onClick={() => setOpenStatusDropdown(!openStatusDropdown)}
+          >
+            <span className="text-sm text-gray-700 font-semibold">
+              {selectedStatuses.length === 0
+                ? "Select Status"
+                : selectedStatuses.join(", ")}
+            </span>
+
+            <svg
+              className={`w-4 h-4 transform transition ${openStatusDropdown ? "rotate-180" : ""}`}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+
+          {openStatusDropdown && (
+            <div className="absolute left-0 right-0 mt-1 bg-white border rounded shadow-lg z-10 p-2 max-h-48 overflow-y-auto">
+              {["pending", "in-progress", "Reopened", "submitted", "delayed", "in-R&D", "Terminated"].map((status) => (
+                <label key={status} className="flex items-center gap-2 p-1 cursor-pointer text-sm">
+                  <input
+                    type="checkbox"
+                    checked={selectedStatuses.includes(status)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedStatuses([...selectedStatuses, status]);
+                      } else {
+                        setSelectedStatuses(selectedStatuses.filter((s) => s !== status));
+                      }
+                    }}
+                  />
+                  {statusDisplayMap[status]}
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="flex flex-wrap gap-2 w-full md:w-auto items-center">
+          <button
+            onClick={() => {
+              setSearchText("");
+              setSelectedStatuses([]);
+              setAssignedByFilter("");
+              setPage(1);
+              setOpenStatusDropdown(false);
+            }}
+            className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg w-full sm:w-auto"
+          >
+            Clear Filters
+          </button>
+
+          {(role === "Admin" || role === "Sales" || role === "Manager") && (
+            <button
+              onClick={() => navigate("/create")}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-semibold w-full sm:w-auto"
+            >
+              + Create Task
+            </button>
+          )}
+
+          {(role === "Admin" || role === "Manager" || role === "Sales") && (
+            <button
+              onClick={() => setShowPOCModal(true)}
+              className="bg-[#3C01AF] hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-semibold w-full sm:w-auto"
+            >
+              💡 Generate POC File
+            </button>
+          )}
+        </div>
       </div>
+
+
+
       {tableloading ? <>  <div className="flex justify-center items-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-600 border-solid"></div>
       </div></> : <>
@@ -848,12 +1048,12 @@ const TaskPage: React.FC = () => {
                 {
                   field: "assignedBy",
                   headerName: "Assigned By",
-                  flex: 1,
-                  renderCell: (params) =>
-                    renderBubbleList(
-                      params.row.assignedBy ? [params.row.assignedBy] : [],
-                      params.row.id + "-by"
-                    ),
+                   width: 130,
+                  // renderCell: (params) =>
+                  //   renderBubbleList(
+                  //     params.row.assignedBy ? [params.row.assignedBy] : [],
+                  //     params.row.id + "-by"
+                  //   ),
                 },
                 // ✅ Feasible column
                 {
@@ -881,99 +1081,52 @@ const TaskPage: React.FC = () => {
                   },
                 },
                 // ✅ Assigned Date column
-                { field: "assignedDate", headerName: "Assigned Date", flex: 1 },
+                { field: "assignedDate", headerName: "Assigned Date",  width: 130, },
 
                 // ✅ Completion Date column
-                { field: "completionDate", headerName: "Completion Date", flex: 1 },
+                { field: "completionDate", headerName: "Completion Date",  width: 130, },
 
                 // ✅ Developers column
                 {
-                  field: "developers",
-                  headerName: "Developers",
-                  flex: 1,
-                  sortable: false,
-                  renderCell: (params) => {
-                    const devs = params.row.developers || [];
-                    const taskId = params.row.task._id;
+  field: "developers",
+  headerName: "Developers",
+  width: 130,
+  sortable: false,
+  renderCell: (params) => {
+    const devs = params.row.developers || [];
 
-                    return (
-                      <div
-                        className="flex items-center justify-center gap-1 relative w-full h-full"
-                        onMouseEnter={(e) => {
-                          setHoveredTask(taskId);
-                          setHoveredDevelopers(devs);
-
-                          const rect = e.currentTarget.getBoundingClientRect();
-                          setDropdownPos({
-                            x: rect.left,
-                            y: rect.bottom + 8,
-                          });
-                        }}
-                        onMouseLeave={() => {
-                          setHoveredTask(null);
-                          setHoveredDevelopers([]);
-                        }}
-                      >
-                        {/* Show up to 2 devs */}
-                        {devs.slice(0, 2).map((dev: string, i: number) => (
-                          <div
-                            key={i}
-                            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold cursor-pointer hover:scale-110 transition"
-                            style={{ backgroundColor: avatarColor(dev) }}
-                          >
-                            {dev.split(" ").map((n) => n[0]).join("")}
-                          </div>
-                        ))}
-
-                        {/* +X indicator */}
-                        {devs.length > 2 && (
-                          <div className="w-8 h-8 rounded-full bg-gray-200 text-gray-700 text-xs font-bold flex items-center justify-center cursor-pointer">
-                            +{devs.length - 2}
-                          </div>
-                        )}
-
-                        {/* Hover tooltip */}
-                        {hoveredTask === taskId && hoveredDevelopers.length > 0 &&
-                          createPortal(
-                            <div
-                              className="fixed bg-white shadow-lg rounded-lg p-2 w-56 z-[9999] border animate-fade-in"
-                              style={{ top: dropdownPos.y, left: dropdownPos.x }}
-                              onMouseLeave={() => setHoveredTask(null)}
-                            >
-                              <p className="text-xs font-semibold mb-2 text-gray-700">
-                                All Assignees
-                              </p>
-                              {hoveredDevelopers.map((dev, i) => (
-                                <div
-                                  key={i}
-                                  className="flex items-center gap-2 p-2 rounded hover:bg-gray-100 transition"
-                                >
-                                  <div
-                                    className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                                    style={{ backgroundColor: avatarColor(dev) }}
-                                  >
-                                    {dev.split(" ").map((n) => n[0]).join("")}
-                                  </div>
-                                  <span className="text-sm">{dev}</span>
-                                </div>
-                              ))}
-                            </div>,
-                            document.body
-                          )}
-                      </div>
-                    );
-                  },
-                },
+    return (
+      <div
+        className={`flex flex-wrap w-full ${
+          devs.length === 1
+            ? "justify-center items-center text-center pt-4"   // center for 1 name
+            : "justify-start"                             // normal for multiple
+        }`}
+      >
+        {devs.map((dev, index) => (
+          <span
+            key={index}
+            className="px-1 py-[2px] text-xs font-medium"
+          >
+            {dev}
+          </span>
+        ))}
+      </div>
+    );
+  },
+}
+,
 
                 // ✅ Status column
                 {
                   field: "status",
                   headerName: "Status",
-                  flex: 1,
+                  width: 130,
                   renderCell: (params) => (
                     <span
                       onClick={() => {
                         if (params.row.status === "submitted") return;
+                        if (params.row.status === "Terminated") return;
                         if (["TL", "Manager", "Admin"].includes(role)) {
                           const domainObj =
                             params.row.task?.domains?.find(
@@ -1011,10 +1164,10 @@ const TaskPage: React.FC = () => {
                 {
                   field: "actions",
                   headerName: "Actions",
-                  flex: 1,
+                  width: 130,
                   sortable: false,
                   renderCell: (params) => (
-                    <div className="flex items-center justify-start gap-2 w-full h-full">
+                    <div className="flex items-center pt-2 gap-2 flex-wrap w-full">
                       <FiEye
                         onClick={(e) => {
                           e.stopPropagation(); // prevent row click issues
@@ -1033,7 +1186,10 @@ const TaskPage: React.FC = () => {
 
                       {(role === "Admin" ||
                         role === "TL" ||
-                        role === "Manager") && (
+                        role === "Manager") &&
+
+                        params.row.status?.trim().toLowerCase() !== "terminated" &&
+                        (
                           <FiEdit2
                             onClick={() => navigate(
                               `/edit/${params.row.task._id}?domain=${encodeURIComponent(
@@ -1045,7 +1201,7 @@ const TaskPage: React.FC = () => {
                             size={18}
                           />
                         )}
-                      {(
+                      {/* {(
                         ["Admin", "TL", "Manager"].includes(role) ||
                         (role === "Developer" &&
                           params.row.developers?.some(
@@ -1053,10 +1209,14 @@ const TaskPage: React.FC = () => {
                               dev?.toLowerCase()?.trim() === userName?.toLowerCase()?.trim()
                           ))
                       ) &&
-                        params.row.status?.trim().toLowerCase() !== "submitted" && (
+                        params.row.status?.trim().toLowerCase() !== "submitted" &&
+                        params.row.status?.trim().toLowerCase() !== "terminated" &&
+                        (
                           <GrCompliance
                             onClick={() => {
                               const devs = params.row.developers || [];
+
+
 
                               if (devs.length === 0) {
                                 setShowAssignDevPopup(true);   // your existing popup logic
@@ -1088,7 +1248,7 @@ const TaskPage: React.FC = () => {
                             size={18}
                           />
 
-                        )}
+                        )} */}
                       {(role === "Admin") &&
                         <FiRotateCw
                           onClick={() => {
@@ -1099,9 +1259,6 @@ const TaskPage: React.FC = () => {
                             });
                             setShowHistory(true);
                           }}
-
-
-
                           className="cursor-pointer text-purple-600 hover:text-purple-700"
                           title="View History"
                           size={18}
@@ -1118,8 +1275,33 @@ const TaskPage: React.FC = () => {
                             size={18}
                           />
                         )}
+                      {(role === "Admin" || role === "Manager") &&
+                        params.row.status?.trim().toLowerCase() !== "terminated" &&
+                        params.row.status?.trim().toLowerCase() !== "submitted" &&
+                        (
+                          // <MdDeleteForever
+                          //   onClick={() => {
+                          //     if (window.confirm("Are you sure you want to terminate this domain?"))
+                          //     handleTerminateDomain(params.row.task._id, params.row.domainName);
+                          //   }}
+                          //   className="cursor-pointer text-red-600 hover:text-red-800"
+                          //   title="Terminate Domain"
+                          //   size={20}
+                          // />
+                          <RiIndeterminateCircleFill
+                            onClick={() => {
+                              setPopupData({
+                                id: params.row.task._id,
+                                domain: params.row.domainName,
+                              });
+                              setShowPopup(true);
+                            }}
+                            className="cursor-pointer text-red-600 hover:text-red-800"
+                            title="Terminate Domain"
+                            size={20}
+                          />
 
-
+                        )}
                     </div>
                   ),
                 },
@@ -1257,70 +1439,71 @@ const TaskPage: React.FC = () => {
         </div>
       </>}
 
-      {statusModalOpen && currentTask && currentDomain && currentDomain.status.toLowerCase() !== 'submitted' && (
-        <div className="fixed inset-0 bg-opacity-20 backdrop-blur-sm flex items-center justify-center z-30">
-          <div className="bg-white rounded-lg p-6 w-96">
-            <h2 className="text-lg font-semibold mb-4">Update Status</h2>
+      {statusModalOpen && currentTask && currentDomain && currentDomain.status.toLowerCase() !== 'submitted' &&
+        (
+          <div className="fixed inset-0 bg-opacity-20 backdrop-blur-sm flex items-center justify-center z-30">
+            <div className="bg-white rounded-lg p-6 w-96">
+              <h2 className="text-lg font-semibold mb-4">Update Status</h2>
 
-            <div className="mb-4">
-              <label className="block mb-1 font-medium">New Status</label>
+              <div className="mb-4">
+                <label className="block mb-1 font-medium">New Status</label>
 
-              {/* The status is already set to 'in-R&D' in openStatusModal */}
-              <h3 className="w-full p-2 border rounded bg-gray-100 text-gray-800 font-semibold">
-                in-R&D
-              </h3>
+                {/* The status is already set to 'in-R&D' in openStatusModal */}
+                <h3 className="w-full p-2 border rounded bg-gray-100 text-gray-800 font-semibold">
+                  in-R&D
+                </h3>
 
-            </div>
+              </div>
 
-            <div className="mb-4">
-              <label className="block mb-1 font-medium">Reason</label>
-              <textarea
-                value={statusReason}
-                onChange={(e) => setStatusReason(e.target.value)}
-                className="w-full p-2 border rounded"
-                placeholder="Enter reason for status change"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block mb-1 font-medium">Upload File</label>
-              <input
-                type="file"
-                onChange={(e) => setFile(e.target.files?.[0] || null)}
-                className="border rounded p-1 w-full"
-              />
-            </div>
-            <span className="flex items-center justify-center text-gray-500">OR</span>
-            <div className="mb-4">
-              <label className="block mb-1 font-medium">Upload Url</label>
-              <input
-                type="text"
-                placeholder="Enter the URL"
-                onChange={(e) => setUrl(e.target.value)}
-                className="border rounded p-1 w-full"
-              />
-            </div>
+              <div className="mb-4">
+                <label className="block mb-1 font-medium">Reason</label>
+                <textarea
+                  value={statusReason}
+                  onChange={(e) => setStatusReason(e.target.value)}
+                  className="w-full p-2 border rounded"
+                  placeholder="Enter reason for status change"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block mb-1 font-medium">Upload File</label>
+                <input
+                  type="file"
+                  onChange={(e) => setFile(e.target.files?.[0] || null)}
+                  className="border rounded p-1 w-full"
+                />
+              </div>
+              <span className="flex items-center justify-center text-gray-500">OR</span>
+              <div className="mb-4">
+                <label className="block mb-1 font-medium">Upload Url</label>
+                <input
+                  type="text"
+                  placeholder="Enter the URL"
+                  onChange={(e) => setUrl(e.target.value)}
+                  className="border rounded p-1 w-full"
+                />
+              </div>
 
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={handleStatusUpdate}
-                disabled={loading}
-                className={`px-4 py-2 rounded text-white font-medium transition ${loading
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700"
-                  }`}
-              >
-                {loading ? "Updating..." : "Update"}
-              </button>
-              <button
-                onClick={closeStatusModal}
-                className="px-4 py-2 rounded bg-gray-300 text-gray-800 hover:bg-gray-400"
-              >
-                Cancel
-              </button>
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={handleStatusUpdate}
+                  disabled={loading}
+                  className={`px-4 py-2 rounded text-white font-medium transition ${loading
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700"
+                    }`}
+                >
+                  {loading ? "Updating..." : "Update"}
+                </button>
+                <button
+                  onClick={closeStatusModal}
+                  className="px-4 py-2 rounded bg-gray-300 text-gray-800 hover:bg-gray-400"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
       {showAssignDevPopup && (
         <div className="fixed inset-0  bg-opacity-20 backdrop-blur-sm flex items-center justify-center z-30">
@@ -1344,7 +1527,6 @@ const TaskPage: React.FC = () => {
           task={selectedTask?.task}
           domainName={selectedTask?.domainName}
         />
-
       )}
 
       {showPOCModal && (
@@ -1356,9 +1538,45 @@ const TaskPage: React.FC = () => {
           }}
         />
       )}
+      {showPopup && (
+        <TopPopupPortal>
+          <div
+            style={{
+              position: "fixed",
+              top: "20px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              zIndex: 999999,
+            }}
+            className="bg-white border border-gray-300 shadow-2xl rounded-lg 
+               px-6 py-9 w-[400px] h-[200px] animate-slideDown "
+          >
+            <p className="text-gray-800 font-medium text-center text-xl">
+              Are you sure you want to terminate this domain?
+            </p>
 
+            <div className="flex justify-center gap-4 mt-4">
+              <button
+                className="px-4 py-1 bg-[#3C01AF] text-white rounded hover:bg-purple-700"
+                onClick={() => {
+                  handleTerminateDomain(popupData.id, popupData.domain);
+                  setShowPopup(false);
+                }}
+              >
+                Yes
+              </button>
 
+              <button
+                className="px-4 py-1 bg-gray-300 rounded hover:bg-gray-400"
+                onClick={() => setShowPopup(false)}
+              >
+                No
+              </button>
+            </div>
+          </div>
+        </TopPopupPortal>
 
+      )}
     </>
   );
 };

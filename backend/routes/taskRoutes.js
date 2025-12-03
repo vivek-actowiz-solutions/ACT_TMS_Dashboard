@@ -16,7 +16,10 @@ import {
   reOpenTask,
   getReopenTaskData,
   getTaskList,
-  getSingleTaskList
+  getSingleTaskList,
+  terminateDomain,
+  getAllUsersTaskCreatedStats
+  
 } from "../controllers/taskController.js";
 
 const router = express.Router();
@@ -31,9 +34,7 @@ router.post("/tasks", authorize(['Admin', 'Sales', 'Manager']), upload.fields([
   { name: "clientSampleSchemaFiles", maxCount: 20 },
 ]), createTask);
 
-router.get("/tasks/list", getTaskList);
-
-
+router.get("/tasks/list",authorize(['Admin', 'Sales', 'Manager']), getTaskList);
 
 
 router.get("/tasks/:id/reopen-data",
@@ -88,10 +89,15 @@ router.get(
 
 router.get("/tasks/:id", authorize(['Admin', 'Sales', 'TL', 'Developer', 'Manager']), getSingleTask);
 // TL and Manager can update domain status
-router.get("/tasks/single/:id", getSingleTaskList);
+router.get("/tasks/single/:id",authorize(['Admin', 'Sales', 'TL', 'Manager']), getSingleTaskList);
 
 
 router.get("/tasks/developers", authorize(['Manager', 'TL',]), getDevelopersDomainStatus);
+router.get("/tasks/created/by-all-users", authorize(['Manager', 'Sales','Admin',]), getAllUsersTaskCreatedStats);
+
+router.put("/tasks/domain/terminate", authorize([ 'Manager', 'Admin']), terminateDomain);
+
+
 export default router;
 
 

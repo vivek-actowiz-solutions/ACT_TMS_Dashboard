@@ -4,7 +4,7 @@ const domainSchema = new mongoose.Schema({
   name: { type: String, required: true }, // e.g., "web", "app", "both"
   status: {
     type: String,
-    enum: ["pending","in-progress", "delayed", "submitted","in-R&D","Reopened"],
+    enum: ["pending","in-progress", "delayed", "submitted","in-R&D","Reopened","Terminated"],
     default: "pending",
   }, 
   statusKey: { type: String, lowercase: true, trim: true },

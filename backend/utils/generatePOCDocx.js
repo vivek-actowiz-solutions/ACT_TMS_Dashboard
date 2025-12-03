@@ -1,414 +1,4 @@
-// // utils/generatePOCDocx.js
-// import {
-//   Document,
-//   Packer,
-//   Paragraph,
-//   TextRun,
-//   HeadingLevel,
-//   Table,
-//   TableRow,
-//   TableCell,
-//   WidthType,
-//   AlignmentType
-// } from "docx";
-// import fs from "fs";
-// import path from "path";
 
-// /**
-//  * Generate a DOCX buffer for a POC object following the uploaded SOW structure.
-//  * @param {Object} poc - populated POC document from Mongo
-//  * @returns {Buffer} - docx file buffer
-//  */
-// export const generatePOCDocxBuffer = async (poc) => {
-//   console.log("docx generatePOCDocxBuffer",poc);
-
-//   const doc = new Document({
-//     sections: [
-//       {
-//         properties: {},
-//         children: [
-//           // Title
-//           new Paragraph({
-//             alignment: AlignmentType.CENTER,
-//             text: "Scope of Work (SOW)",
-//              size: 72,
-//             heading: HeadingLevel.TITLE,
-//           }),
-//           new Paragraph({ text: "" }),
-//           new Paragraph({
-//             alignment: AlignmentType.CENTER,
-//             text: `Of`,
-//              size: 72,
-//             spacing: { after: 200 },
-//           }),
-//           new Paragraph({
-//             alignment: AlignmentType.CENTER,
-//             text: `${poc.title || "Project Title"}`,
-//              size: 72,
-//             heading: HeadingLevel.HEADING_1,
-//           }),
-//           new Paragraph({
-//             children: [
-//               new TextRun({
-//                 text: "",
-//                 break: 1  // page break
-//               }),
-//             ],
-//           }),
-
-//           // Table of Contents placeholder (simple)
-//           new Paragraph({ text: "Table of Contents", size: 40, heading: HeadingLevel.HEADING_2 }),
-//           new Paragraph({ text: "" }),
-//           // Table of Contents (static list exactly as shared)
-//           new Paragraph({
-//             children: [
-//               new TextRun({
-//                 text: "Document Control ................................................................. 3",
-//                 size: 32,
-//               }),
-//             ],
-//           }),
-//           new Paragraph({
-//             children: [
-//               new TextRun({
-//                 text: "Purpose of the Document .......................................................... 4",
-//                 size: 32,
-//               }),
-//             ],
-//           }),
-//           new Paragraph({
-//             children: [
-//               new TextRun({
-//                 text: "Purpose of the Project .................................................................. 5",
-//                 size: 32,
-//               }),
-//             ],
-//           }),
-//           new Paragraph({
-//             children: [
-//               new TextRun({
-//                 text: "Requirement Map .......................................................................... 6",
-//                 size: 32,
-//               }),
-//             ],
-//           }),
-//           new Paragraph({
-//             children: [
-//               new TextRun({
-//                 text: "1. Project Details ...................................................................................... 6",
-//                 size: 32,
-//               }),
-//             ],
-//           }),
-//           new Paragraph({
-//             children: [
-//               new TextRun({
-//                 text: "2. Scope Of Project ................................................................................. 6",
-//                 size: 32,
-//               }),
-//             ],
-//           }),
-//           new Paragraph({
-//             children: [
-//               new TextRun({
-//                 text: "3. Additional Notes ................................................................................ 7",
-//                 size: 32,
-//               }),
-//             ],
-//           }),
-//           new Paragraph({
-//             children: [
-//               new TextRun({
-//                 text: "4. Mandatory Fields ............................................................................... 7",
-//                 size: 32,
-//               }),
-//             ],
-//           }),
-//           new Paragraph({
-//             children: [
-//               new TextRun({
-//                 text: "5. Annotations ......................................................................................... 9",
-//                 size: 32,
-//               }),
-//             ],
-//           }),
-
-// ,
-// new Paragraph({
-//   children: [
-//     new TextRun({
-//       text: "",
-//       break: 1  // page break
-//     }),
-//   ],
-// }),
-
-
-//           // Document Control
-//           new Paragraph({ text: "Document Control",size: 32, heading: HeadingLevel.HEADING_2 }),
-//           // small table with version, date, author, release summary
-//           new Table({
-//             width: {
-//               size: 100,
-//               type: WidthType.PERCENTAGE,
-//             },
-//             rows: [
-//               new TableRow({
-//                 children: [
-//                   new TableCell({ children: [new Paragraph("Version")] }),
-//                   new TableCell({ children: [new Paragraph("Date")] }),
-//                   new TableCell({ children: [new Paragraph("Author")] }),
-//                   new TableCell({ children: [new Paragraph("Release Summary")] }),
-//                 ],
-//               }),
-//               new TableRow({
-//                 children: [
-//                   new TableCell({ children: [new Paragraph("1.0")] }),
-//                   new TableCell({ children: [new Paragraph(poc.date ? new Date(poc.date).toLocaleDateString() : new Date().toLocaleDateString())] }),
-//                   new TableCell({ children: [new Paragraph( poc.asignedBy|| "")] }),
-//                   new TableCell({ children: [new Paragraph("First Release")] }),
-//                 ],
-//               }),
-//             ],
-//           }),
-
-
-// ,
-// new Paragraph({
-//   children: [
-//     new TextRun({
-//       text: "",
-//       break: 1  // page break
-//     }),
-//   ],
-// }),
-
-//           // Purpose of the Document
-//           new Paragraph({ text: "Purpose of the Document",size: 40, heading: HeadingLevel.HEADING_2 }),
-//           new Paragraph({
-//             children: [
-//               new TextRun({
-//                 text:
-//                   "This document comprises of the requirement details that has been either discussed with Sales team or have been shared by client with Actowiz. Compliance of the requirement will be done by technical team of Actowiz in accordance with requirement details mentioned in this document. For any deviation or change in Scope of Work, client has to explicitly communicate the same with Sales Team & Technical Team. Updated SOW document to be submitted to client in case of any deviation or change in Scope of Work Agreement. ",
-//                 size: 32,
-//               }),
-//             ],
-//           }),
-
-//          new Paragraph({
-//   children: [
-//     new TextRun({
-//       text: "",
-//       break: 1  // page break
-//     }),
-//   ],
-// }),
-// ,
-
-//           // Purpose of the Project
-//           new Paragraph({ text: "Purpose of the Project",size: 40, heading: HeadingLevel.HEADING_2 }),
-//           new Paragraph({
-//             children: [
-//               new TextRun({
-//                 text:
-//                   poc.PurposeOftheProject ||
-//                   "The purpose of this project is to collect, process, and deliver product information as per requirements.",
-//                 size: 32,
-//               }),
-//             ],
-//           }),
-
-//           new Paragraph({
-//   children: [
-//     new TextRun({
-//       text: "",
-//       break: 1  // page break
-//     }),
-//   ],
-// }),
-// ,
-
-//           // Requirement Map heading
-//           new Paragraph({ text: "Requirement Map", size: 32, heading: HeadingLevel.HEADING_2 }),
-//           new Paragraph({ text: "" }),
-
-//           // Project Details table
-//           new Paragraph({ text: "1.Project Details", heading: HeadingLevel.HEADING_3 }),
-//           new Table({
-//             width: { size: 100, type: WidthType.PERCENTAGE },
-//             rows: [
-//               new TableRow({
-//                 children: [
-//                   new TableCell({ children: [new Paragraph("Item")],
-//                     shading: {
-//         fill: "16476A", // Light gray (hex color without #)
-//       },
-//                    }),
-//                   new TableCell({ children: [new Paragraph("Description")],shading: {
-//         fill: "16476A", // Light gray (hex color without #)
-//       }, }),
-//                 ],
-//               }),
-//               createRow("Project Code", poc.ProjectCode),
-//               createRow("Record Count", poc.RecordCount),
-//               createRow("Task Id", poc.TaskId || (poc.taskId?._id?.toString() || "")),
-//               createRow("Bitrix URL", poc.BitrixURL),
-//             ],
-//           }),
-
-//           new Paragraph({ text: "" }),
-
-//           // Scope Of Project
-//           new Paragraph({ text: "2.Scope Of Project",size: 32, heading: HeadingLevel.HEADING_3 }),
-//           new Table({
-//             width: { size: 100, type: WidthType.PERCENTAGE },
-//             rows: [
-//               new TableRow({
-//                 children: [
-//                   new TableCell({ children: [new Paragraph("Requirement")],
-//                     shading: {
-//         fill: "16476A", // Light gray (hex color without #)
-//                     }
-//                    }),
-//                   new TableCell({ children: [new Paragraph("Details")],
-//                     shading: {
-//         fill: "16476A", // Light gray (hex color without #)
-//                     }
-//                    }),
-//                 ],
-//               }),
-//               createRow("Industry", poc.Industry),
-//               createRow("Client Geography", poc.ClientGeography),
-//              createRow("Target Website", Array.isArray(poc.TargetWebsite) ? poc.TargetWebsite.join(", ") : poc.TargetWebsite || ""),
-//               createRow("Location Coverage", poc.LocationCoverage),
-//               createRow("Input Parameter", poc.InputParameter),
-//               createRow("Scope of Data", poc.ScopeOfData),
-//                createRow("Output Attributes", poc.OutputAttributes),
-//               createRow("Output Format", poc.OutputFormat?.title || poc.OutputFormat || ""),
-//               createRow("Output Delivery Mode", poc.OutputDeliveryMode),
-//               createRow("Frequency", poc.Frequency?.title || poc.Frequency || ""),
-//               createRow("Timeline", poc.Timeline),
-//               createRow("Input File",""),
-//               createRow("Sample","")
-//             ],
-//           }),
-
-
-
-
-//           new Paragraph({ text: "" }),
-
-
-//           // Additional Notes
-//           new Paragraph({ text: "3.Additional Notes",size: 32, heading: HeadingLevel.HEADING_3 }),
-//           new Paragraph({ text: poc.AdditionalNotes || "" }),
-
-//           new Paragraph({ text: "" }),
-
-//           // Mandatory Fields header + rows
-//           new Paragraph({ text: "4.Mandatory Fields", heading: HeadingLevel.HEADING_2 }),
-//           // Header for mandatory fields table
-//           new Table({
-//             width: { size: 100, type: WidthType.PERCENTAGE },
-//             rows: [
-//               new TableRow({
-//                 children: [
-//                   new TableCell({ children: [new Paragraph("Header")],
-//                     shading: {
-//         fill: "16476A", // Light gray (hex color without #)
-//                     }
-//                    }),
-//                   new TableCell({ children: [new Paragraph("Description")],
-//                     shading: {
-//         fill: "16476A", // Light gray (hex color without #)
-//                     }
-//                    }),
-//                 ],
-//               }),
-//               // add rows from poc.MandatoryFields
-//               ...(Array.isArray(poc.MandatoryFields) && poc.MandatoryFields.length
-//                 ? poc.MandatoryFields.map((mf) =>
-//                   new TableRow({
-//                     children: [
-//                       new TableCell({ children: [new Paragraph(mf.fieldName || "")] }),
-//                       new TableCell({ children: [new Paragraph(mf.description || "")] }),
-//                     ],
-//                   })
-//                 )
-//                 : [new TableRow({ children: [new TableCell({ children: [new Paragraph("N/A")] }), new TableCell({ children: [new Paragraph("N/A")] })] })]),
-//             ],
-//           }),
-
-//           new Paragraph({ text: "" }),
-
-//           // Annotations
-//           new Paragraph({ text: "Annotations", heading: HeadingLevel.HEADING_2 }),
-//           new Table({
-//             width: { size: 100, type: WidthType.PERCENTAGE },
-//             rows: [
-//               new TableRow({
-//                 children: [
-//                   new TableCell({ children: [new Paragraph("Item")],
-//                     shading: {
-//         fill: "16476A", // Light gray (hex color without #)
-//                     }
-//                    }),
-//                   new TableCell({ children: [new Paragraph("Annotations")],
-//                     shading: {
-//         fill: "16476A", // Light gray (hex color without #)
-//                     }
-//                    }),
-//                 ],
-//               }),
-//               createRow("Costco", ""),
-
-//             ],
-//           }),
-//         ],
-//       },
-//     ],
-//   });
-
-//   const buffer = await Packer.toBuffer(doc);
-//   return buffer;
-// };
-
-// // small helper to create table rows
-// function createRow(title, value) {
-//   const fontSize = 32; // Change this to increase/decrease table font size
-
-//   return new TableRow({
-//     children: [
-//       new TableCell({
-//         children: [
-//           new Paragraph({
-//             children: [
-//               new TextRun({
-//                 text: title || "",
-//                 size: fontSize,
-//               }),
-//             ],
-//           }),
-//         ],
-//       }),
-//       new TableCell({
-//         children: [
-//           new Paragraph({
-//             children: [
-//               new TextRun({
-//                 text: value || "",
-//                 size: fontSize,
-//               }),
-//             ],
-//           }),
-//         ],
-//       }),
-//     ],
-//   });
-// }
-
-// utils/generatePOCDocx.js
-import { log } from "console";
 import {
   Document,
   Packer,
@@ -422,18 +12,30 @@ import {
   AlignmentType,
   ShadingType,
   PageNumber,
+  TabStopPosition,
+  TabStopType
 } from "docx";
-import fs from "fs";
-import path from "path";
+
 
 /**
  * Generate a DOCX buffer for a POC object following the uploaded SOW structure (exact reproduction).
  * @param {Object} poc - populated POC document from Mongo
  * @returns {Buffer} - docx file buffer
  */
+const tocItems = [
+  { title: "Document Control", page: 3 },
+  { title: "Purpose of the Document", page: 4 },
+  { title: "Purpose of the Project", page: 5 },
+  { title: "Requirement Map", page: 6 },
+  { title: "1. Project Details", page: 6 },
+  { title: "2. Scope Of Project", page: 6 },
+  { title: "3. Additional Notes", page: 7 },
+  { title: "4. Mandatory Fields", page: 7 },
+  { title: "5. Annotations", page: 9 },
+];
 export const generatePOCDocxBuffer = async (poc = {}) => {
-  console.log("poc",poc.projectName);
-  
+  console.log("poc projectName:-", poc.projectName);
+
   // Helper sizes: docx TextRun 'size' uses half-points. 11pt -> 22, 14pt -> 28, etc.
   const SIZE_BODY = 30; // 11pt
   const SIZE_H3 = 35; // 14pt
@@ -501,8 +103,54 @@ export const generatePOCDocxBuffer = async (poc = {}) => {
     });
   }
 
+
+  function headerCellWithWidth(text, width) {
+  return new TableCell({
+    width: { size: width, type: WidthType.DXA },  // 🔥 fixed width
+    shading: { fill: "16476A" },
+    children: [
+      new Paragraph({
+        children: [
+          new TextRun({
+            text,
+            bold: true,
+            size: 28,
+          }),
+        ],
+      }),
+    ],
+  });
+}
+
+function bodyCell(text, width) {
+  return new TableCell({
+    width: { size: width, type: WidthType.DXA },
+    children: [
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: text || "",
+            size: 28,
+          }),
+        ],
+      }),
+    ],
+    margins: { top: 120, bottom: 120 }, // small, clean height
+  });
+}
+
+
   // Build the document
   const doc = new Document({
+    styles: {
+      // Custom styles
+      default: {
+        document: {
+          run: { font: "Calibri", color: "000000", size: 24 }, // default font size 12pt (24 half-points)
+          paragraph: { spacing: { line: 360 } }, // 1.5 line spacing
+        },
+      },
+    },
     // Page size & margins (A4 + 1 inch margins)
     sections: [
       {
@@ -584,35 +232,55 @@ export const generatePOCDocxBuffer = async (poc = {}) => {
             ],
           }),
           new Paragraph({ text: "" }),
-
+          ...tocItems.map(item =>
+            new Paragraph({
+              tabStops: [
+                {
+                  type: TabStopType.RIGHT,
+                  position: TabStopPosition.MAX,
+                  leader: ".",
+                },
+              ],
+              children: [
+                new TextRun({
+                  text: item.title,
+                  size: SIZE_BODY,
+                }),
+                new TextRun({
+                  text: "\t" + item.page,
+                  size: SIZE_BODY,
+                }),
+              ],
+            })
+          ),
           // Static TOC entries (matching your original)
-          new Paragraph({
-            children: [new TextRun({ text: "Document Control ................................................................. 3", size: SIZE_BODY })],
-          }),
-          new Paragraph({
-            children: [new TextRun({ text: "Purpose of the Document................................................................. 4", size: SIZE_BODY })],
-          }),
-          new Paragraph({
-            children: [new TextRun({ text: "Purpose of the Project .................................................................5", size: SIZE_BODY })],
-          }),
-          new Paragraph({
-            children: [new TextRun({ text: "Requirement Map .................................................................6", size: SIZE_BODY })],
-          }),
-          new Paragraph({
-            children: [new TextRun({ text: "1. Project Details ................................................................. 6", size: SIZE_BODY })],
-          }),
-          new Paragraph({
-            children: [new TextRun({ text: "2. Scope Of Project ................................................................. 6", size: SIZE_BODY })],
-          }),
-          new Paragraph({
-            children: [new TextRun({ text: "3. Additional Notes ................................................................. 7", size: SIZE_BODY })],
-          }),
-          new Paragraph({
-            children: [new TextRun({ text: "4. Mandatory Fields ................................................................. 7", size: SIZE_BODY })],
-          }),
-          new Paragraph({
-            children: [new TextRun({ text: "5. Annotations ................................................................. 9", size: SIZE_BODY })],
-          }),
+          // new Paragraph({
+          //   children: [new TextRun({ text: "Document Control ................................................................. 3", size: SIZE_BODY })],
+          // }),
+          // new Paragraph({
+          //   children: [new TextRun({ text: "Purpose of the Document................................................................. 4", size: SIZE_BODY })],
+          // }),
+          // new Paragraph({
+          //   children: [new TextRun({ text: "Purpose of the Project .................................................................5", size: SIZE_BODY })],
+          // }),
+          // new Paragraph({
+          //   children: [new TextRun({ text: "Requirement Map .................................................................6", size: SIZE_BODY })],
+          // }),
+          // new Paragraph({
+          //   children: [new TextRun({ text: "1. Project Details ................................................................. 6", size: SIZE_BODY })],
+          // }),
+          // new Paragraph({
+          //   children: [new TextRun({ text: "2. Scope Of Project ................................................................. 6", size: SIZE_BODY })],
+          // }),
+          // new Paragraph({
+          //   children: [new TextRun({ text: "3. Additional Notes ................................................................. 7", size: SIZE_BODY })],
+          // }),
+          // new Paragraph({
+          //   children: [new TextRun({ text: "4. Mandatory Fields ................................................................. 7", size: SIZE_BODY })],
+          // }),
+          // new Paragraph({
+          //   children: [new TextRun({ text: "5. Annotations ................................................................. 9", size: SIZE_BODY })],
+          // }),
 
           // page break to next section (TOC end -> Doc Control)
 
@@ -623,34 +291,58 @@ export const generatePOCDocxBuffer = async (poc = {}) => {
 
           // Document Control heading
           new Paragraph({
-
+            spacing: { after: 200 },
             children: [new TextRun({ text: "Document Control", bold: true, size: SIZE_H2 })],
           }),
 
           // Add the small table with version, date, author, release summary
-          new Table({
-            width: { size: 100, type: WidthType.PERCENTAGE },
-           
-            rows: [
-              new TableRow({
-                children: [
-                  headerCell("Version"),
-                  headerCell("Date"),
-                  headerCell("Author"),
-                  headerCell("Release Summary"),
-                ],
-              }),
-              new TableRow({
+          // new Table({
+          //   width: { size: 100, type: WidthType.PERCENTAGE },
 
-                children: [
-                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "1.0", size: SIZE_BODY })] })] }),
-                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: poc.date ? new Date(poc.date).toLocaleDateString() : new Date().toLocaleDateString(), size: SIZE_BODY })] })] }),
-                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: poc.asignedBy || poc.assignedBy || "", size: SIZE_BODY })] })] }),
-                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "First Release", size: SIZE_BODY })] })] }),
-                ],
-              }),
-            ],
-          }),
+          //   rows: [
+          //     new TableRow({
+          //       children: [
+          //         headerCell("Version", 50),
+          //         headerCell("Date", 40),
+          //         headerCell("Author", 50),
+          //         headerCell("Release Summary", 50),
+          //       ],
+          //     }),
+          //     new TableRow({
+
+          //       children: [
+          //         new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "1.0", size: SIZE_BODY })] })] }),
+          //         new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: poc.date ? new Date(poc.date).toLocaleDateString() : new Date().toLocaleDateString(), size: SIZE_BODY })] })] }),
+          //         new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: poc.asignedBy || poc.assignedBy || "", size: SIZE_BODY })] })] }),
+          //         new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "First Release", size: SIZE_BODY })] })] }),
+          //       ],
+          //     }),
+          //   ],
+          // }),
+          new Table({
+  width: { size: 100, type: WidthType.PERCENTAGE },
+  layout: "fixed",  // 🔥 forces perfect alignment
+  rows: [
+    new TableRow({
+      children: [
+        headerCellWithWidth("Version", 2000),
+        headerCellWithWidth("Date", 2500),
+        headerCellWithWidth("Author", 2500),
+        headerCellWithWidth("Release Summary", 3500),
+      ],
+    }),
+
+    new TableRow({
+      children: [
+        bodyCell("1.0", 2000),
+        bodyCell(poc.date ? new Date(poc.date).toLocaleDateString() : new Date().toLocaleDateString(), 2500),
+        bodyCell(poc.asignedBy || poc.assignedBy || "", 2500),
+        bodyCell("First Release", 3500),
+      ],
+    }),
+  ],
+}),
+
 
           // page break (match file)
 
@@ -667,6 +359,7 @@ export const generatePOCDocxBuffer = async (poc = {}) => {
           // large gap like original
           ...blankLines(1),
           new Paragraph({
+            alignment: AlignmentType.JUSTIFIED,
             children: [
               new TextRun({
                 text:
@@ -689,6 +382,7 @@ export const generatePOCDocxBuffer = async (poc = {}) => {
           }),
           ...blankLines(1),
           new Paragraph({
+            alignment: AlignmentType.JUSTIFIED,
             children: [
               new TextRun({
                 text:
@@ -713,7 +407,11 @@ export const generatePOCDocxBuffer = async (poc = {}) => {
           new Paragraph({ text: "" }),
 
           // 1. Project Details heading
-          new Paragraph({ children: [new TextRun({ text: "1.Project Details", bold: true, size: SIZE_H3 })] }),
+          new Paragraph({
+            spacing: { after: 200 },
+            children: [new TextRun({ text: "1.Project Details", bold: true, size: SIZE_H3 })]
+
+          }),
 
           // Project Details table
           new Table({
@@ -728,7 +426,7 @@ export const generatePOCDocxBuffer = async (poc = {}) => {
               }),
               createRow("Project Code", poc.ProjectCode || ""),
               createRow("Record Count", poc.RecordCount || ""),
-              createRow("Task Id", poc.TaskId || (poc.taskId?._id?.toString() || "")),
+              createRow("Task Id", poc.TaskId || (poc.TaskIdForPOC?.toString() || "")),
               createRow("Bitrix URL", poc.BitrixURL || ""),
             ],
           }),

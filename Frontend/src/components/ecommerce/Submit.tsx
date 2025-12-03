@@ -889,6 +889,7 @@ const SubmitTaskUI: React.FC<SubmitTaskProps> = ({ taskData }) => {
                             onChange={handleChange}
                             placeholder="Enter Proxy Name"
                             className="w-full border border-gray-300 rounded-lg p-3"
+                            maxLength={50}
                           />
                           {renderError("proxyName")}
                         </div>
@@ -904,6 +905,7 @@ const SubmitTaskUI: React.FC<SubmitTaskProps> = ({ taskData }) => {
                             min={0}
                             value={submission.perRequestCredit}
                             onChange={handleChange}
+                            placeholder="Ex:- 1,2,5,10"
                             className="w-full border border-gray-300 rounded-lg p-3 
              [appearance:textfield] 
              [&::-webkit-outer-spin-button]:appearance-none 
@@ -911,7 +913,8 @@ const SubmitTaskUI: React.FC<SubmitTaskProps> = ({ taskData }) => {
                           />
                           {renderError("perRequestCredit")}
                         </div>
-
+ 
+ 
                         {/* Total Requests */}
                         <div>
                           <label className="text-sm font-medium text-gray-700">
@@ -921,8 +924,10 @@ const SubmitTaskUI: React.FC<SubmitTaskProps> = ({ taskData }) => {
                             type="number"
                             name="totalRequest"
                             min={0}
+
                             value={submission.totalRequest}
                             onChange={handleChange}
+                            placeholder="Ex- 1,2,3,4,5"
                             className="w-full border border-gray-300 rounded-lg p-3 
              [appearance:textfield] 
              [&::-webkit-outer-spin-button]:appearance-none 

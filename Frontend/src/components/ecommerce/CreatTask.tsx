@@ -99,13 +99,20 @@ const CreateTaskUI: React.FC = () => {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
         const data = await res.json();
-        setAssignedToOptions(data.filter((u: any) => u.role === "TL" || u.role === "Manager"));
+
+        // Filter by role AND active status
+        const activeUsers = data.filter(
+          (u: any) => (u.role === "TL" || u.role === "Manager") && u.isActive
+        );
+
+        setAssignedToOptions(activeUsers);
       } catch (err) {
         console.error("Error fetching users:", err);
       }
     };
     fetchUsers();
   }, []);
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target as any;
@@ -126,6 +133,20 @@ const CreateTaskUI: React.FC = () => {
     if (!domainPlatform) {
       errors.domainPlatform = "Domain Platform is required";
     }
+
+    //for remarks length
+    if (domainRemark && domainRemark.length > 100) {
+      errors.domainRemark = "Domain Remark cannot exceed 100 characters";
+    }
+
+    const INVALID_REMARK_REGEX = /[^a-zA-Z0-9\s.,-]/;
+    if (domainRemark && INVALID_REMARK_REGEX.test(domainRemark)) {
+      errors.domainRemark = "Special characters are not allowed in remark";
+    }
+
+    // special characters in remarks
+
+
 
     if (Object.keys(errors).length > 0) {
       setErrors(prev => ({ ...prev, ...errors }));
@@ -151,6 +172,11 @@ const CreateTaskUI: React.FC = () => {
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
     if (!task.title.trim()) newErrors.title = "Title is required";
+    if (task.title.length > 50) newErrors.title = "Title cannot exceed 50 characters";
+    if (/[^a-zA-Z0-9\s]/.test(task.title)) {
+      newErrors.title = "Title cannot contain special characters";
+    }
+
     if (!task.assignedTo) newErrors.assignedTo = "Assigned To is required";
     if (!task.description.trim()) newErrors.description = "Description is required";
     if (!task.typeOfDelivery) newErrors.typeOfDelivery = "Type of Delivery is required";
@@ -169,6 +195,8 @@ const CreateTaskUI: React.FC = () => {
     if (duplicates.length > 0) {
       newErrors.domain = "Duplicate domain names are not allowed.";
     }
+
+
 
     if (task.sampleFileRequired && !task.requiredValumeOfSampleFile)
       newErrors.requiredValumeOfSampleFile = "Required volume is mandatory when sample file is required";
@@ -276,7 +304,7 @@ const CreateTaskUI: React.FC = () => {
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-gray-700 font-medium mb-2">Task Name <span className="text-red-500">*</span></label>
-                      <input type="text" name="title" value={task.title} onChange={handleChange} className="w-full border rounded-lg p-3" />
+                      <input type="text" name="title" value={task.title} onChange={handleChange} className="w-full border rounded-lg p-3" maxLength={50} />
                       {renderError("title")}
                     </div>
                     <div>
@@ -290,10 +318,25 @@ const CreateTaskUI: React.FC = () => {
                       {renderError("assignedTo")}
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-gray-700 font-medium mb-2">Description <span className="text-red-500">*</span></label>
-                      <textarea name="description" value={task.description} onChange={handleChange} className="w-full border rounded-lg p-3 h-28" />
+                      <label className="block text-gray-700 font-medium mb-2">
+                        Description <span className="text-red-500">*</span>
+                      </label>
+
+                      <textarea
+                        name="description"
+                        value={task.description}
+                        onChange={handleChange}
+                        className="w-full border rounded-lg p-3 h-28"
+                        maxLength={200} // limit
+                      />
+
+                      <div className="text-right text-sm text-gray-500 mt-1">
+                        {task.description.length}/200 characters
+                      </div>
+
                       {renderError("description")}
                     </div>
+
                   </div>
                 )}
 
@@ -320,7 +363,8 @@ const CreateTaskUI: React.FC = () => {
                         <option value="both (app & web)">Both (App & Web)</option>
                       </select>
 
-                      <input type="text" value={domainRemark} onChange={(e) => setDomainRemark(e.target.value)} placeholder="Remark (optional)" className="flex-1 border rounded-lg p-3" />
+                      <input type="text" value={domainRemark} onChange={(e) => setDomainRemark(e.target.value)} placeholder="Remark (optional)" className="flex-1 border rounded-lg p-3" max={100} />
+
                       <button type="button" onClick={handleDomainAdd} className="bg-[#3C01AF] hover:bg-blue-700 text-white px-5 py-2 rounded-lg">Add</button>
                     </div>
                     {task.domainDetails.length > 0 && (
@@ -359,6 +403,10 @@ const CreateTaskUI: React.FC = () => {
 
                     {errors.domain && <p className="text-red-500 text-sm">{errors.domain}</p>}
                     {errors.domainPlatform && <p className="text-red-500 text-sm">{errors.domainPlatform}</p>}
+                    {errors.domainRemark && (
+                      <p className="text-red-500 text-sm">{errors.domainRemark}</p>
+                    )}
+
                   </>
                 )}
 
@@ -392,11 +440,39 @@ const CreateTaskUI: React.FC = () => {
                       <input type="text" placeholder="Ex:-header 1 , header 2,..." name="optionalFields" value={task.optionalFields} onChange={handleChange} className="w-full border rounded-lg p-3" />
                       {renderError("optionalFields")}
                     </div>
-                    <div>
+                    {/* <div>
                       <label className="block text-gray-700 font-medium mb-2">Frequency <span className="text-red-500">*</span></label>
                       <input type="text" name="frequency" placeholder="Ex:-Daily , Weekly,..." value={task.frequency} onChange={handleChange} className="w-full border rounded-lg p-3" />
                       {renderError("frequency")}
+                    </div> */}
+                    <div>
+                      <label className="block text-gray-700 font-medium mb-2">
+                        Frequency <span className="text-red-500">*</span>
+                      </label>
+
+                      <select
+                        name="frequency"
+                        value={task.frequency}
+                        onChange={(e) => {
+                          handleChange(e); // keeps your existing handler logic for task state
+                          // clear frequency error immediately
+                          setErrors(prev => ({ ...prev, frequency: "" }));
+                        }}
+                        className="w-full border rounded-lg p-3 bg-white"
+                      >
+                        <option value="" hidden>Select Frequency</option>
+                        <option value="Daily">Daily</option>
+                        <option value="Weekly">Weekly</option>
+                        <option value="Bi-Weekly">Bi-Weekly</option>
+                        <option value="Monthly">Monthly</option>
+                        <option value="Bi-Monthly">Bi-Monthly</option>
+                        <option value="Once-Off">Once-Off</option>
+                        <option value="Hourly">Hourly</option>
+                      </select>
+
+                      {renderError("frequency")}
                     </div>
+
                     <div>
                       <label className="block text-gray-700 font-medium mb-2">Output Format <span className="text-red-500">*</span></label>
                       {/* <select name="oputputFormat" value={task.oputputFormat} onChange={handleChange} className="w-full border rounded-lg p-3">
@@ -510,9 +586,9 @@ const CreateTaskUI: React.FC = () => {
                       <label className="block text-gray-700 font-medium mb-2">Input Document URL/Input Keywords</label>
                       <input type="text" name="inputUrls" value={task.inputUrls[0] || ""} onChange={(e) => {
                         setTask({ ...task, inputUrls: [e.target.value.trim()] });
-                        
+
                       }} className="w-full border rounded-lg p-3" />
-                     
+
                     </div>
                     <div>
                       <label className="block text-gray-700 font-medium mb-2">Client Sample Schema Document URL </label>

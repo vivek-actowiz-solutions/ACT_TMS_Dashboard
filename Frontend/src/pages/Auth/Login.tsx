@@ -10,6 +10,7 @@ export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [emailError, setEmailError] = useState("");
+  
   const navigate = useNavigate();
   const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -22,10 +23,64 @@ export default function SignInPage() {
   //const isFormValid = validateEmail(email)
 
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+//   const handleSubmit = async (e: React.FormEvent) => {
+//     e.preventDefault();
 
-    if (!email.trim() && !password.trim()) {
+//     if (!email.trim() && !password.trim()) {
+//     toast.error("Email & Password are required!");
+//     return;
+//   }
+
+//   if (!email.trim()) {
+//     toast.error("Email is required!");
+//     return;
+//   }
+
+//   if (!password.trim()) {
+//     toast.error("Password is required!");
+//     return;
+//   }
+//     if (!validateEmail(email)) {
+//       toast.error("Invalid email format!");
+//       setEmailError("Please enter a valid email");
+//       return;
+//     }
+//     if (!validateEmail(email)) {
+//   setEmailError("Please enter a valid email");
+//   return;
+// }
+//     setLoading(true);
+//     try {
+//       const res = await fetch(`${apiUrl}/users/login`, {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify({ email, password }),
+//         credentials: "include",
+//       });
+
+//       const data = await res.json();
+//       if (res.ok) {
+//         toast.success("Login successful! 🎉");
+//         setTimeout(() => navigate("/"), 1500);
+//       } else {
+//         if (data.message?.toLowerCase().includes("invalid")) {
+//           toast.error("Invalid email or password ❌");
+//         } else {
+//           toast.error(data.message || "Something went wrong!");
+//         }
+//       }
+//     } catch (err) {
+//       toast.error("Something went wrong! Try again.");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  // Basic validations
+  if (!email.trim() && !password.trim()) {
     toast.error("Email & Password are required!");
     return;
   }
@@ -39,41 +94,60 @@ export default function SignInPage() {
     toast.error("Password is required!");
     return;
   }
-    if (!validateEmail(email)) {
-      toast.error("Invalid email format!");
-      setEmailError("Please enter a valid email");
+
+  if (!validateEmail(email)) {
+    toast.error("Invalid email format!");
+    setEmailError("Please enter a valid email");
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const res = await fetch(`${apiUrl}/users/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+      credentials: "include",
+    });
+
+    const data = await res.json();
+
+    // SUCCESS
+    if (res.ok) {
+      toast.success("Login successful! 🎉");
+      setTimeout(() => navigate("/"), 1500);
       return;
     }
-    if (!validateEmail(email)) {
-  setEmailError("Please enter a valid email");
-  return;
-}
-    setLoading(true);
-    try {
-      const res = await fetch(`${apiUrl}/users/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-        credentials: "include",
-      });
 
-      const data = await res.json();
-      if (res.ok) {
-        toast.success("Login successful! 🎉");
-        setTimeout(() => navigate("/"), 1500);
-      } else {
-        if (data.message?.toLowerCase().includes("invalid")) {
-          toast.error("Invalid email or password ❌");
-        } else {
-          toast.error(data.message || "Something went wrong!");
-        }
-      }
-    } catch (err) {
-      toast.error("Something went wrong! Try again.");
-    } finally {
-      setLoading(false);
+    // 🔥 Handle specific backend errors
+    if (data.code === "EMAIL_NOT_FOUND") {
+      toast.error("Email not registered ❌");
+      setEmailError("This email is not registered");
+      return;
     }
-  };
+
+    if (data.code === "WRONG_PASSWORD") {
+      toast.error("Incorrect password ❌");
+      
+      return;
+    }
+
+    if (data.code === "MISSING_FIELDS") {
+      toast.error("Email & password are required.");
+      return;
+    }
+
+    // Default fallback
+    toast.error(data.message || "Something went wrong!");
+
+  } catch (err) {
+    toast.error("Something went wrong! Try again.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
 
   return (
@@ -139,7 +213,16 @@ export default function SignInPage() {
                   {showPassword ? "Hide" : "Show"}
                 </button>
               </div>
-            </div>
+              <div>
+              <p
+                
+                onClick={() => navigate("/forgot-password")}
+                className="text-sm text-blue-600 hover:underline mt-2 inline-block text-end cursor-pointer"
+              >
+                Forgot Password?
+              </p>
+              </div>
+            </div> 
 
             <button
               type="submit"

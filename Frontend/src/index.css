@@ -3,6 +3,22 @@ layer(base);
 
 @import "tailwindcss";
 
+@keyframes slideDown {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.animate-slideDown {
+  animation: slideDown 0.25s ease-out;
+}
+
+
 @custom-variant dark (&:is(.dark *));
 
 @theme {

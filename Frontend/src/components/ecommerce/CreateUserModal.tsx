@@ -70,7 +70,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose, onCr
   if (!isOpen) return null;
 
  return (
-  <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-30">
+  <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-[9999]">
     <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-200">
       <h2 className="text-2xl font-semibold mb-6 text-gray-800 text-center">
         Create New User

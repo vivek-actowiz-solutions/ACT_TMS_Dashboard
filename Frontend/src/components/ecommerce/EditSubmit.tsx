@@ -691,7 +691,7 @@ const EditSubmit: React.FC = () => {
                       <div>
                         <label className="text-sm font-medium text-gray-700">Credentials</label>
                         <textarea name="credentials" value={submission.credentials || ""} onChange={(e) => setSubmission((prev) => ({ ...prev, credentials: e.target.value }))} placeholder="Enter Credentials..." className="w-full border border-gray-300 rounded-lg p-3 h-28" />
-                      </div>
+                      </div> 
                     )}
                     {submission.proxyUsed === true && (
                       <div className="md:col-span-2 grid grid-cols-3 gap-6 mt-4">
@@ -707,6 +707,7 @@ const EditSubmit: React.FC = () => {
                             onChange={handleChange}
                             placeholder="Enter Proxy Name"
                             className="w-full border border-gray-300 rounded-lg p-3"
+                             maxLength={50}
                           />
                           {renderError("proxyName")}
                         </div>
@@ -722,6 +723,7 @@ const EditSubmit: React.FC = () => {
                             min={0}
                             value={submission.perRequestCredit}
                             onChange={handleChange}
+                            placeholder="Ex:- 1,2,5,10"
                             className="w-full border border-gray-300 rounded-lg p-3 
              [appearance:textfield] 
              [&::-webkit-outer-spin-button]:appearance-none 
@@ -741,6 +743,7 @@ const EditSubmit: React.FC = () => {
                             min={0}
                             value={submission.totalRequest}
                             onChange={handleChange}
+                             placeholder="Ex- 1,2,3,4,5"
                             className="w-full border border-gray-300 rounded-lg p-3 
              [appearance:textfield] 
              [&::-webkit-outer-spin-button]:appearance-none 

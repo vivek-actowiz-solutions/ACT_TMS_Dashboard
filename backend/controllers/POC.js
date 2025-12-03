@@ -4,7 +4,7 @@ import fs from "fs";
 import path from "path";
 import { generatePOCDocxBuffer } from "../utils/generatePOCDocx.js";
 
-
+ 
 
 export const createPOC = async (req, res) => {
   try {
@@ -24,15 +24,17 @@ export const createPOC = async (req, res) => {
     let existingPOC = await POC.findOne({ taskId: body.taskId });
 
     let pocDoc;
+      
+
     if (existingPOC && existingPOC.generatedPOCFile) {
-  const oldFilePath = path.join("uploads", "poc", path.basename(existingPOC.generatedPOCFile));
-  if (fs.existsSync(oldFilePath)) {
-    fs.unlinkSync(oldFilePath); // delete old file
-    console.log("Old POC file deleted:", oldFilePath);
-  } else {
-    console.log("Old file not found:", oldFilePath);
-  }
-}
+      const oldFilePath = path.join("uploads", "poc", path.basename(existingPOC.generatedPOCFile));
+      if (fs.existsSync(oldFilePath)) {
+        fs.unlinkSync(oldFilePath); // delete old file
+        console.log("Old POC file deleted:", oldFilePath);
+      } else {
+        console.log("Old file not found:", oldFilePath);
+      }
+    }
 
     if (existingPOC) {
       // 🔄 Update existing POC
@@ -63,8 +65,15 @@ export const createPOC = async (req, res) => {
       now.getMinutes()
     ).padStart(2, "0")}`;
 
+    let projectName = "project";
+    if (body.projectName) {
+      projectName = body.projectName
+        .replace(/\s+/g, "_")                
+        .replace(/[^a-zA-Z0-9._-]/g, "_")
+           
+    }
     // File name
-    const fileName = `${body.projectName}_POCFile_${dateSuffix}.docx`;
+    const fileName = `${projectName}_POCFile_${dateSuffix}.docx`;
     const filePath = path.join(folderPath, fileName);
 
     // Save file

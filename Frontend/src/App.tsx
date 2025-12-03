@@ -10,6 +10,8 @@ import TaskDetail from "./components/ecommerce/TaskDetail";
 import TaskPage from "./components/ecommerce/TaskPage";
 import EditSubmitPage from "./components/ecommerce/EditSubmit"
 
+import ForgotPassword from "./components/ecommerce/ForgotPassword";
+
 import Login from "./pages/Auth/Login";
 
 
@@ -28,6 +30,7 @@ export default function App() {
         <ScrollToTop />
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
 
           {/* Protected Routes */}
           <Route element={<PrivateRoute />}>
@@ -43,14 +46,10 @@ export default function App() {
               <Route path="/poc/create/:taskId" element={<POC />} />
               <Route path="/generate-poc" element={<GeneratePOC />} />
               
-              
               <Route element={<AdminRoute />}>
                 <Route path="/admin" element={<AdminDashboard />} />
               </Route>
               {/* duplicate login inside protected area removed */}
-
-
-              
             </Route>
           </Route>
 
