@@ -710,7 +710,7 @@ const canSubmit =
     <button
       onClick={() =>
         navigate(
-          `/submit/${task.id}?domain=${encodeURIComponent(displayedDomain || "")}`
+          `/submit/${task._id}?domain=${encodeURIComponent(displayedDomain || "")}`
         )
       }
       className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg shadow-sm hover:shadow-md transition font-medium"
