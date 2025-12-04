@@ -7,6 +7,7 @@ const domainSchema = new mongoose.Schema({
     enum: ["pending","in-progress", "delayed", "submitted","in-R&D","Reopened","Terminated"],
     default: "pending",
   }, 
+  terminatedReason: { type: String },
   statusKey: { type: String, lowercase: true, trim: true },
   completeDate: { type: Date },
   reason: { type: String },

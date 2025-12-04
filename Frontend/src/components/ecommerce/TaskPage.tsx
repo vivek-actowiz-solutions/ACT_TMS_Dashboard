@@ -579,7 +579,7 @@ const TaskPage: React.FC = () => {
     </div>
   );
 
-  const handleTerminateDomain = async (taskId, domainName) => {
+  const handleTerminateDomain = async (taskId, domainName,terminatedReason) => {
     try {
       const response = await fetch(`${apiUrl}/tasks/domain/terminate`, {
         method: "PUT",
@@ -590,7 +590,7 @@ const TaskPage: React.FC = () => {
         body: JSON.stringify({
           taskId,
           domainName,
-          reason: "Terminated by user"
+         terminatedReason
         }),
       });
 
@@ -641,7 +641,7 @@ const TaskPage: React.FC = () => {
           top: "10px",
           left: "50%",
           transform: "translateX(-50%)",
-          zIndex: 99999
+          zIndex: 9999999,
         }}
       />
       <div className="mb-5 text-black w-full">
@@ -1044,7 +1044,7 @@ const TaskPage: React.FC = () => {
                 ,
                 // ✅ Project column
                 { field: "project", headerName: "Project", width: 180 },
-                
+
                 // ✅ Assigned By column
                 {
                   field: "assignedBy",
@@ -1095,8 +1095,8 @@ const TaskPage: React.FC = () => {
                     return (
                       <div
                         className={`flex flex-wrap w-full ${devs.length === 1
-                            ? "justify-center items-center text-center pt-4"   // center for 1 name
-                            : "justify-start"                             // normal for multiple
+                          ? "justify-center items-center text-center pt-4"   // center for 1 name
+                          : "justify-start"                             // normal for multiple
                           }`}
                       >
                         {devs.map((dev, index) => (
@@ -1271,19 +1271,11 @@ const TaskPage: React.FC = () => {
                             size={18}
                           />
                         )}
-                      {(role === "Admin" || role === "Manager") &&
+                      {(role === "Admin" || role === "Manager" || role === "TL") &&
                         params.row.status?.trim().toLowerCase() !== "terminated" &&
                         params.row.status?.trim().toLowerCase() !== "submitted" &&
                         (
-                          // <MdDeleteForever
-                          //   onClick={() => {
-                          //     if (window.confirm("Are you sure you want to terminate this domain?"))
-                          //     handleTerminateDomain(params.row.task._id, params.row.domainName);
-                          //   }}
-                          //   className="cursor-pointer text-red-600 hover:text-red-800"
-                          //   title="Terminate Domain"
-                          //   size={20}
-                          // />
+                         
                           <RiIndeterminateCircleFill
                             onClick={() => {
                               setPopupData({
@@ -1534,45 +1526,121 @@ const TaskPage: React.FC = () => {
           }}
         />
       )}
-      {showPopup && (
+
+      
+      {/* {showPopup && (
         <TopPopupPortal>
           <div
             style={{
-              position: "fixed",
-              top: "20px",
-              left: "50%",
-              transform: "translateX(-50%)",
-              zIndex: 999999,
-            }}
+  position: "fixed",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  zIndex: 999999,
+}}
+
             className="bg-white border border-gray-300 shadow-2xl rounded-lg 
-               px-6 py-9 w-[400px] h-[200px] animate-slideDown "
+         px-6 py-6 w-[420px] animate-slideDown"
           >
-            <p className="text-gray-800 font-medium text-center text-xl">
-              Are you sure you want to terminate this domain?
+            <p className="text-gray-800 font-medium text-center text-xl mb-3">
+              Terminate Domain
             </p>
+
+            <label className="font-medium text-gray-700 text-sm">Reason *</label>
+            <textarea
+              className="w-full border p-2 rounded mt-1 text-sm"
+              placeholder="Enter termination reason"
+              value={popupData?. terminatedReason || ""}
+              onChange={(e) =>
+                setPopupData((prev) => ({ ...prev,  terminatedReason: e.target.value }))
+              }
+            />
 
             <div className="flex justify-center gap-4 mt-4">
               <button
                 className="px-4 py-1 bg-[#3C01AF] text-white rounded hover:bg-purple-700"
                 onClick={() => {
-                  handleTerminateDomain(popupData.id, popupData.domain);
+                  if (!popupData.terminatedReason?.trim()) {
+                    toast.error("Please enter a reason before terminating");
+                    return;
+                  }
+                  handleTerminateDomain(popupData.id, popupData.domain, popupData. terminatedReason);
                   setShowPopup(false);
                 }}
               >
-                Yes
+                Yes, Terminate
               </button>
 
               <button
                 className="px-4 py-1 bg-gray-300 rounded hover:bg-gray-400"
                 onClick={() => setShowPopup(false)}
               >
-                No
+                Cancel
               </button>
             </div>
           </div>
         </TopPopupPortal>
+      )} */}
+<>
 
-      )}
+      {showPopup && 
+      
+      (
+        
+  <TopPopupPortal>
+    <div
+      className="fixed inset-0  flex items-center justify-center z-[999999]"
+    >
+      <div
+        className="bg-white border border-gray-300 shadow-2xl rounded-lg 
+        px-6 py-6 w-[420px]"
+      >
+        <p className="text-gray-800 font-medium text-center text-xl mb-3">
+          Terminate Domain
+        </p>
+
+        <label className="font-medium text-gray-700 text-sm">Reason *</label>
+        <textarea
+          className="w-full border p-2 rounded mt-1 text-sm"
+          placeholder="Enter termination reason"
+          value={popupData?.terminatedReason || ""}
+          onChange={(e) =>
+            setPopupData((prev) => ({ ...prev, terminatedReason: e.target.value }))
+          }
+        />
+
+        <div className="flex justify-center gap-4 mt-4">
+          <button
+            className="px-4 py-1 bg-[#3C01AF] text-white rounded hover:bg-purple-700"
+            onClick={() => {
+              if (!popupData.terminatedReason?.trim()) {
+                toast.error("Please enter a reason before terminating");
+                return;
+              }
+              handleTerminateDomain(
+                popupData.id,
+                popupData.domain,
+                popupData.terminatedReason
+              );
+              setShowPopup(false);
+            }}
+          >
+            Yes, Terminate
+          </button>
+
+          <button
+            className="px-4 py-1 bg-gray-300 rounded hover:bg-gray-400"
+            onClick={() => setShowPopup(false)}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </TopPopupPortal>
+)}
+</>
+
     </>
   );
 };

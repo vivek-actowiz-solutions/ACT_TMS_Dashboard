@@ -2097,7 +2097,7 @@ CC: <@${process.env.SLACK_RND_MANAGER_ID}>, <@${process.env.SLACK_SALES_MANAGER_
 export const terminateDomain = async (req, res) => {
   try {
     const { taskId, domainName } = req.body;
-    const { reason } = req.body;
+    const { terminatedReason } = req.body;
 
     if (!taskId || !domainName) {
       return res.status(400).json({ message: "taskId and domainName are required" });
@@ -2115,10 +2115,7 @@ export const terminateDomain = async (req, res) => {
 
     // Update domain
     domain.status = "Terminated";
-    
-
-    // update task overall status IF NEEDED
-    const allTerminated = task.domains.every((d) => d.status === "Terminated");
+    domain.terminatedReason = terminatedReason;
     
 
     await task.save();
@@ -2130,8 +2127,9 @@ export const terminateDomain = async (req, res) => {
       action: "Domain Terminated",
       changedBy: req.user?.name || "Unknown User",
       role: req.user?.role || "Unknown Role",
+
       timestamp: new Date(),
-      remark: reason || "",
+      remark: terminatedReason || "",
     });
 
     // slack notification
@@ -2145,11 +2143,12 @@ const assignedToSlack = assignedToUser?.slackId ? `<@${assignedToUser.slackId}>`
 
 
    const slackMessage = `
-    :no_entry_sign: *Domain Terminated*
+    *Task Terminated*:no_entry_sign: 
 ${space}:briefcase: *Task:* ${task.title || task.projectCode}
 ${space}:bust_in_silhouette: *Assigned By:* ${assignedBySlack}
 ${space}:date: *Assigned To:* ${assignedToSlack}
 ${space}:jigsaw: *Domain:* \`${domain.name}\`
+${space}:memo: *Reason:* ${terminatedReason}
 ${space}:memo: *Details:* This task is now terminated and no further updates are allowed.
 ${space}:link: *View Task:* <${process.env.FRONTEND_URL}/tasks|Open Dashboard>
 CC: <@${process.env.SLACK_RND_MANAGER_ID}>, <@${process.env.SLACK_SALES_MANAGER_ID}>
