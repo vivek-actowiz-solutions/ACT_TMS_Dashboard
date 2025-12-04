@@ -2104,6 +2104,8 @@ export const terminateDomain = async (req, res) => {
     }
 
     const task = await Task.findById(taskId);
+    console.log("Task:- ",task);
+    
     if (!task) return res.status(404).json({ message: "Task not found" });
 
     // find domain
@@ -2132,6 +2134,30 @@ export const terminateDomain = async (req, res) => {
       remark: reason || "",
     });
 
+    // slack notification
+    const assignedByUser = await User.findById(task.assignedBy).lean();
+const assignedToUser = await User.findById(task.assignedTo).lean();
+
+const assignedBySlack = assignedByUser?.slackId ? `<@${assignedByUser.slackId}>` : assignedByUser?.name || "-";
+const assignedToSlack = assignedToUser?.slackId ? `<@${assignedToUser.slackId}>` : assignedToUser?.name || "-";
+
+
+
+
+   const slackMessage = `
+    :no_entry_sign: *Domain Terminated*
+${space}:briefcase: *Task:* ${task.title || task.projectCode}
+${space}:bust_in_silhouette: *Assigned By:* ${assignedBySlack}
+${space}:date: *Assigned To:* ${assignedToSlack}
+${space}:jigsaw: *Domain:* \`${domain.name}\`
+${space}:memo: *Details:* This task is now terminated and no further updates are allowed.
+${space}:link: *View Task:* <${process.env.FRONTEND_URL}/tasks|Open Dashboard>
+CC: <@${process.env.SLACK_RND_MANAGER_ID}>, <@${process.env.SLACK_SALES_MANAGER_ID}>
+`;
+
+
+    await sendSlackMessage(process.env.SALES_RD_CHANNEL_TEST, slackMessage);
+ 
     return res.json({
       message: "Domain terminated successfully",
       domain,

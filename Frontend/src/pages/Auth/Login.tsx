@@ -10,7 +10,7 @@ export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [emailError, setEmailError] = useState("");
-  
+
   const navigate = useNavigate();
   const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -23,130 +23,137 @@ export default function SignInPage() {
   //const isFormValid = validateEmail(email)
 
 
-//   const handleSubmit = async (e: React.FormEvent) => {
-//     e.preventDefault();
+  //   const handleSubmit = async (e: React.FormEvent) => {
+  //     e.preventDefault();
 
-//     if (!email.trim() && !password.trim()) {
-//     toast.error("Email & Password are required!");
-//     return;
-//   }
+  //     if (!email.trim() && !password.trim()) {
+  //     toast.error("Email & Password are required!");
+  //     return;
+  //   }
 
-//   if (!email.trim()) {
-//     toast.error("Email is required!");
-//     return;
-//   }
+  //   if (!email.trim()) {
+  //     toast.error("Email is required!");
+  //     return;
+  //   }
 
-//   if (!password.trim()) {
-//     toast.error("Password is required!");
-//     return;
-//   }
-//     if (!validateEmail(email)) {
-//       toast.error("Invalid email format!");
-//       setEmailError("Please enter a valid email");
-//       return;
-//     }
-//     if (!validateEmail(email)) {
-//   setEmailError("Please enter a valid email");
-//   return;
-// }
-//     setLoading(true);
-//     try {
-//       const res = await fetch(`${apiUrl}/users/login`, {
-//         method: "POST",
-//         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify({ email, password }),
-//         credentials: "include",
-//       });
+  //   if (!password.trim()) {
+  //     toast.error("Password is required!");
+  //     return;
+  //   }
+  //     if (!validateEmail(email)) {
+  //       toast.error("Invalid email format!");
+  //       setEmailError("Please enter a valid email");
+  //       return;
+  //     }
+  //     if (!validateEmail(email)) {
+  //   setEmailError("Please enter a valid email");
+  //   return;
+  // }
+  //     setLoading(true);
+  //     try {
+  //       const res = await fetch(`${apiUrl}/users/login`, {
+  //         method: "POST",
+  //         headers: { "Content-Type": "application/json" },
+  //         body: JSON.stringify({ email, password }),
+  //         credentials: "include",
+  //       });
 
-//       const data = await res.json();
-//       if (res.ok) {
-//         toast.success("Login successful! 🎉");
-//         setTimeout(() => navigate("/"), 1500);
-//       } else {
-//         if (data.message?.toLowerCase().includes("invalid")) {
-//           toast.error("Invalid email or password ❌");
-//         } else {
-//           toast.error(data.message || "Something went wrong!");
-//         }
-//       }
-//     } catch (err) {
-//       toast.error("Something went wrong! Try again.");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
+  //       const data = await res.json();
+  //       if (res.ok) {
+  //         toast.success("Login successful! 🎉");
+  //         setTimeout(() => navigate("/"), 1500);
+  //       } else {
+  //         if (data.message?.toLowerCase().includes("invalid")) {
+  //           toast.error("Invalid email or password ❌");
+  //         } else {
+  //           toast.error(data.message || "Something went wrong!");
+  //         }
+  //       }
+  //     } catch (err) {
+  //       toast.error("Something went wrong! Try again.");
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  // Basic validations
-  if (!email.trim() && !password.trim()) {
-    toast.error("Email & Password are required!");
-    return;
-  }
-
-  if (!email.trim()) {
-    toast.error("Email is required!");
-    return;
-  }
-
-  if (!password.trim()) {
-    toast.error("Password is required!");
-    return;
-  }
-
-  if (!validateEmail(email)) {
-    toast.error("Invalid email format!");
-    setEmailError("Please enter a valid email");
-    return;
-  }
-
-  setLoading(true);
-
-  try {
-    const res = await fetch(`${apiUrl}/users/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-      credentials: "include",
-    });
-
-    const data = await res.json();
-
-    // SUCCESS
-    if (res.ok) {
-      toast.success("Login successful! 🎉");
-      setTimeout(() => navigate("/"), 1500);
+    // Basic validations
+    if (!email.trim() && !password.trim()) {
+      toast.error("Email & Password are required!");
       return;
     }
 
-    // 🔥 Handle specific backend errors
-    if (data.code === "EMAIL_NOT_FOUND") {
-      toast.error("Email not registered ❌");
-      setEmailError("This email is not registered");
+    if (!email.trim()) {
+      toast.error("Email is required!");
       return;
     }
 
-    if (data.code === "WRONG_PASSWORD") {
-      toast.error("Incorrect password ❌");
-      
+    if (!password.trim()) {
+      toast.error("Password is required!");
       return;
     }
 
-    if (data.code === "MISSING_FIELDS") {
-      toast.error("Email & password are required.");
+    if (!validateEmail(email)) {
+      toast.error("Invalid email format!");
+      setEmailError("Please enter a valid email");
       return;
     }
 
-    // Default fallback
-    toast.error(data.message || "Something went wrong!");
 
-  } catch (err) {
-    toast.error("Something went wrong! Try again.");
-  } finally {
-    setLoading(false);
-  }
-};
+
+    setLoading(true);
+
+    try {
+      const res = await fetch(`${apiUrl}/users/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+        credentials: "include",
+      });
+
+      const data = await res.json();
+
+      // SUCCESS
+      if (res.ok) {
+        toast.success("Login successful! 🎉");
+        setTimeout(() => navigate("/"), 1500);
+        return;
+      }
+
+      // 🔥 Handle specific backend errors
+      if (data.code === "EMAIL_NOT_FOUND") {
+        toast.error("Email not registered ❌");
+        setEmailError("This email is not registered");
+        return;
+      }
+
+      if (data.code === "WRONG_PASSWORD") {
+        toast.error("Incorrect password ❌");
+
+        return;
+      }
+
+      if (data.code === "MISSING_FIELDS") {
+        toast.error("Email & password are required.");
+        return;
+      }
+
+      if (data.code === "USER_INACTIVE") {
+        toast.error("Your account is deactivated. Contact admin.");
+        return;
+      }
+
+      // Default fallback
+      toast.error(data.message || "Something went wrong!");
+
+    } catch (err) {
+      toast.error("Something went wrong! Try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
 
@@ -181,9 +188,9 @@ const handleSubmit = async (e: React.FormEvent) => {
                 type="email"
                 value={email}
                 onChange={(e) => {
-    setEmail(e.target.value);
-    setEmailError("");
-  }}
+                  setEmail(e.target.value);
+                  setEmailError("");
+                }}
                 placeholder="Enter your email"
                 className="w-full p-3 rounded-lg bg-white border border-gray-300 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-800 placeholder-gray-400"
 
@@ -202,9 +209,9 @@ const handleSubmit = async (e: React.FormEvent) => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
                   className="w-full p-3 rounded-lg bg-white border border-gray-300 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-800 placeholder-gray-400"
-                  
+
                 />
-                
+
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
@@ -214,15 +221,15 @@ const handleSubmit = async (e: React.FormEvent) => {
                 </button>
               </div>
               <div>
-              <p
-                
-                onClick={() => navigate("/forgot-password")}
-                className="text-sm text-blue-600 hover:underline mt-2 inline-block text-end cursor-pointer"
-              >
-                Forgot Password?
-              </p>
+                <p
+
+                  onClick={() => navigate("/forgot-password")}
+                  className="text-sm text-blue-600 hover:underline mt-2 inline-block text-end cursor-pointer"
+                >
+                  Forgot Password?
+                </p>
               </div>
-            </div> 
+            </div>
 
             <button
               type="submit"

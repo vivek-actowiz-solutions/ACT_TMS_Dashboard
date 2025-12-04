@@ -116,6 +116,20 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, user, on
           className="w-full border border-gray-300 p-3 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
 
+       
+        <select
+          name="isActive"
+          value={form.isActive ? "true" : "false"}
+          onChange={(e) =>
+            setForm({ ...form, isActive: e.target.value === "true" })
+          }
+          className="w-full border border-gray-300 p-3 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required
+        >
+          <option value="true">Active</option>
+          <option value="false">Inactive</option>
+        </select>
+
         <div className="flex justify-end gap-3 mt-6">
           <button
             type="button"

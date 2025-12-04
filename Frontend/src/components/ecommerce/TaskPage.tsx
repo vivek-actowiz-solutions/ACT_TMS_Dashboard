@@ -336,7 +336,7 @@ const TaskPage: React.FC = () => {
   };
 
 
-  
+
 
 
 
@@ -1044,16 +1044,13 @@ const TaskPage: React.FC = () => {
                 ,
                 // ✅ Project column
                 { field: "project", headerName: "Project", width: 180 },
+                
                 // ✅ Assigned By column
                 {
                   field: "assignedBy",
                   headerName: "Assigned By",
-                   width: 130,
-                  // renderCell: (params) =>
-                  //   renderBubbleList(
-                  //     params.row.assignedBy ? [params.row.assignedBy] : [],
-                  //     params.row.id + "-by"
-                  //   ),
+                  width: 130,
+
                 },
                 // ✅ Feasible column
                 {
@@ -1081,41 +1078,40 @@ const TaskPage: React.FC = () => {
                   },
                 },
                 // ✅ Assigned Date column
-                { field: "assignedDate", headerName: "Assigned Date",  width: 130, },
+                { field: "assignedDate", headerName: "Assigned Date", width: 130, },
 
                 // ✅ Completion Date column
-                { field: "completionDate", headerName: "Completion Date",  width: 130, },
+                { field: "completionDate", headerName: "Completion Date", width: 130, },
 
                 // ✅ Developers column
                 {
-  field: "developers",
-  headerName: "Developers",
-  width: 130,
-  sortable: false,
-  renderCell: (params) => {
-    const devs = params.row.developers || [];
+                  field: "developers",
+                  headerName: "Developers",
+                  width: 130,
+                  sortable: false,
+                  renderCell: (params) => {
+                    const devs = params.row.developers || [];
 
-    return (
-      <div
-        className={`flex flex-wrap w-full ${
-          devs.length === 1
-            ? "justify-center items-center text-center pt-4"   // center for 1 name
-            : "justify-start"                             // normal for multiple
-        }`}
-      >
-        {devs.map((dev, index) => (
-          <span
-            key={index}
-            className="px-1 py-[2px] text-xs font-medium"
-          >
-            {dev}
-          </span>
-        ))}
-      </div>
-    );
-  },
-}
-,
+                    return (
+                      <div
+                        className={`flex flex-wrap w-full ${devs.length === 1
+                            ? "justify-center items-center text-center pt-4"   // center for 1 name
+                            : "justify-start"                             // normal for multiple
+                          }`}
+                      >
+                        {devs.map((dev, index) => (
+                          <span
+                            key={index}
+                            className="px-1 py-[2px] text-xs font-medium"
+                          >
+                            {dev}
+                          </span>
+                        ))}
+                      </div>
+                    );
+                  },
+                }
+                ,
 
                 // ✅ Status column
                 {

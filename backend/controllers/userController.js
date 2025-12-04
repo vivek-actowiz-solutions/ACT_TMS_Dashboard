@@ -99,6 +99,13 @@ export const loginUser = async (req, res) => {
     });
   }
 
+  if (!user.isActive) {
+    return res.status(403).json({
+      code: "USER_INACTIVE",
+      message: "Your account has been deactivated. Please contact admin."
+    });
+  }
+
   const isMatch = await bcrypt.compare(password, user.password);
 
   // WRONG PASSWORD
@@ -167,10 +174,10 @@ export const editUser = async (req, res) => {
     const userId = req.params.id;
     console.log("UserId",userId);
     
-    const { name, email, department, designation, role } = req.body;
+    const { name, email, department, designation, role , slackId,isActive} = req.body;
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { name, email, department, designation, role },
+      { name, email, department, designation, role, slackId,isActive },
       { new: true }
     ).select("-password");
     if (!updatedUser) return res.status(404).json({ message: "User not found" });
@@ -251,9 +258,34 @@ export const forgotPassword = async (req, res) => {
     to: email,
     subject: "Password Reset OTP",
     html: `
-      <h2>Your OTP Code</h2>
-      <h3>${otp}</h3>
-      <p>This OTP is valid for 10 minutes.</p>
+      <div style="font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9;">
+  <div style="max-width: 450px; margin: auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    
+    <h2 style="color: #2a4d9b; text-align:center;">Password Reset Verification</h2>
+
+    <p style="font-size: 15px; color: #444;">
+      We received a request to reset the password for your account.  
+      Use the verification code below to continue:
+    </p>
+
+    <div style="text-align: center; margin: 25px 0;">
+      <span style="display: inline-block; font-size: 28px; font-weight: bold; letter-spacing: 6px; color: #2a4d9b;">
+        ${otp}
+      </span>
+    </div>
+
+    <p style="font-size: 14px; color: #555;">
+      This code is valid for <strong>10 minutes</strong>.  
+      If you did not request a password reset, please ignore this email — your account is still secure.
+    </p>
+
+    <p style="margin-top: 25px; font-size: 13px; color: #888; text-align:center;">
+      © ${new Date().getFullYear()} Actowiz. All rights reserved.
+    </p>
+
+  </div>
+</div>
+
     `,
   });
 
@@ -302,10 +334,35 @@ export const verifyOTP = async (req, res) => {
     to: email,
     subject: "Your New Password",
     html: `
-      <h2>Password Reset Successful</h2>
-      <p>Your new temporary password:</p>
-      <h3>${newPassword}</h3>
-      <p>Please log in and change your password immediately.</p>
+      <div style="font-family: Arial, sans-serif; padding: 20px; background: #f5f6fa;">
+  <div style="max-width: 450px; margin: auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+
+    <h2 style="color: #2a4d9b; text-align:center;">Your Password Has Been Reset</h2>
+
+    <p style="font-size: 15px; color: #444;">
+      Your password has been successfully reset.  
+      Use the temporary password below to log in to your account:
+    </p>
+
+    <div style="text-align: center; margin: 25px 0;">
+      <span style="display: inline-block; font-size: 24px; font-weight: bold; background: #eef3ff; padding: 10px 20px; border-radius: 8px; color: #2a4d9b;">
+        ${newPassword}
+      </span>
+    </div>
+
+    <p style="font-size: 14px; color: #555;">
+      For security reasons, we recommend changing your password immediately after logging in.
+    </p>
+
+    <p style="margin-top: 25px; font-size: 13px; color: #888; text-align:center;">
+      If you did not request this password reset, please contact support immediately.
+      <br /><br />
+      © ${new Date().getFullYear()} Actowiz. All rights reserved.
+    </p>
+
+  </div>
+</div>
+
     `,
   });
 
