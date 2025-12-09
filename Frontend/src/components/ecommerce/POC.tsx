@@ -246,7 +246,7 @@ const CreatePOC = () => {
       }
 
       setTimeout(() => {
-        navigate("/tasks");
+        navigate("/TMS-R&D/tasks");
       }, 1500);
     } catch (err) {
       console.log(err);
@@ -263,8 +263,8 @@ const CreatePOC = () => {
     <>
       <PageBreadcrumb
         items={[
-          { title: "Home", path: "/" },
-          { title: "Tasks", path: "/tasks" },
+          { title: "Home", path: "/TMS-R&D/" },
+          { title: "Tasks", path: "/TMS-R&D/tasks" },
           { title: "POC" },
         ]}
       />

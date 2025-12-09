@@ -43,7 +43,7 @@ export const useAuth = () => {
 
   const logout = () => {
     Cookies.remove("token"); // remove token cookie
-    window.location.href = "/login"; // redirect to login
+    window.location.href = "/TMS-R&D/login"; // redirect to login
   };
 
   return { user, logout, role: user.role };

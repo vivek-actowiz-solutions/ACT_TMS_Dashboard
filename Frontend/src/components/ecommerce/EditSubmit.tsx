@@ -346,7 +346,7 @@ const EditSubmit: React.FC = () => {
       }
 
       toast.success("✅ Submission updated successfully!");
-      setTimeout(() => navigate("/tasks"), 1500);
+      setTimeout(() => navigate("/TMS-R&D/tasks"), 1500);
     } catch (err: any) {
       console.error("Update error:", err);
       toast.error("❌ Update failed: " + (err?.message || String(err)));

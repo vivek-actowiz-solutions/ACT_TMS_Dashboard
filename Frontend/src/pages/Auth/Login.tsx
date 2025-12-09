@@ -118,7 +118,7 @@ export default function SignInPage() {
       // SUCCESS
       if (res.ok) {
         toast.success("Login successful! 🎉");
-        setTimeout(() => navigate("/"), 1500);
+        setTimeout(() => navigate("/TMS-R&D/"), 1500);
         return;
       }
 
@@ -220,10 +220,10 @@ export default function SignInPage() {
                   {showPassword ? "Hide" : "Show"}
                 </button>
               </div>
-              <div>
+              <div> 
                 <p
 
-                  onClick={() => navigate("/forgot-password")}
+                  onClick={() => navigate("/TMS-R&D/forgot-password")}
                   className="text-sm text-blue-600 hover:underline mt-2 inline-block text-end cursor-pointer"
                 >
                   Forgot Password?

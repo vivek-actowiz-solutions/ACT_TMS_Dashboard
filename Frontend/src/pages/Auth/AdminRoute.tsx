@@ -3,7 +3,7 @@ import { isUserAdmin, isTokenValid } from "./auth";
 
 export default function AdminRoute() {
     // First ensure user is authenticated
-    if (!isTokenValid()) return <Navigate to="/login" replace />;
+    if (!isTokenValid()) return <Navigate to="/TMS-R&D/login" replace />;
     // Then ensure user is admin
-    return isUserAdmin() ? <Outlet /> : <Navigate to="/" replace />;
+    return isUserAdmin() ? <Outlet /> : <Navigate to="/TMS-R&D/" replace />;
 }

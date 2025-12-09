@@ -69,6 +69,14 @@ app.use("/api/users", userRoutes);
 app.use("/api/activity", activityRoutes);
 app.use("/api/poc", POCRoutes);
 
+// Default fallback route — redirect unknown routes to frontend home page
+app.use(/.*/, (req, res) => {
+  res.redirect(process.env.FRONTEND_URL);
+});
+
+
+
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running at http://0.0.0.0:${PORT}`);
 });

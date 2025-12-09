@@ -37,19 +37,19 @@ const navItems: NavItem[] = [
   {
     icon:  <FiGrid className="w-6 h-6" />,
     name: "Home",
-    path: "/",
+    path: "/TMS-R&D/",
   },
 
   {
     icon: <FiCheckSquare className="w-6 h-6" />,
     name: "Task",
-    path: "/tasks",
+    path: "/TMS-R&D/tasks",
   },
 
   {
     icon:  <FiUsers className="w-6 h-6" />,
     name: "User",
-    path: "/admin"
+    path: "/TMS-R&D/admin"
 
   },
 
@@ -336,7 +336,7 @@ const AppSidebar: React.FC = () => {
         className={`py-8 flex ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
           }`}
       >
-        <Link to="/">
+        <Link to="/TMS-R&D/">
           {isExpanded || isHovered || isMobileOpen ? (
             <>
               {/* <img
@@ -347,8 +347,11 @@ const AppSidebar: React.FC = () => {
                 height={40}
               /> */}
               <div className="flex flex-row">
-              <img src={icon} alt="" />
-              {<h1 className="text-[#3903a0] text-4xl pl-3">Actowiz</h1>}
+              <img src={icon} alt="/TMS-R&D/" />
+              <div>
+                 {<h1 className="text-[#3903a0] text-4xl pl-3 text-center">Actowiz</h1>}
+                 {<p className="text-[#3903a0] text-sm pl-3 text-center">TMS – R&D </p>}
+                 </div>
               </div>
                 
               {/* <img

@@ -194,6 +194,7 @@ export const createTask = async (req, res) => {
       clientSampleSchemaUrls: raw.clientSampleSchemaUrls,
       frequency: raw.frequency,
       description: raw.description,
+      rpm: raw.RPM,
     },
       {},
       "create"
@@ -531,7 +532,7 @@ export const submitTask = async (req, res) => {
   try {
     const { id } = req.params;
 
-   
+
     const body = req.body;   // ← DO NOT CLEAN FILE FORM DATA!
 
     // console.log(req.body);
@@ -936,22 +937,26 @@ export const editDomainSubmission = async (req, res) => {
       changedBy: req.user?.name || "Unknown",
     });
 
+   
     // 9. slack message
-    const editor =`<@${req.user?.slackId || ""}>`; 
+     const userInfo = await User.findById(req.user.id).select("slackId name");
+    const editedBySlack = userInfo?.slackId ? `<@${userInfo.slackId}>` : userInfo?.name;
 
-    const taskUrl = `${process.env.FRONTEND_URL}/tasks`;
+    //console.log("editedBySlack", editedBySlack);
     
+    const taskUrl = `${process.env.FRONTEND_URL}/TMS-R&D/tasks`;
+
     const slackMessage = `
       :pencil: *Domain Submission Edited*
-      :briefcase: *Task:* ${task.title}
-      :page_facing_up: *Domain:* \`${domainName}\`
-      :bust_in_silhouette: *Edited By:* ${editor}
+      ${space}:briefcase: *Task:* ${task.title}
+      ${space}:page_facing_up: *Domain:* \`${domainName}\`
+      ${space}:bust_in_silhouette: *Edited By:* ${editedBySlack}
+      ${space}:paperclip: *Details:* Sample data and feasibility report have been edited. Please review and confirm.
       :link: *View Task:* <${taskUrl}|Open Dashboard>
+      CC: <@${process.env.SLACK_RND_MANAGER_ID}>,<@${process.env.SLACK_RND_TL_ID}>
     `;
 
-
     await sendSlackMessage(process.env.SALES_RD_CHANNEL_TEST, slackMessage);
-
 
     res.json({
       message: "Domain submission updated successfully",
@@ -1186,8 +1191,8 @@ export const getTaskList = async (req, res) => {
       .populate("assignedBy", "name role")
       .sort({ createdAt: -1 });
 
-      
-      
+
+
 
     // Attach POC information to each task
     const tasksWithPOC = await Promise.all(
@@ -1724,7 +1729,7 @@ export const getReopenTaskData = async (req, res) => {
 
     const task = await Task.findById(id)
       .select(
-        "title description typeOfDelivery mandatoryFields optionalFields frequency oputputFormat domains inputUrls clientSampleSchemaUrls sowUrls sowFiles sampleFileRequired requiredValumeOfSampleFile assignedTo assignedBy taskAssignedDate targetDate completeDate"
+        "title description typeOfDelivery mandatoryFields optionalFields frequency RPM oputputFormat domains inputUrls clientSampleSchemaUrls sowUrls sowFiles sampleFileRequired requiredValumeOfSampleFile assignedTo assignedBy taskAssignedDate targetDate completeDate"
       )
       .populate("assignedTo", "_id name")
       .populate("assignedBy", "_id name");
@@ -1986,13 +1991,10 @@ export const reOpenTask = async (req, res) => {
     }
 
 
-
     // 2️⃣ Update normal fields
     Object.keys(updateData).forEach((key) => {
       if (key !== "domains") task[key] = updateData[key];
     });
-
-
 
 
     // 3️⃣ Generate SOW only if changed fields exist
@@ -2019,6 +2021,17 @@ export const reOpenTask = async (req, res) => {
     if (newSowFile) {
       task.reopenCount = (task.reopenCount || 0) + 1;
     }
+
+    if (Object.keys(changedFields).length > 0) {
+  //console.log("🔄 Updating ALL domain statuses to Reopened due to ANY change");
+
+  task.domains.forEach((d) => {
+    d.status = "Reopened";
+  });
+
+  task.markModified("domains");
+}
+
 
     // 4️⃣ Save task
     await task.save();
@@ -2057,11 +2070,11 @@ export const reOpenTask = async (req, res) => {
     const dashboardUrl = `${process.env.FRONTEND_URL}/tasks`;
     const assignedByName = task.assignedBy?.slackId
       ? `<@${task.assignedBy.slackId}>`
-      : task.assignedBy?.name;
+      : ``;
 
     const assignedToName = task.assignedTo?.slackId
       ? `<@${task.assignedTo.slackId}>`
-      : task.assignedTo?.name;
+      : ``;
 
 
     // slack notification
@@ -2105,8 +2118,8 @@ export const terminateDomain = async (req, res) => {
     }
 
     const task = await Task.findById(taskId);
-    console.log("Task:- ",task);
-    
+    console.log("Task:- ", task);
+
     if (!task) return res.status(404).json({ message: "Task not found" });
 
     // find domain
@@ -2117,7 +2130,7 @@ export const terminateDomain = async (req, res) => {
     // Update domain
     domain.status = "Terminated";
     domain.terminatedReason = terminatedReason;
-    
+
 
     await task.save();
 
@@ -2135,15 +2148,15 @@ export const terminateDomain = async (req, res) => {
 
     // slack notification
     const assignedByUser = await User.findById(task.assignedBy).lean();
-const assignedToUser = await User.findById(task.assignedTo).lean();
+    const assignedToUser = await User.findById(task.assignedTo).lean();
 
-const assignedBySlack = assignedByUser?.slackId ? `<@${assignedByUser.slackId}>` : assignedByUser?.name || "-";
-const assignedToSlack = assignedToUser?.slackId ? `<@${assignedToUser.slackId}>` : assignedToUser?.name || "-";
-
-
+    const assignedBySlack = assignedByUser?.slackId ? `<@${assignedByUser.slackId}>` : assignedByUser?.name || "-";
+    const assignedToSlack = assignedToUser?.slackId ? `<@${assignedToUser.slackId}>` : assignedToUser?.name || "-";
 
 
-   const slackMessage = `
+
+
+    const slackMessage = `
     *Task Terminated*:no_entry_sign: 
 ${space}:briefcase: *Task:* ${task.title || task.projectCode}
 ${space}:bust_in_silhouette: *Assigned By:* ${assignedBySlack}
@@ -2157,7 +2170,7 @@ CC: <@${process.env.SLACK_RND_MANAGER_ID}>, <@${process.env.SLACK_SALES_MANAGER_
 
 
     await sendSlackMessage(process.env.SALES_RD_CHANNEL_TEST, slackMessage);
- 
+
     return res.json({
       message: "Domain terminated successfully",
       domain,

@@ -95,7 +95,7 @@ setLoading(true);
 
     if (res.ok) {
       toast.success("Your new password has been sent to your email!");
-      setTimeout(() => navigate("/login"), 2000);
+      setTimeout(() => navigate("/TMS-R&D/login"), 2000);
       setErrors({ email: "", otp: "" });
       
       

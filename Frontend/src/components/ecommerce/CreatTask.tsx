@@ -25,6 +25,7 @@ interface TaskType {
   mandatoryFields: string;
   optionalFields: string;
   frequency: string;
+  RPM: number;
   oputputFormat: string;
   status: string;
   sempleFile: boolean;
@@ -69,6 +70,7 @@ const CreateTaskUI: React.FC = () => {
     mandatoryFields: "",
     optionalFields: "",
     frequency: "",
+    RPM: "",
     oputputFormat: "",
     status: "pending",
     sowFile: [],
@@ -90,6 +92,17 @@ const CreateTaskUI: React.FC = () => {
     { label: "Excel ", value: "excel" },
     { label: "Parquet", value: "parquet" },
 
+  ];
+
+  const frequencyOptions = [
+    { value: "Daily", label: "Daily" },
+    { value: "Weekly", label: "Weekly" },
+    { value: "Bi-Weekly", label: "Bi-Weekly" },
+    { value: "Monthly", label: "Monthly" },
+    { value: "Bi-Monthly", label: "Bi-Monthly" },
+    { value: "Once-Off", label: "Once-Off" },
+    { value: "Hourly", label: "Hourly" },
+    { value: "RPM", label: "Request-Per-Minute" },
   ];
 
   useEffect(() => {
@@ -183,6 +196,15 @@ const CreateTaskUI: React.FC = () => {
     if (!task.mandatoryFields) newErrors.mandatoryFields = "Mandatory fields are required";
 
     if (!task.frequency) newErrors.frequency = "Frequency is required";
+
+    if (task.frequency === "RPM") {
+      if (!task.RPM || String(task.RPM).trim() === "") {
+        newErrors.rpm = "RPM value is required when frequency is RPM";
+      } else if (isNaN(Number(task.RPM)) || Number(task.RPM) <= 0) {
+        newErrors.rpm = "RPM must be a positive number";
+      }
+    }
+
     if (!selectedFormats || selectedFormats.length === 0) {
       newErrors.oputputFormat = "Please select at least one file format.";
     }
@@ -224,6 +246,7 @@ const CreateTaskUI: React.FC = () => {
       const formData = new FormData();
       Object.entries(task).forEach(([key, value]) => {
         if (value === undefined || value === null) return;
+
         if (key === "domainDetails") formData.append("domains", JSON.stringify(value));
         else if (Array.isArray(value)) formData.append(key, value as any);
         else formData.append(key, value as any);
@@ -235,7 +258,7 @@ const CreateTaskUI: React.FC = () => {
         return;
       }
       toast.success("✅ Task created successfully!");
-      setTimeout(() => navigate("/tasks"), 1500);
+      setTimeout(() => navigate("/TMS-R&D/tasks"), 1500);
     } catch {
       setErrors({ form: "Unexpected error creating task" });
     } finally {
@@ -247,7 +270,7 @@ const CreateTaskUI: React.FC = () => {
 
   return (
     <>
-      <PageBreadcrumb items={[{ title: "Home", path: "/" }, { title: "Tasks", path: "/tasks" }, { title: "Create Task" }]} />
+      <PageBreadcrumb items={[{ title: "Home", path: "/TMS-R&D/" }, { title: "Tasks", path: "/TMS-R&D/tasks" }, { title: "Create Task" }]} />
       <div className="min-h-screen w-full bg-white flex justify-center py-10 px-4">
         <div className="w-full max-w-6xl  p-8 rounded-2xl  ">
           <ToastContainer
@@ -327,12 +350,12 @@ const CreateTaskUI: React.FC = () => {
                         value={task.description}
                         onChange={handleChange}
                         className="w-full border rounded-lg p-3 h-28"
-                        maxLength={200} // limit
+
                       />
 
-                      <div className="text-right text-sm text-gray-500 mt-1">
+                      {/* <div className="text-right text-sm text-gray-500 mt-1">
                         {task.description.length}/200 characters
-                      </div>
+                      </div> */}
 
                       {renderError("description")}
                     </div>
@@ -440,12 +463,8 @@ const CreateTaskUI: React.FC = () => {
                       <input type="text" placeholder="Ex:-header 1 , header 2,..." name="optionalFields" value={task.optionalFields} onChange={handleChange} className="w-full border rounded-lg p-3" />
                       {renderError("optionalFields")}
                     </div>
+
                     {/* <div>
-                      <label className="block text-gray-700 font-medium mb-2">Frequency <span className="text-red-500">*</span></label>
-                      <input type="text" name="frequency" placeholder="Ex:-Daily , Weekly,..." value={task.frequency} onChange={handleChange} className="w-full border rounded-lg p-3" />
-                      {renderError("frequency")}
-                    </div> */}
-                    <div>
                       <label className="block text-gray-700 font-medium mb-2">
                         Frequency <span className="text-red-500">*</span>
                       </label>
@@ -453,10 +472,14 @@ const CreateTaskUI: React.FC = () => {
                       <select
                         name="frequency"
                         value={task.frequency}
+                        
                         onChange={(e) => {
                           handleChange(e); // keeps your existing handler logic for task state
                           // clear frequency error immediately
                           setErrors(prev => ({ ...prev, frequency: "" }));
+                          if (e.target.value !== "RPM") {
+      setTask(prev => ({ ...prev, rpm: "" }));
+    }
                         }}
                         className="w-full border rounded-lg p-3 bg-white"
                       >
@@ -468,10 +491,117 @@ const CreateTaskUI: React.FC = () => {
                         <option value="Bi-Monthly">Bi-Monthly</option>
                         <option value="Once-Off">Once-Off</option>
                         <option value="Hourly">Hourly</option>
+                        <option value="RPM">Request-Per-Minute(RPM)</option>
                       </select>
 
                       {renderError("frequency")}
+                    </div> */}
+                    <div>
+                      <label className="block text-gray-700 font-medium mb-2">
+                        Frequency <span className="text-red-500">*</span>
+                      </label>
+
+                      <CreatableSelect
+                        isMulti
+                        options={frequencyOptions}
+                        // Convert string to array for react-select
+                        value={(task.frequency ? task.frequency.split(",") : []).map(f => ({ value: f, label: f }))}
+                        onChange={(selectedOptions) => {
+                          const values = selectedOptions ? selectedOptions.map(opt => opt.value) : [];
+
+                          // Store as comma-separated string for backend
+                          setTask(prev => ({ ...prev, frequency: values.join(",") }));
+
+                          // clear frequency error
+                          setErrors(prev => ({ ...prev, frequency: "" }));
+
+                          // If RPM is not selected, clear rpm field
+                          if (!values.includes("RPM")) {
+                            setTask(prev => ({ ...prev, RPM: "" }));
+                          }
+                        }}
+                        styles={{
+                          control: (base, state) => ({
+                            ...base,
+                            backgroundColor: "#ffffff",
+                            borderColor: state.isFocused ? "#3B82F6" : "#D1D5DB",
+                            boxShadow: state.isFocused ? "0 0 0 1px #3B82F6" : "none",
+                            "&:hover": { borderColor: "#3B82F6" },
+                          }),
+                          menu: (base) => ({
+                            ...base,
+                            backgroundColor: "#ffffff",
+                            border: "1px solid #E5E7EB",
+                            borderRadius: "0.375rem",
+                            zIndex: 20,
+                          }),
+                          option: (base, state) => ({
+                            ...base,
+                            backgroundColor: state.isSelected
+                              ? "#3B82F6"
+                              : state.isFocused
+                                ? "#EFF6FF"
+                                : "#ffffff",
+                            color: state.isSelected ? "#ffffff" : "#111827",
+                            cursor: "pointer",
+                          }),
+                          multiValue: (base) => ({
+                            ...base,
+                            backgroundColor: "#E0F2FE",
+                            color: "#1E3A8A",
+                          }),
+                          multiValueLabel: (base) => ({
+                            ...base,
+                            color: "#1E3A8A",
+                          }),
+                          multiValueRemove: (base) => ({
+                            ...base,
+                            color: "#1E3A8A",
+                            ":hover": {
+                              backgroundColor: "#BFDBFE",
+                              color: "#1E3A8A",
+                            },
+                          }),
+                          placeholder: (base) => ({
+                            ...base,
+                            color: "#6B7280",
+                          }),
+                          input: (base) => ({
+                            ...base,
+                            color: "#111827",
+                            height: "2.5rem",
+                            borderRadius: "0.375rem",
+                          }),
+                        }}
+                        classNamePrefix="select"
+                        placeholder="Select Frequency"
+                      />
+
+                      {renderError("frequency")}
                     </div>
+                    {task.frequency?.split(",").includes("RPM") && (
+                      <div>
+                        <label className="block text-gray-700 font-medium mb-2">
+                          RPM (Requests Per Minute) <span className="text-red-500">*</span>
+                        </label>
+
+                        <input
+                          type="number"
+                          name="RPM"
+                          value={task.RPM}
+                          onChange={handleChange}
+                          className="w-full border rounded-lg p-3 [appearance:textfield] 
+        [&::-webkit-outer-spin-button]:appearance-none 
+        [&::-webkit-inner-spin-button]:appearance-none"
+                          placeholder="Enter requests per minute (e.g., 10, 50, 100...)"
+                          min="1"
+                        />
+
+                        {renderError("RPM")}
+                      </div>
+                    )}
+
+
 
                     <div>
                       <label className="block text-gray-700 font-medium mb-2">Output Format <span className="text-red-500">*</span></label>
@@ -568,7 +698,7 @@ const CreateTaskUI: React.FC = () => {
                         <div className="mt-3">
                           <label className="block text-gray-700 font-medium mb-2">Required Volume <span className="text-red-500">*</span></label>
                           <select name="requiredValumeOfSampleFile" value={task.requiredValumeOfSampleFile} onChange={handleChange} className="w-full border rounded-lg p-3">
-                            <option value="">Select Volume</option>
+                            <option value="" hidden>Select Volume</option>
                             {["20", "50", "100", "500", "1000"].map((v) => (
                               <option key={v} value={v}>{v}</option>
                             ))}

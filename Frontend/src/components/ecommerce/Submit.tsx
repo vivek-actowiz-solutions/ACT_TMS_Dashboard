@@ -351,7 +351,7 @@ const SubmitTaskUI: React.FC<SubmitTaskProps> = ({ taskData }) => {
 
 
       toast.success("✅ Task submitted successfully!");
-      setTimeout(() => navigate("/tasks"), 1500);
+      setTimeout(() => navigate("/TMS-R&D/tasks"), 1500);
 
     } catch (err: any) {
       console.error(err);
@@ -443,7 +443,7 @@ const SubmitTaskUI: React.FC<SubmitTaskProps> = ({ taskData }) => {
 
   //     console.log("Returned task:", data);
   //     toast.success("✅ Task submitted successfully!");
-  //     setTimeout(() => navigate("/tasks"), 1500);
+  //     setTimeout(() => navigate("/TMS-R&D/tasks"), 1500);
   //   } catch (err) {
   //     console.error(err);
   //     console.log("errr", err)
@@ -474,8 +474,8 @@ const SubmitTaskUI: React.FC<SubmitTaskProps> = ({ taskData }) => {
     <>
       <PageBreadcrumb
         items={[
-          { title: "Home", path: "/" },
-          { title: "Tasks", path: "/tasks" },
+          { title: "Home", path: "/TMS-R&D/" },
+          { title: "Tasks", path: "/TMS-R&D/tasks" },
           { title: "Submit" },
         ]}
       />

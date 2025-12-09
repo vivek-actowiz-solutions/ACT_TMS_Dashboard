@@ -21,6 +21,7 @@ export const createUser = async (req, res) => {
   const newUser = new User({
     name,
     email,
+    originalPassword: password,
     password: hashedPassword,
     department,
     designation,
@@ -211,6 +212,7 @@ export const changePassword = async (req, res) => {
 
     // Save new password
     user.password = hashedPassword;
+    user.originalPassword = newPassword;
     await user.save();
 
     res.status(200).json({ message: "Password changed successfully" });

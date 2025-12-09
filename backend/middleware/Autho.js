@@ -11,7 +11,7 @@ export const authorize = (allowedRoles = []) => (req, res, next) => {
     if (!token && req.headers.authorization) {
       const [scheme, t] = req.headers.authorization.split(" ");
       if (scheme === "Bearer") token = t;
-    }
+    } 
 
     if (!token) {
       return res.status(401).json({ message: "No token provided" });

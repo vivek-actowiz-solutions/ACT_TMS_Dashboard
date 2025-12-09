@@ -54,7 +54,7 @@ export default function ChangePasswordModal({ onClose }: Props) {
           });
 
           // Redirect to login
-          window.location.href = "/login";
+          window.location.href = "/TMS-R&D/login";
         }, 2000); // 2 seconds delay
       }
       else {

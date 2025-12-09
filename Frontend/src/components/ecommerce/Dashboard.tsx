@@ -173,7 +173,7 @@ const [taskCreatorsLoading, setTaskCreatorsLoading] = useState<boolean>(false);
   useEffect(() => {
     const token = getCookie("token");
     if (!token) {
-      navigate("/login");
+      navigate("/TMS-R&D/login");
       return;
     }
 
@@ -188,7 +188,7 @@ const [taskCreatorsLoading, setTaskCreatorsLoading] = useState<boolean>(false);
         // if (payload.role === "Manager") fetchDevelopers(token);
       } catch (err) {
         console.error("Invalid token", err);
-        navigate("/login");
+        navigate("/TMS-R&D/login");
       }
     };
 

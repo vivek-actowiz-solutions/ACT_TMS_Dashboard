@@ -25,6 +25,7 @@ interface TaskType {
   mandatoryFields: string;
   optionalFields: string;
   frequency: string;
+  RPM: number;
   oputputFormat: string[]; // array of format values
   status?: string;
   sowFile: File[] | null;
@@ -69,6 +70,7 @@ const ReopenTask: React.FC = () => {
     mandatoryFields: "",
     optionalFields: "",
     frequency: "",
+    RPM:"",
     oputputFormat: [],
     status: "pending",
     sowFile: [],
@@ -163,6 +165,9 @@ const ReopenTask: React.FC = () => {
 
         const data = await res.json();
 
+        console.log("DATA",data);
+        
+
         // setOriginalTask({
         //   ...data,
         //   assignedTo: data.assignedTo?._id || ""   // normalize
@@ -189,6 +194,9 @@ const ReopenTask: React.FC = () => {
           mandatoryFields: data.mandatoryFields || "",
           optionalFields: data.optionalFields || "",
           frequency: data.frequency || "",
+          RPM: data.RPM !== undefined && data.RPM !== null ? String(data.RPM) : "",
+
+
           oputputFormat: data.oputputFormat || [],
           status: data.status || "pending",
           sowFile: [],
@@ -368,6 +376,16 @@ const ReopenTask: React.FC = () => {
     if (!task.typeOfDelivery) newErrors.typeOfDelivery = "Type of Delivery is required";
     if (!task.mandatoryFields) newErrors.mandatoryFields = "Mandatory fields are required";
     if (!task.frequency) newErrors.frequency = "Frequency is required";
+      
+
+    if (task.frequency === "RPM") {
+      if (!task.RPM || String(task.RPM).trim() === "") {
+        newErrors.rpm = "RPM value is required when frequency is RPM";
+      } else if (isNaN(Number(task.RPM)) || Number(task.RPM) <= 0) {
+        newErrors.rpm = "RPM must be a positive number";
+      }
+    }
+
     if (!selectedFormats || selectedFormats.length === 0) newErrors.oputputFormat = "Please select at least one file format.";
     if (!task.domainDetails || task.domainDetails.length === 0) newErrors.domain = "At least one platform entry is required";
     if (task.sampleFileRequired && !task.requiredValumeOfSampleFile) newErrors.requiredValumeOfSampleFile = "Required volume is mandatory when sample file is required";
@@ -436,6 +454,7 @@ const ReopenTask: React.FC = () => {
     compare(original.mandatoryFields, updated.mandatoryFields, "mandatoryFields");
     compare(original.optionalFields, updated.optionalFields, "optionalFields");
     compare(original.frequency, updated.frequency, "frequency");
+    compare(original.RPM, updated.RPM, "RPM");
     compare(original.oputputFormat, updated.oputputFormat, "oputputFormat");
     compare(original.domains, updated.domainDetails, "domains");
     compare(original.inputUrls, updated.inputUrls, "inputUrls");
@@ -539,7 +558,7 @@ const ReopenTask: React.FC = () => {
       }
 
       toast.success("Task reopened successfully!");
-      setTimeout(() => navigate("/tasks"), 900);
+      setTimeout(() => navigate("/TMS-R&D/tasks"), 900);
 
     } catch (error) {
       toast.error("Unexpected error");
@@ -561,7 +580,7 @@ const ReopenTask: React.FC = () => {
 
   return (
     <>
-      <PageBreadcrumb items={[{ title: "Home", path: "/" }, { title: "Tasks", path: "/tasks" }, { title: "Reopen Task" }]} />
+      <PageBreadcrumb items={[{ title: "Home", path: "/TMS-R&D/" }, { title: "Tasks", path: "/TMS-R&D/tasks" }, { title: "Reopen Task" }]} />
       <div className="min-h-screen w-full bg-white flex justify-center py-10 px-4">
         <div className="w-full max-w-6xl p-8 rounded-2xl">
           <ToastContainer
@@ -649,10 +668,7 @@ const ReopenTask: React.FC = () => {
                       </select>
                       <input type="text" value={domainRemark} onChange={(e) => {setDomainRemark(e.target.value)
                         if (e.target.value) {
-                          
-                          
-                            setErrors(prev => ({ ...prev, domainRemark: "" }));
-                          
+                          setErrors(prev => ({ ...prev, domainRemark: "" }));
                         }
                       }
                       
@@ -714,7 +730,7 @@ const ReopenTask: React.FC = () => {
                       {renderError("frequency")}
                     </div> */}
 
-                    <div>
+                    {/* <div>
                       <label className="block text-gray-700 font-medium mb-2">
                         Frequency <span className="text-red-500">*</span>
                       </label>
@@ -726,6 +742,10 @@ const ReopenTask: React.FC = () => {
                           handleChange(e); // keeps your existing handler logic for task state
                           // clear frequency error immediately
                           setErrors(prev => ({ ...prev, frequency: "" }));
+
+                          if (e.target.value !== "RPM") {
+      setTask(prev => ({ ...prev, RPM: "" }));
+    }
                         }}
                         className="w-full border rounded-lg p-3 bg-white" 
                       >
@@ -737,10 +757,96 @@ const ReopenTask: React.FC = () => {
                         <option value="Bi-Monthly">Bi-Monthly</option>
                         <option value="Once-Off">Once-Off</option>
                         <option value="Hourly">Hourly</option>
+                        <option value="RPM">Request-Per-Minute</option>
                       </select>
 
                       {renderError("frequency")}
-                    </div>
+                    </div> */}
+                    <div>
+  <label className="block text-gray-700 font-medium mb-2">
+    Frequency <span className="text-red-500">*</span>
+  </label>
+
+  <CreatableSelect
+  isMulti
+  name="frequency"
+
+  // Display: convert comma string → array just for UI
+  value={
+    task.frequency
+      ? task.frequency.split(",").map((f) => ({ label: f, value: f }))
+      : []
+  }
+
+  onChange={(selected) => {
+    const values = selected.map(o => o.value);
+
+    // Save as string (DB format)
+    const finalString = values.join(",");
+
+    setTask(prev => ({
+      ...prev,
+      frequency: finalString
+    }));
+
+    // RPM clearing logic
+    if (!values.includes("RPM")) {
+      setTask(prev => ({ ...prev, RPM: "" }));
+    }
+
+    // clear error
+    setErrors(prev => ({ ...prev, frequency: "" }));
+  }}
+
+  options={[
+    { value: "Daily", label: "Daily" },
+    { value: "Weekly", label: "Weekly" },
+    { value: "Bi-Weekly", label: "Bi-Weekly" },
+    { value: "Monthly", label: "Monthly" },
+    { value: "Bi-Monthly", label: "Bi-Monthly" },
+    { value: "Once-Off", label: "Once-Off" },
+    { value: "Hourly", label: "Hourly" },
+    { value: "RPM", label: "Request-Per-Minute" },
+  ]}
+
+  placeholder="Select frequency..."
+/>
+
+
+  {renderError("frequency")}
+</div>
+
+
+                    {/* {task.frequency === "RPM" && (
+                      <div>
+                        <label className="block text-gray-700 font-medium mb-2">RPM <span className="text-red-500">*</span></label>
+                        <input type="number" name="RPM" value={task.RPM} onChange={handleChange} placeholder="Enter RPM" className="w-full border rounded-lg p-3 [appearance:textfield] 
+             [&::-webkit-outer-spin-button]:appearance-none 
+             [&::-webkit-inner-spin-button]:appearance-none" />
+                        {renderError("RPM")}
+                      </div>
+                    )} */}
+{task.frequency.includes("RPM") && (
+  <div>
+    <label className="block text-gray-700 font-medium mb-2">
+      RPM <span className="text-red-500">*</span>
+    </label>
+
+    <input
+      type="number"
+      name="RPM"
+      value={task.RPM}
+      onChange={handleChange}
+      className="w-full border rounded-lg p-3"
+      placeholder="Enter RPM"
+    />
+
+    {renderError("RPM")}
+  </div>
+)}
+
+
+
 
                     <div>
                       <label className="block text-gray-700 font-medium mb-2">Output Format <span className="text-red-500">*</span></label>

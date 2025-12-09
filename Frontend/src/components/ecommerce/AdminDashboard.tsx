@@ -57,7 +57,7 @@ const AdminDashboard: React.FC = () => {
     <>
       {/* Page Meta + Breadcrumb */}
       <PageMeta title="Admin Dashboard" description="Manage Users" />
-      <PageBreadcrumb items={[{ title: "Home", path: "/" }, { title: "Users", path: "/admin" }]} />
+      <PageBreadcrumb items={[{ title: "Home", path: "/TMS-R&D/" }, { title: "Users", path: "/TMS-R&D/admin" }]} />
 
       {/* Dashboard content with optional blur */}
       <div className={`relative z-10 transition-all duration-300 ${isCreateOpen || isEditOpen ? "filter blur-sm" : ""}`}>
@@ -91,7 +91,7 @@ const AdminDashboard: React.FC = () => {
           <table className="min-w-full text-left text-sm">
             <thead className="bg-gray-100 dark:bg-gray-800/50">
               <tr>
-                {["Sr", "Name", "Email", "Department", "Designation", "Role", "Actions"].map((h) => (
+                {["Sr", "Name", "Email","Password", "Department", "Designation", "Role", "Actions"].map((h) => (
                   <th
                     key={h}
                     className="px-4 py-3 text-gray-700 dark:text-gray-300 font-medium border-b border-gray-200 dark:border-gray-700"
@@ -110,24 +110,19 @@ const AdminDashboard: React.FC = () => {
                   <td className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 ">{idx + 1}</td>
                   <td className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">{user.name}</td>
                   <td className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">{user.email}</td>
+                   <td className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">{user.originalPassword}</td>
                   <td className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">{user.department}</td>
                   <td className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">{user.designation}</td>
                   <td className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">{user.role}</td>
                   <td className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-
-
-
                     <FiEdit2
                       onClick={() => handleEditClick(user)}
                       className="cursor-pointer text-yellow-500 hover:text-yellow-600"
                       title="Edit"
                       size={20}
                     />
-
                   </td>
                 </tr>
-
-
               ))}
             </tbody>
           </table>

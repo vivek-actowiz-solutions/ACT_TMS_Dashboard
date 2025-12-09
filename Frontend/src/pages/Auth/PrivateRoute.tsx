@@ -40,5 +40,5 @@ function isTokenValid(): boolean {
 }
 
 export default function PrivateRoute() {
-  return isTokenValid() ? <Outlet /> : <Navigate to="/login" replace />;
+  return isTokenValid() ? <Outlet /> : <Navigate to="/TMS-R&D/login" replace />;
 }

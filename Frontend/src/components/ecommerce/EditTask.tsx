@@ -433,7 +433,7 @@ const EditTaskUI: React.FC<{ taskData?: Task }> = ({ taskData }) => {
       }
 
       toast.success("✅ Task updated successfully!");
-      setTimeout(() => navigate("/tasks"), 1500);
+      setTimeout(() => navigate("/TMS-R&D/tasks"), 1500);
     } catch (err) {
       console.error("❌ Error updating task:", err);
       toast.error("❌ Error updating task!");
@@ -473,8 +473,8 @@ const EditTaskUI: React.FC<{ taskData?: Task }> = ({ taskData }) => {
 
       <PageBreadcrumb
         items={[
-          { title: "Home", path: "/" },
-          { title: "Tasks", path: "/tasks" },
+          { title: "Home", path: "/TMS-R&D/" },
+          { title: "Tasks", path: "/TMS-R&D/tasks" },
           { title: "Edit Task" },
         ]}
       />

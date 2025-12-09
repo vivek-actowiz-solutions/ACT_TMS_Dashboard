@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router";
-import { FileText, Users, Calendar, Folder, ArrowLeft, CheckCircle2, XCircle, Info, Code, Server, Lock, Globe, Download, StickyNote, Link2, MessageSquare } from "lucide-react";
+import { FileText, Users, Calendar, Folder, ArrowLeft, CheckCircle2, XCircle, Info, Code, Server, Lock, Globe, Download, StickyNote, Link2, MessageSquare, Delete } from "lucide-react";
 import PageBreadcrumb from "../common/PageBreadCrumb";
 import { useAuth } from "../../hooks/useAuth";
 
@@ -72,9 +72,13 @@ const TaskDetail: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
 
+  const [isDescExpanded, setIsDescExpanded] = useState(false);
+  const [showDescModal, setShowDescModal] = useState(false);
+
+
   const { user } = useAuth();   // <-- this gives user object (name, role, email etc.)
-const role = user?.role || "";  
-const userName = user?.name  || ""; 
+  const role = user?.role || "";
+  const userName = user?.name || "";
 
   useEffect(() => {
     const fetchTask = async () => {
@@ -152,27 +156,33 @@ const userName = user?.name  || "";
   const showSubmissionSection =
     domainObj && domainObj.status?.toLowerCase() === "submitted";
 
-    const developerList = domainObj?.developers?.map(d => d.name.toLowerCase()) || [];
+  const developerList = domainObj?.developers?.map(d => d.name.toLowerCase()) || [];
 
-   
 
-const canSubmit =
-  domainObj &&
-  domainObj.status?.toLowerCase() !== "submitted" &&
-  domainObj.status?.toLowerCase() !== "terminated" &&
-  developerList.length > 0 &&
-  (
-    ["Admin", "TL", "Manager"].includes(role) || 
-    developerList.includes(userName.toLowerCase())
-  );
+
+  const canSubmit =
+    domainObj &&
+    domainObj.status?.toLowerCase() !== "submitted" &&
+    domainObj.status?.toLowerCase() !== "terminated" &&
+    developerList.length > 0 &&
+    (
+      ["Admin", "TL", "Manager"].includes(role) ||
+      developerList.includes(userName.toLowerCase())
+    );
+
+    const capitalize = (str) => {
+  if (!str || typeof str !== "string") return str;
+  return str.toUpperCase();
+};
+
 
 
   return (
     <>
       <PageBreadcrumb
         items={[
-          { title: "Home", path: "/" },
-          { title: "Tasks", path: "/tasks" },
+          { title: "Home", path: "/TMS-R&D/" },
+          { title: "Tasks", path: "/TMS-R&D/tasks" },
           { title: task.projectCode },
         ]}
       />
@@ -230,7 +240,7 @@ const canSubmit =
 
                   )}
 
-                  {task.description && (
+                  {/* {task.description && (
                     <div className="mt-6 bg-slate-50 border border-slate-200 rounded-lg p-5">
                       <div className="flex items-center gap-2 mb-3">
                         <FileText size={20} />
@@ -239,6 +249,47 @@ const canSubmit =
                         </h3>
                       </div>
                       <p className="text-gray-700 leading-relaxed text-sm">{task.description}</p>
+                    </div>
+                  )} */}
+                  {task.description && (
+                    <div className="mt-6 bg-slate-50 border border-slate-200 rounded-lg p-5">
+                      <div className="flex items-center gap-2 mb-3">
+                        <FileText size={20} />
+                        <h3 className="text-xs font-semibold text-gray-800  tracking-wide">
+                          Description
+                        </h3>
+                      </div>
+
+                      {/* Description Preview */}
+                      <p
+                        className={`text-gray-700 leading-relaxed text-sm whitespace-pre-line ${isDescExpanded ? "" : "line-clamp-2"
+                          }`}
+                      >
+                        {task.description}
+                      </p>
+
+                      {/* Read More / Read Less */}
+                      {task.description.split("\n").length > 2 ||
+                        task.description.length > 160 ? (
+                        <button
+                          onClick={() => setShowDescModal(true)}
+                          className="text-blue-600 text-sm font-semibold mt-2 underline hover:text-blue-800"
+                        >
+                          Read More
+                        </button>
+                      ) : null}
+                    </div>
+                  )}
+
+                  {domainObj?.status === "Terminated" && domainObj?.terminatedReason && (
+                    <div className="mt-6 bg-red-50 border border-red-300 rounded-lg p-4 ">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Delete size={20} />
+                        <h3 className="font-semibold text-red-700 mb-1">
+                          Why This Domain is Terminated?
+                        </h3>
+                      </div>
+                      <p className="text-gray-900 text-sm">{domainObj.terminatedReason}</p>
                     </div>
                   )}
 
@@ -298,10 +349,10 @@ const canSubmit =
                 {/* 🟨 RIGHT SECTION (Delivery & Platform) */}
                 <div className="bg-white shadow-sm rounded-xl border border-gray-200 p-5">
                   <InfoCard
-                      label="Sample File Format"
-                      value={task.oputputFormat || "Not specified"}
-                      icon={<Info size={18} className="text-slate-600" />}
-                    />
+                    label="Sample File Format"
+                    value={capitalize(task.oputputFormat) || "Not specified"}
+                    icon={<Info size={18} className="text-slate-600" />}
+                  />
                   <div className="bg-slate-50 rounded-lg border border-slate-200 p-4 mt-4">
                     <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                       <StickyNote size={18} className="text-slate-600" />
@@ -316,7 +367,8 @@ const canSubmit =
                       {/* Values Row */}
                       <div>
                         <span className="inline-block bg-indigo-100 text-indigo-700 text-xs font-semibold px-3 py-1 rounded-full">
-                          {task.typeOfDelivery || "Not specified"}
+                          {capitalize(task.typeOfDelivery) || "Not specified"}
+
                         </span>
                       </div>
                       <div>
@@ -333,7 +385,8 @@ const canSubmit =
                               return (
                                 <div key={i} className="flex items-center gap-2">
                                   <span className="inline-block bg-sky-100 text-sky-700 text-xs font-semibold px-3 py-1 rounded-full">
-                                    {platform}
+                                    {capitalize(platform)}
+
                                   </span>
                                 </div>
                               );
@@ -342,7 +395,7 @@ const canSubmit =
                           </div>
                         ) : (
                           <span className="text-gray-500 text-sm">
-                            {task.typeOfPlatform || "No domains available"}
+                            {capitalize(task.typeOfPlatform) || "No domains available"}
                           </span>
                         )}
 
@@ -373,7 +426,7 @@ const canSubmit =
                       />
                     )}
 
-                    
+
                   </div>
                 </div>
               </div>
@@ -662,15 +715,15 @@ const canSubmit =
           <Section title="People" icon={<Users size={22} className="text-blue-600" />}>
             <div className="grid md:grid-cols-3 gap-6">
               <div>
-                <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">Assigned By</p>
+                <p className="text-xs text-gray-500  tracking-wide mb-2">Assigned By</p>
                 <p className="text-gray-900 font-medium">{task.assignedBy || "-"}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">Assigned To</p>
+                <p className="text-xs text-gray-500  tracking-wide mb-2">Assigned To</p>
                 <p className="text-gray-900 font-medium">{task.assignedTo || "-"}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">Developers</p>
+                <p className="text-xs text-gray-500  tracking-wide mb-2">Developers</p>
                 {displayedDomain ? (
                   <div className="flex flex-wrap gap-2">
                     {task.domains?.find((d) => d.name === displayedDomain)?.developers?.length ? (
@@ -693,40 +746,57 @@ const canSubmit =
           </Section>
           {/* Back Button */}
           <div className="flex justify-end mt-4">
-            
-            
+
+
             <div className="flex justify-end gap-3 mt-4">
-  
-  {/* Back Button */}
-  <button
-    onClick={() => navigate("/tasks")}
-    className="flex items-center gap-2 bg-slate-700 hover:bg-slate-800 text-white px-6 py-3 rounded-lg shadow-sm hover:shadow-md transition font-medium"
-  >
-    <ArrowLeft size={18} /> Back
-  </button>
 
-  {/* Submit Button */}
-  {canSubmit && (
-    <button
-      onClick={() =>
-        navigate(
-          `/submit/${task._id}?domain=${encodeURIComponent(displayedDomain || "")}`
-        )
-      }
-      className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg shadow-sm hover:shadow-md transition font-medium"
-    >
-      Submit
-    </button>
-  )}
+              {/* Back Button */}
+              <button
+                onClick={() => navigate("/TMS-R&D/tasks")}
+                className="flex items-center gap-2 bg-slate-700 hover:bg-slate-800 text-white px-6 py-3 rounded-lg shadow-sm hover:shadow-md transition font-medium"
+              >
+                <ArrowLeft size={18} /> Back
+              </button>
 
-
-</div>
-
-
-
+              {/* Submit Button */}
+              {canSubmit && (
+                <button
+                  onClick={() =>
+                    navigate(
+                      `/TMS-R&D/submit/${task._id}?domain=${encodeURIComponent(displayedDomain || "")}`
+                    )
+                  }
+                  className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg shadow-sm hover:shadow-md transition font-medium"
+                >
+                  Submit
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
+      {showDescModal && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-[99999]">
+          <div className="bg-white rounded-xl max-w-3xl w-full p-6 shadow-lg">
+            <h3 className="text-lg font-semibold mb-4">Description</h3>
+
+            <div className="max-h-80 overflow-y-auto whitespace-pre-line text-gray-700 text-sm">
+              {task.description}
+            </div>
+
+            <div className="flex justify-end mt-5">
+              <button
+                onClick={() => setShowDescModal(false)}
+                className="px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white rounded-lg"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
     </>
   );
 
@@ -759,7 +829,7 @@ const InfoCard: React.FC<{ label: string; value: string; icon: React.ReactNode; 
     }`}>
     <div className="flex items-center gap-2 mb-2">
       {icon}
-      <p className="text-xs text-gray-600 uppercase tracking-wide font-semibold">{label}</p>
+      <p className="text-xs text-gray-600  tracking-wide font-semibold">{label}</p>
     </div>
     <p className="text-gray-900 font-semibold">{value}</p>
   </div>
@@ -782,7 +852,7 @@ const StatusCard: React.FC<{ label: string; value: string; icon: React.ReactNode
     <div className={`p-4 rounded-lg border ${statusStyles[status]}`}>
       <div className="flex items-center gap-2 mb-2">
         {icon}
-        <p className="text-xs uppercase tracking-wide font-semibold">{label}</p>
+        <p className="text-xs  tracking-wide font-semibold">{label}</p>
       </div>
       <p className="font-bold text-lg">{value}</p>
     </div>
@@ -821,7 +891,7 @@ const TimelineItem: React.FC<{ label: string; value: string }> = ({ label, value
   <div className="flex items-center gap-4 p-3 bg-slate-50 rounded-lg border border-slate-200">
     <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
     <div className="flex-1">
-      <p className="text-xs text-gray-600 uppercase tracking-wide font-semibold">{label}</p>
+      <p className="text-xs text-gray-600  tracking-wide font-semibold">{label}</p>
       <p className="text-sm text-gray-900 font-medium mt-1">{value}</p>
     </div>
   </div>
@@ -913,6 +983,7 @@ const AttachmentGroup: React.FC<{
   };
 
   return (
+
     <div className="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
       <p className="text-sm font-semibold text-gray-700 mb-3">{label}</p>
 
@@ -924,8 +995,11 @@ const AttachmentGroup: React.FC<{
         <p className="text-sm text-gray-500 italic py-2">No URLs available</p>
       )}
     </div>
+
   );
 };
+
+
 
 
 export default TaskDetail;
