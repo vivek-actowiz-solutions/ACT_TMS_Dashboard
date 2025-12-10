@@ -2388,11 +2388,10 @@ export const reOpenTask = async (req, res) => {
     }
 
     if (Object.keys(changedFields).length > 0) {
-
-
       task.domains.forEach((d) => {
         d.completeDate = null;
         d.developers = [];
+        d.submission = [];
         d.status = "Reopened";
       });
 
