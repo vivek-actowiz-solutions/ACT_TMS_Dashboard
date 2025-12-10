@@ -1107,143 +1107,7 @@ renderCell: (params) => (
                   ),
                 },
 
-                // ✅ Actions column
-  //               {
-  //                 field: "actions",
-  //                 headerName: "Actions",
-  //                 width: 130,
-  //                 sortable: false,
-  //                 renderCell: (params) => (
-  //                   <div className="flex items-center pt-2 gap-2 flex-wrap w-full">
-  //                     <FiEye
-  //                       onClick={(e) => {
-  //                         e.stopPropagation(); // prevent row click issues
-
-  //                         const url = `/TMS-R&D/tasks/${params.row.task._id}${params.row.domainName
-  //                           ? `?domain=${encodeURIComponent(params.row.domainName)}`
-  //                           : ""
-  //                           }`;
-
-  //                         window.open(url, "_blank"); // 🔥 opens in new tab
-  //                       }}
-  //                       className="cursor-pointer text-blue-600 hover:text-blue-800"
-  //                       title="View"
-  //                       size={18}
-  //                     />
-
-  //                     {(role === "Admin" ||
-  //                       role === "TL" ||
-  //                       role === "Manager") &&
-
-  //                       params.row.status?.trim().toLowerCase() !== "terminated" &&
-  //                       (
-  //                         <FiEdit2
-  //                           onClick={() => navigate(
-  //                             `/TMS-R&D/edit/${params.row.task._id}?domain=${encodeURIComponent(
-  //                               params.row.domainName
-  //                             )}`
-  //                           )}
-  //                           className="cursor-pointer text-yellow-500 hover:text-yellow-600"
-  //                           title="Edit"
-  //                           size={18}
-  //                         />
-  //                       )}
-  //                     {/* {(
-  //                       ["Admin", "TL", "Manager"].includes(role) ||
-  //                       (role === "Developer" &&
-  //                         params.row.developers?.some(
-  //                           (dev: string) =>
-  //                             dev?.toLowerCase()?.trim() === userName?.toLowerCase()?.trim()
-  //                         ))
-  //                     ) &&
-  //                       params.row.status?.trim().toLowerCase() !== "submitted" &&
-  //                       params.row.status?.trim().toLowerCase() !== "terminated" &&
-  //                       (
-  //                         <GrCompliance
-  //                           onClick={() => {
-  //                             const devs = params.row.developers || [];
-
-
-
-  //                             if (devs.length === 0) {
-  //                               setShowAssignDevPopup(true);   // your existing popup logic
-  //                               return;
-  //                             }
-
-  //                             navigate(
-  //                               `/submit/${params.row.task._id}${params.row.domainName
-  //                                 ? `?domain=${encodeURIComponent(params.row.domainName)}`
-  //                                 : ""
-  //                               }`
-  //                             );
-  //                           }}
-
-  //                           // 🔥 If no dev assigned = grey color + disabled cursor
-  //                           className={`
-  //   ${(params.row.developers || []).length === 0
-  //                               ? "text-gray-400 cursor-not-allowed"
-  //                               : "text-green-600 hover:text-green-700 cursor-pointer"
-  //                             }
-  // `}
-
-  //                           title={
-  //                             (params.row.developers || []).length === 0
-  //                               ? "Assign a developer to enable submission"
-  //                               : "Submit"
-  //                           }
-
-  //                           size={18}
-  //                         />
-
-  //                       )} */}
-  //                     {(role === "Admin") &&
-  //                       <FiRotateCw
-  //                         onClick={() => {
-  //                           const fullUrl = params.row.domainName; // full domain URL
-  //                           setSelectedTask({
-  //                             task: params.row.task,
-  //                             domainName: encodeURIComponent(fullUrl)
-  //                           });
-  //                           setShowHistory(true);
-  //                         }}
-  //                         className="cursor-pointer text-purple-600 hover:text-purple-700"
-  //                         title="View History"
-  //                         size={18}
-  //                       />
-  //                     }
-  //                     {(role === "Admin" || role === "Manager" || role === "Sales") &&
-  //                       params.row.status?.trim().toLowerCase() === "submitted" &&
-  //                       params.row.reopenCount === 0 &&
-  //                       (
-  //                         <MdReplay
-  //                           onClick={() => navigate(`/TMS-R&D/tasks/${params.row.task._id}/reopen`)}
-  //                           className="cursor-pointer text-red-600 hover:text-red-700"
-  //                           title="Reopen Task"
-  //                           size={18}
-  //                         />
-  //                       )}
-  //                     {(role === "Admin" || role === "Manager" || role === "TL") &&
-  //                       params.row.status?.trim().toLowerCase() !== "terminated" &&
-  //                       params.row.status?.trim().toLowerCase() !== "submitted" &&
-  //                       (
-                         
-  //                         <RiIndeterminateCircleFill
-  //                           onClick={() => {
-  //                             setPopupData({
-  //                               id: params.row.task._id,
-  //                               domain: params.row.domainName,
-  //                             });
-  //                             setShowPopup(true);
-  //                           }}
-  //                           className="cursor-pointer text-red-600 hover:text-red-800"
-  //                           title="Terminate Domain"
-  //                           size={20}
-  //                         />
-
-  //                       )}
-  //                   </div>
-  //                 ),
-  //               },
+                
   {
   field: "actions",
   headerName: "Actions",
@@ -1295,7 +1159,7 @@ renderCell: (params) => (
     const domainName = params.row.domainName;
 
     return (
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 pt-2">
 
         {/* 👁 VIEW */}
         <IconButton

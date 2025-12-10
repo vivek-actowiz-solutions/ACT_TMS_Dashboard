@@ -937,13 +937,13 @@ export const editDomainSubmission = async (req, res) => {
       changedBy: req.user?.name || "Unknown",
     });
 
-   
+
     // 9. slack message
-     const userInfo = await User.findById(req.user.id).select("slackId name");
+    const userInfo = await User.findById(req.user.id).select("slackId name");
     const editedBySlack = userInfo?.slackId ? `<@${userInfo.slackId}>` : userInfo?.name;
 
     //console.log("editedBySlack", editedBySlack);
-    
+
     const taskUrl = `${process.env.FRONTEND_URL}/TMS-R&D/tasks`;
 
     const slackMessage = `
@@ -2112,8 +2112,6 @@ export const reOpenTask = async (req, res) => {
   try {
     const { id } = req.params;
 
-    
-
     const task = await Task.findById(id).select(
       "title projectCode description typeOfDelivery mandatoryFields optionalFields frequency RPM oputputFormat domains inputUrls clientSampleSchemaUrls sowFiles sampleFileRequired requiredValumeOfSampleFile assignedBy assignedTo reopenCount taskAssignedDate targetDate completeDate"
     )
@@ -2150,7 +2148,7 @@ export const reOpenTask = async (req, res) => {
 
     if (!oldTaskData.RPM) oldTaskData.RPM = task.RPM || "-";
 
-    
+
 
 
 
@@ -2254,7 +2252,7 @@ export const reOpenTask = async (req, res) => {
     let oldSowFiles = [];
     let newSowFile = null;
 
-    
+
 
     // ------------------------------------------
     // DOMAIN CHANGE DETECTION (CRITICAL LOGIC)
@@ -2278,8 +2276,10 @@ export const reOpenTask = async (req, res) => {
         domainRemarks: d.domainRemarks || "",
       }));
 
-   const hasDomainChanged =
-  JSON.stringify(oldDomainsForCompare) !== JSON.stringify(newDomains);
+    const hasDomainChanged =
+      JSON.stringify(oldDomainsForCompare) !== JSON.stringify(newDomains);
+    if (!Array.isArray(task.previousDomain)) task.previousDomain = [];
+
 
 
     //console.log("DOMAIN CHANGED?", hasDomainChanged);
@@ -2290,32 +2290,28 @@ export const reOpenTask = async (req, res) => {
     if (hasDomainChanged) {
       //console.log("➡ Updating domain status to Reopened");
 
-      if (!Array.isArray(task.previousDomain)) task.previousDomain = [];
 
-      task.previousDomain.push({
-        oldValue: JSON.parse(JSON.stringify(task.domains)),
-        changedAt: new Date(),
-      });
 
-      task.domains = newDomains.map((d) => ({
-        ...d,
-        status: "Reopened",
-      }));
-      task.markModified("domains");
 
-      // Add to changedFields so SOW is generated
-     changedFields.domains = newDomains.map(d => ({
-  name: d.name,
-  typeOfPlatform: d.typeOfPlatform,
-  domainRemarks: d.domainRemarks || ""
-}));
+
+      //       task.domains = newDomains.map((d) => ({
+      //         ...d,
+      //         status: "Reopened",
+      //       }));
+      //       task.markModified("domains");
+
+      //       // Add to changedFields so SOW is generated
+      //      changedFields.domains = newDomains.map(d => ({
+      //   name: d.name,
+      //   typeOfPlatform: d.typeOfPlatform,
+      //   domainRemarks: d.domainRemarks || ""
+      // }));
 
     } else {
       //console.log("➡ Domains unchanged → NOT updating domain status");
     }
 
-// const savedTask = await Task.findById(id);
-// console.log(savedTask.domains);
+
 
     let changedDomainList = [];
 
@@ -2363,14 +2359,11 @@ export const reOpenTask = async (req, res) => {
       oldSowFiles = [...(task.sowFiles || [])];
 
       // ensure RPM exists in mergedTaskData
-if (!oldTaskData.RPM && task.RPM !== undefined) {
-  oldTaskData.RPM = task.RPM;
-}
+      if (!oldTaskData.RPM && task.RPM !== undefined) {
+        oldTaskData.RPM = task.RPM;
+      }
 
       const mergedTaskData = oldTaskData;
-
-
-
       newSowFile = await generateSOWDocxFromTemplate(
         mergedTaskData,
         changedFields,   // <-- NOW CORRECT
@@ -2387,15 +2380,34 @@ if (!oldTaskData.RPM && task.RPM !== undefined) {
       task.reopenCount = (task.reopenCount || 0) + 1;
     }
 
-if (Object.keys(changedFields).length > 0) {
-  //console.log("🔄 Updating ALL domain statuses to Reopened due to ANY change");
+    if (Object.keys(changedFields).length > 0) {
+      task.previousDomain.push({
+        oldValue: JSON.parse(JSON.stringify(task.domains)),
+        changedAt: new Date(),
+      });
+    }
 
-  task.domains.forEach((d) => {
-    d.status = "Reopened";
-  });
+    if (Object.keys(changedFields).length > 0) {
 
-  task.markModified("domains");
-}
+
+      task.domains.forEach((d) => {
+        d.completeDate = null;
+        d.developers = [];
+        d.status = "Reopened";
+      });
+
+      task.markModified("domains");
+    }
+
+
+    if (Object.keys(changedFields).length > 0) {
+      task.completeDate = null;
+    }
+
+
+    console.log("CHANGED FIELDS AT END:", changedFields);
+    console.log("Before Save completeDate =", task.completeDate);
+
 
 
     // 4️⃣ Save task
