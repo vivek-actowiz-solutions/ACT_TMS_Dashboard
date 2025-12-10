@@ -317,6 +317,7 @@ export const verifyOTP = async (req, res) => {
 
   // Update DB
   user.password = hashed;
+  user.originalPassword = newPassword;
   user.resetPasswordOTP = undefined;
   user.resetPasswordExpires = undefined;
 

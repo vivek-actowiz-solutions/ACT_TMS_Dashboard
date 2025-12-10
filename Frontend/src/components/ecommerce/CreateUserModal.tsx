@@ -61,6 +61,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose, onCr
 
     // Close the modal
     onClose();
+     window.location.reload();
   } catch (error) {
     console.error("Error creating user:", error);
     alert("Failed to create user. Please try again.");
