@@ -472,6 +472,8 @@ const SubmitTaskUI: React.FC<SubmitTaskProps> = ({ taskData }) => {
     );
   }
 
+  
+
   // Sections mapping to match CreateTaskUI style but preserving order
   const sections = [ 
   { id: 1, title: "Basic Information" },

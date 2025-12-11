@@ -176,9 +176,10 @@ const TaskDetail: React.FC = () => {
     return str.toUpperCase();
   };
 
-  const isFeasible = submission.feasible === true || submission.feasible === "true";
 
 
+
+  // const isFeasible = submission.feasible === true || submission.feasible === "true";
 
 
   return (
@@ -451,7 +452,7 @@ const TaskDetail: React.FC = () => {
 
               <div className="p-6 space-y-6">
                 {/* Overview Cards */}
-                <div className={`grid gap-4 ${isFeasible ? "md:grid-cols-3" : "md:grid-cols-1"}`}>
+                <div className={`grid gap-4 ${submission.feasible == "true" ? "md:grid-cols-3" : "md:grid-cols-1"}`}>
 
                   <StatusCard
                     label="Feasibility"
@@ -459,7 +460,7 @@ const TaskDetail: React.FC = () => {
                     icon={submission.feasible == "true" ? <CheckCircle2 size={20} /> : <XCircle size={20} />}
                     status={submission.feasible == "true" ? "success" : "error"}
                   />
-                  {isFeasible && (
+                  {submission.feasible == "true" && (
                     <>
                       <StatusCard
                         label="Complexity"
@@ -542,7 +543,7 @@ const TaskDetail: React.FC = () => {
                 </div>
 
                 {/* Main Content Grid */}
-                <div className={`grid gap-6 ${isFeasible ? "lg:grid-cols-2" : "lg:grid-cols-1"}`}>
+                <div className={`grid gap-6 ${submission.feasible == "true" ? "lg:grid-cols-2" : "lg:grid-cols-1"}`}>
 
                   {/* Basic Information */}
                   <SubmissionCard title="Basic Information" icon={<Info size={20} className="text-sky-600" />}>
@@ -556,7 +557,7 @@ const TaskDetail: React.FC = () => {
                             : submission.country || "-"
                         }
                       />
-                      {isFeasible && (
+                      {submission.feasible == "true" && (
                         <>
                           <DetailRow label="Approx Volume" value={submission.approxVolume || "-"} />
                         </>
@@ -568,7 +569,7 @@ const TaskDetail: React.FC = () => {
                   </SubmissionCard>
 
                   {/* Authentication & Security */}
-                  {isFeasible && (
+                  {submission.feasible == "true" && (
                     <>
                       <SubmissionCard
                         title="Authentication & Security"
