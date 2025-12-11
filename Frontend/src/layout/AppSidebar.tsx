@@ -107,10 +107,15 @@ const AppSidebar: React.FC = () => {
 
 
 
-  const isAdmin = useMemo(() => isUserAdmin(), []);
-  const mainNav = isAdmin
-    ? navItems
-    : navItems.filter((n) => !(n.path === "/TMS-R&D/admin" || n.name.toLowerCase() === "admin"));
+  const role = user?.role?.toLowerCase();
+
+const canAccessAdmin = role === "admin" || role === "superadmin";
+
+const mainNav = canAccessAdmin
+  ? navItems
+  : navItems.filter(n => n.path !== "/TMS-R&D/admin");
+
+
 
   const [openSubmenu, setOpenSubmenu] = useState<{
     type: "main" | "others";

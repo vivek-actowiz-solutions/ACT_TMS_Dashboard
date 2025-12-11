@@ -497,7 +497,7 @@ const EditTaskUI: React.FC<{ taskData?: Task }> = ({ taskData }) => {
 
 
         {/* Show Submit Tab only if the selected domain = submitted */}
-        {(role === "Admin" || role === "Manager" || role === "TL") &&
+        {(role === "Admin" || role === "Manager" || role === "TL" || role === "SuperAdmin") &&
           task.domains.some(
             (d) =>
               decodeURIComponent(domainFromUrl || "") === d.name &&
@@ -667,7 +667,7 @@ const EditTaskUI: React.FC<{ taskData?: Task }> = ({ taskData }) => {
                             <div className="flex justify-end gap-3">
 
                               {/* Edit Button */}
-                              {(role === "Sales" || role === "Admin") && (
+                              {(role === "Sales" || role === "Admin" || role === "SuperAdmin") && (
                                 <button
                                   type="button"
                                   onClick={() => handleDomainEditStart(d)}
@@ -679,7 +679,7 @@ const EditTaskUI: React.FC<{ taskData?: Task }> = ({ taskData }) => {
                               )}
 
                               {/* Remove Button */}
-                              {(role === "Sales" || role === "Admin") && (
+                              {(role === "Sales" || role === "Admin" || role === "SuperAdmin") && (
                                 <button
                                   type="button"
                                   onClick={() => handleDomainRemove(d.name)}
@@ -743,7 +743,7 @@ const EditTaskUI: React.FC<{ taskData?: Task }> = ({ taskData }) => {
 
 
 
-                          {(role === "TL" || role === "Manager" || role === "Admin") && (
+                          {(role === "TL" || role === "Manager" || role === "Admin" || role === "SuperAdmin") && (
                             <div className="flex flex-col gap-2">
                               <CreatableSelect
                                 isClearable
@@ -814,7 +814,7 @@ const EditTaskUI: React.FC<{ taskData?: Task }> = ({ taskData }) => {
                   ))}
 
                   {/* Add New Platform Section */}
-                  {(role === "Sales" || role === "Admin") && (
+                  {(role === "Sales" || role === "Admin" || role === "SuperAdmin") && (
                     <div className="flex flex-wrap gap-3 mb-4 items-end">
                       {/* Domain URL Input */}
                       <input
@@ -878,11 +878,6 @@ const EditTaskUI: React.FC<{ taskData?: Task }> = ({ taskData }) => {
                   </button>
                 </div>
               </form>
-
-
-
-
-
             </div>
 
           </div>
@@ -899,7 +894,7 @@ const EditTaskUI: React.FC<{ taskData?: Task }> = ({ taskData }) => {
               {decodeURIComponent(domainFromUrl || "") === d.name &&
                 d.status === "submitted" && (
                   <div className="mt-4">
-                    {(role === "TL" || role === "Manager" || role === "Admin") && (
+                    {(role === "TL" || role === "Manager" || role === "Admin" || role === "SuperAdmin") && (
                       <EditSubmit />
                     )}
                   </div>

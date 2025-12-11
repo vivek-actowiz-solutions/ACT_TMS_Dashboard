@@ -236,19 +236,19 @@ const EditSubmit: React.FC = () => {
     const newErrors: Record<string, string> = {};
     if (!submission.domain) newErrors.domain = "Domain is required.";
     if (!submission.country || submission.country.length === 0) newErrors.country = "Country is required.";
-    if (!submission.approxVolume) newErrors.approxVolume = "Approx Volume is required.";
-    if (!submission.method) newErrors.method = "Method is required.";
-    if (!submission.lastCheckedDate) newErrors.lastCheckedDate = "Last Checked Date is required.";
-    if (!submission.complexity) newErrors.complexity = "Complexity is required.";
+    if (submission.feasible===true && !submission.approxVolume) newErrors.approxVolume = "Approx Volume is required.";
+    if (submission.feasible===true && !submission.method) newErrors.method = "Method is required.";
+    if (submission.feasible===true && !submission.lastCheckedDate) newErrors.lastCheckedDate = "Last Checked Date is required.";
+    if (submission.feasible===true && !submission.complexity) newErrors.complexity = "Complexity is required.";
 
-    if (submission.userLogin && !submission.loginType) newErrors.loginType = "Please select a login type.";
-    if (submission.userLogin === null) newErrors.userLogin = "Please select login Yes or No.";
+    if (submission.feasible===true && submission.userLogin && !submission.loginType) newErrors.loginType = "Please select a login type.";
+    if (submission.feasible===true && submission.userLogin === null) newErrors.userLogin = "Please select login Yes or No.";
 
-    if (submission.feasible === null) newErrors.feasible = "Please select feasible Yes or No.";
+    if (submission.feasible===true && submission.feasible === null) newErrors.feasible = "Please select feasible Yes or No.";
 
-    if (submission.proxyUsed === null || submission.proxyUsed === undefined) newErrors.proxyUsed = "Please specify if proxy is used.";
+    if (submission.feasible===true && submission.proxyUsed === null || submission.proxyUsed === undefined) newErrors.proxyUsed = "Please specify if proxy is used.";
 
-    if (submission.proxyUsed) {
+    if (submission.feasible===true && submission.proxyUsed) {
       if (!submission.proxyName) newErrors.proxyName = "Proxy Name is required.";
       if (!submission.perRequestCredit) newErrors.perRequestCredit = "Per Request Credit is required.";
       if (!submission.totalRequest) newErrors.totalRequest = "Total Request is required.";
@@ -258,7 +258,7 @@ const EditSubmit: React.FC = () => {
       (submission.existingOutputFiles && submission.existingOutputFiles.length > 0) ||
       (submission.newOutputFiles && submission.newOutputFiles.length > 0) ||
       (submission.outputUrls && submission.outputUrls[0]);
-    if (!hasAnyFileOrUrl) {
+    if (submission.feasible===true && !hasAnyFileOrUrl) {
       newErrors.outputUrls = "Upload a file (keep or add) or provide an output document URL.";
     }
 
@@ -270,6 +270,16 @@ const EditSubmit: React.FC = () => {
       const githubPattern = /^https?:\/\/(www\.)?github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+\/?$/;
       if (!githubPattern.test(submission.githubLink.trim())) newErrors.githubLink = "Enter a valid GitHub repository URL.";
     }
+
+    if (submission.feasible === false) {
+  const hasRemark = submission.remark && submission.remark.trim() !== "";
+  const hasOutputUrl = submission.outputUrls?.[0];
+  const hasOutputFile = submission.outputFiles && submission.outputFiles.length > 0;
+
+  if (!hasRemark && !hasOutputUrl && !hasOutputFile) {
+    newErrors.remark = "Remark or Output URL or Output File is required when feasible is No.";
+  }
+}
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -366,10 +376,10 @@ const EditSubmit: React.FC = () => {
   }
 
   const sections = [
-    { id: 1, title: "Basic Information" },
-    { id: 2, title: "Platform Configuration" },
-    { id: 3, title: "Documents" },
-  ];
+  { id: 1, title: "Basic Information" },
+  submission.feasible !== false && { id: 2, title: "Platform Configuration" },
+  { id: 3, title: "Documents" },
+].filter(Boolean);
 
   return (
     <>
@@ -525,20 +535,28 @@ const EditSubmit: React.FC = () => {
                       />
                       {renderError("country")}
                     </div>
-
-                    <div>
-                      <label className="block mb-2 text-sm font-medium text-gray-700">Approx Volume <span className="text-red-500">*</span></label>
-                      <input
-                        type="text"
-                        name="approxVolume"
-                        value={submission.approxVolume || ""}
-                        onChange={handleChange}
-                        placeholder="e.g. 45000 or 4M or N/A"
-                        className="w-full rounded-lg border border-gray-200 p-3 text-gray-800"
-                      />
-                      <p className="text-xs text-gray-400 mt-1">Start with digits or enter 'N/A'</p>
-                      {renderError("approxVolume")}
-                    </div>
+                         
+                    <>
+  {submission.feasible !== false && (
+    <div>
+      <label className="block mb-2 text-sm font-medium text-gray-700">
+        Approx Volume <span className="text-red-500">*</span>
+      </label>
+      <input
+        type="text"
+        name="approxVolume"
+        value={submission.approxVolume}
+        onChange={handleChange}
+        placeholder="e.g. 45000 or 4M or N/A"
+        className="w-full rounded-lg border border-gray-200 p-3 text-gray-800"
+      />
+      <p className="text-xs text-gray-400 mt-1">
+        Start with digits or enter 'N/A'
+      </p>
+      {renderError("approxVolume")}
+    </div>
+  )}
+</>
                   </div>
                 )}
 
@@ -766,11 +784,13 @@ const EditSubmit: React.FC = () => {
 
                 {section.id === 3 && (
                   <div className="grid md:grid-cols-1 gap-4">
+                    {submission.feasible !== false  && (
                     <div>
                       <label className="block mb-2 text-sm font-medium text-gray-700">GitHub Repo Link</label>
                       <input type="text" name="githubLink" value={submission.githubLink || ""} placeholder="Enter GitHub link" onChange={handleChange} className="w-full rounded-lg border border-gray-200 p-3" />
                       {renderError("githubLink")}
                     </div>
+                    )}
 
                     <div>
                       <label className="block mb-2 font-medium text-gray-700">Existing Output Files (keep/remove)</label>
@@ -867,6 +887,7 @@ const EditSubmit: React.FC = () => {
                     <div>
                       <label className="block mb-2 text-sm font-medium text-gray-700">Remark</label>
                       <textarea name="remark" value={submission.remark || ""} placeholder="Enter Remark here..." onChange={(e) => setSubmission((prev) => ({ ...prev, remark: e.target.value }))} className="w-full rounded-lg border border-gray-200 p-3 h-28" />
+                        {renderError("remark")}
                     </div>
 
 

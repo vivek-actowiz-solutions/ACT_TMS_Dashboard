@@ -871,7 +871,7 @@ CC: <@${process.env.SLACK_RND_MANAGER_ID}>,<@${process.env.SLACK_RND_TL_ID}>
   }
 };
 
-// controllers/taskController.js (add/replace function)
+// ✅ Edit domain submission
 export const editDomainSubmission = async (req, res) => {
   try {
     const { id } = req.params;
@@ -1151,6 +1151,7 @@ export const getTask = async (req, res) => {
   }
 };
 
+// Get all tasks list
 export const getTaskList = async (req, res) => {
   try {
     // Read token from cookie
@@ -2108,6 +2109,7 @@ export const getReopenTaskData = async (req, res) => {
 
 
 // TERMINATE DOMAIN (domain-wise)
+
 export const reOpenTask = async (req, res) => {
   try {
     const { id } = req.params;

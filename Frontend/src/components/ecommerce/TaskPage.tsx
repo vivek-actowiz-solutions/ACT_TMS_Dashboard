@@ -678,7 +678,7 @@ const TaskPage: React.FC = () => {
       </div>
 
 
-      {(role === "Admin" || role === "Sales" || role === "Manager" || role === "TL") && (
+      {(role === "Admin" || role === "Sales" || role === "Manager" || role === "TL" || role === "SuperAdmin") && (
         <div className="my-5 text-xl flex items-center font-semibold">
           <FaThumbtack className="inline-block mr-2 text-blue-600" />
           <p>Pinned Previous Tasks:-</p>
@@ -705,7 +705,7 @@ const TaskPage: React.FC = () => {
             className="flex-grow w-full sm:w-64 md:w-80 p-2 rounded-lg border border-gray-300 bg-white text-gray-800"
           />
 
-          {(role === "Admin" || role === "Sales" || role === "Manager" || role === "TL") && (
+          {(role === "Admin" || role === "Sales" || role === "Manager" || role === "TL" || role === "SuperAdmin") && (
             <select
               value={assignedByFilter}
               onChange={(e) => {
@@ -782,7 +782,7 @@ const TaskPage: React.FC = () => {
             Clear Filters
           </button>
 
-          {(role === "Admin" || role === "Sales" || role === "Manager") && (
+          {(role === "Admin" || role === "Sales" || role === "Manager" || role === "SuperAdmin") && (
             <button
               onClick={() => navigate("/TMS-R&D/create")}
               className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-semibold w-full sm:w-auto"
@@ -791,7 +791,7 @@ const TaskPage: React.FC = () => {
             </button>
           )}
 
-          {(role === "Admin" || role === "Manager" || role === "Sales") && (
+          {(role === "Admin" || role === "Manager" || role === "Sales" || role === "SuperAdmin") && (
             <button
               onClick={() => setShowPOCModal(true)}
               className="bg-[#3C01AF] hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-semibold w-full sm:w-auto"
@@ -1074,7 +1074,7 @@ renderCell: (params) => (
                       onClick={() => {
                         if (params.row.status === "submitted") return;
                         if (params.row.status === "Terminated") return;
-                        if (["TL", "Manager", "Admin"].includes(role)) {
+                        if (["TL", "Manager", "Admin", "SuperAdmin"].includes(role)) {
                           const domainObj =
                             params.row.task?.domains?.find(
                               (d) => d.name === params.row.domainName
@@ -1097,7 +1097,7 @@ renderCell: (params) => (
                         params.row.status
                       )}`}
                       title={
-                        ["TL", "Manager", "Admin"].includes(role)
+                        ["TL", "Manager", "Admin", "SuperAdmin"].includes(role)
                           ? ""
                           : ""
                       }
@@ -1177,7 +1177,7 @@ renderCell: (params) => (
         </IconButton>
 
         {/* ✏️ EDIT */}
-        {(role === "Admin" || role === "TL" || role === "Manager") &&
+        {(role === "Admin" || role === "TL" || role === "Manager" || role === "SuperAdmin") &&
           params.row.status?.trim().toLowerCase() !== "terminated" && (
             <IconButton
               title="Edit"
@@ -1194,7 +1194,7 @@ renderCell: (params) => (
           )}
 
         {/* 🔁 HISTORY */}
-        {role === "Admin" && (
+        {role === "Admin" || role === "SuperAdmin"  && (
           <IconButton
             title="View History"
             color="#9333ea"
@@ -1212,7 +1212,7 @@ renderCell: (params) => (
         )}
 
         {/* 🔄 REOPEN */}
-        {(role === "Admin" || role === "Manager" || role === "Sales") &&
+        {(role === "Admin" || role === "Manager" || role === "Sales" || role === "SuperAdmin") &&
           params.row.status?.trim().toLowerCase() === "submitted" &&
           params.row.reopenCount === 0 && (
             <IconButton
@@ -1226,7 +1226,7 @@ renderCell: (params) => (
           )}
 
         {/* ⛔ TERMINATE DOMAIN */}
-        {(role === "Admin" || role === "Manager" || role === "TL") &&
+        {(role === "Admin" || role === "Manager" || role === "TL" || role === "SuperAdmin") &&
           params.row.status?.trim().toLowerCase() !== "terminated" &&
           params.row.status?.trim().toLowerCase() !== "submitted" && (
             <IconButton

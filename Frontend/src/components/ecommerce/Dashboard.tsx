@@ -276,7 +276,7 @@ const [taskCreatorsLoading, setTaskCreatorsLoading] = useState<boolean>(false);
 
 
       {/* Developer Table (Manager only) */}
-      {(userRole === "Admin" || userRole === "Manager" || userRole==="TL") && (
+      {(userRole === "Admin" || userRole === "Manager" || userRole==="TL" || userRole === "SuperAdmin") && (
   <div className="overflow-x-auto bg-gray-100 rounded-lg shadow p-4">
     <h2 className="text-xl font-semibold mb-4">Developer Summary</h2>
 
@@ -341,7 +341,7 @@ const [taskCreatorsLoading, setTaskCreatorsLoading] = useState<boolean>(false);
 )}
 
 {/* Task Created Summary (Sales Only) */}
-{(userRole === "Admin" || userRole === "Manager" || userRole === "Sales") && (
+{(userRole === "Admin" || userRole === "Manager" || userRole === "Sales" || userRole === "SuperAdmin") && (
   <div className="overflow-x-auto bg-gray-100 rounded-lg shadow p-4 mt-6">
     <h2 className="text-xl font-semibold mb-4">Task Created Summary</h2>
 

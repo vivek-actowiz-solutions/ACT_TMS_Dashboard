@@ -141,7 +141,7 @@ export default function SignInPage() {
       }
 
       if (data.code === "USER_INACTIVE") {
-        toast.error("Your account is deactivated. Contact admin.");
+        toast.error("Your account is deactivated. Contact Admin.");
         return;
       }
 

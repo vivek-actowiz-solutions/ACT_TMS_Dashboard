@@ -6,7 +6,7 @@ interface UserForm {
   password: string;
   department: string;
   designation:string;
-  role: "Admin" | "Sales" | "TL" | "Developer" |"Manager";
+  role: "Admin" | "Sales" | "TL" | "Developer" |"Manager" | "SuperAdmin";
   slackId:string;
 }
 
@@ -136,6 +136,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose, onCr
           <option value="TL">Team Lead</option>
            <option value="Manager">Manager</option>
           <option value="Developer">Developer</option>
+          <option value="SuperAdmin">Super Admin</option>
         </select>
 
         <input

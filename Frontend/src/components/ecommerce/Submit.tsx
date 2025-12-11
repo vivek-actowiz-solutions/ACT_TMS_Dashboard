@@ -242,28 +242,28 @@ const SubmitTaskUI: React.FC<SubmitTaskProps> = ({ taskData }) => {
     if (!submission.domain) newErrors.domain = "Domain is required.";
     if (!submission.country || submission.country.length === 0)
       newErrors.country = "Country is required.";
-    if (!submission.approxVolume) newErrors.approxVolume = "Approx Volume is required.";
-    if (!submission.method) newErrors.method = "Method is required.";
-    if (!submission.lastCheckedDate) newErrors.lastCheckedDate = "Last Checked Date is required.";
-    if (!submission.complexity) newErrors.complexity = "Complexity is required.";
+    if (submission.feasible===true && !submission.approxVolume) newErrors.approxVolume = "Approx Volume is required.";
+    if (submission.feasible===true && !submission.method) newErrors.method = "Method is required.";
+    if (submission.feasible===true && !submission.lastCheckedDate) newErrors.lastCheckedDate = "Last Checked Date is required.";
+    if (submission.feasible===true && !submission.complexity) newErrors.complexity = "Complexity is required.";
 
-    if (submission.userLogin && !submission.loginType) newErrors.loginType = "Please select a login type.";
-    if (submission.userLogin === null) newErrors.userLogin = "Please select login Yes or No.";
+    if (submission.feasible===true && submission.userLogin && !submission.loginType) newErrors.loginType = "Please select a login type.";
+    if (submission.feasible===true && submission.userLogin === null) newErrors.userLogin = "Please select login Yes or No.";
 
     if (submission.feasible === null) newErrors.feasible = "Please select feasible Yes or No.";
 
-    if (submission.proxyUsed === null || submission.proxyUsed === undefined)
+    if (submission.feasible===true && submission.proxyUsed === null || submission.proxyUsed === undefined)
       newErrors.proxyUsed = "Please specify if proxy is used.";
 
-    if (submission.proxyUsed) {
-      if (!submission.proxyName) newErrors.proxyName = "Proxy Name is required.";
+    if (submission.feasible===true && submission.proxyUsed) {
+      if (submission.feasible===true && !submission.proxyName) newErrors.proxyName = "Proxy Name is required.";
 
-      if (!submission.perRequestCredit) newErrors.perRequestCredit = "Per Request Credit is required.";
+      if (submission.feasible===true && !submission.perRequestCredit) newErrors.perRequestCredit = "Per Request Credit is required.";
 
-      if (!submission.totalRequest) newErrors.totalRequest = "Total Request is required.";
+      if (submission.feasible===true && !submission.totalRequest) newErrors.totalRequest = "Total Request is required.";
     }
 
-    if ((!submission.outputFiles || submission.outputFiles.length === 0) && !submission.outputUrls?.[0]) {
+    if (submission.feasible===true && (!submission.outputFiles || submission.outputFiles.length === 0) && !submission.outputUrls?.[0]) {
       newErrors.outputUrls = "Upload a file or provide a output document URL.";
     }
 
@@ -286,6 +286,16 @@ const SubmitTaskUI: React.FC<SubmitTaskProps> = ({ taskData }) => {
         newErrors.outputFiles = "JSON file is not uploadable. Please upload a JSON file link instead.";
       }
     }
+
+    if (submission.feasible === false) {
+  const hasRemark = submission.remark && submission.remark.trim() !== "";
+  const hasOutputUrl = submission.outputUrls?.[0];
+  const hasOutputFile = submission.outputFiles && submission.outputFiles.length > 0;
+
+  if (!hasRemark && !hasOutputUrl && !hasOutputFile) {
+    newErrors.remark = "Remark or Output URL or Output File is required when feasible is No.";
+  }
+}
 
 
     setErrors(newErrors);
@@ -463,12 +473,12 @@ const SubmitTaskUI: React.FC<SubmitTaskProps> = ({ taskData }) => {
   }
 
   // Sections mapping to match CreateTaskUI style but preserving order
-  const sections = [
-    { id: 1, title: "Basic Information" },
-    { id: 2, title: "Platform Configuration" },
+  const sections = [ 
+  { id: 1, title: "Basic Information" },
+  submission.feasible !== false && { id: 2, title: "Platform Configuration" },
+  { id: 3, title: "Documents" },
+].filter(Boolean);
 
-    { id: 3, title: "Documents" },
-  ];
 
   return (
     <>
@@ -555,6 +565,7 @@ const SubmitTaskUI: React.FC<SubmitTaskProps> = ({ taskData }) => {
 
           <form onSubmit={handleSubmit} className="space-y-8">
             {sections.map((section) => (
+              
               <div key={section.id} className="bg-white border border-blue-200 rounded-2xl shadow-md shadow-blue-100 p-6">
                 <div className="w-full bg-gradient-to-r from-blue-50 to-blue-25 border border-blue-100 rounded-lg p-4 mb-6">
                   <div className="flex items-center gap-3">
@@ -684,25 +695,32 @@ const SubmitTaskUI: React.FC<SubmitTaskProps> = ({ taskData }) => {
                       />
                       {renderError("country")}
                     </div>
-
-                    <div>
-                      <label className="block mb-2 text-sm font-medium text-gray-700">Approx Volume <span className="text-red-500">*</span></label>
-                      <input
-                        type="text"
-                        name="approxVolume"
-                        value={submission.approxVolume}
-                        onChange={handleChange}
-                        placeholder="e.g. 45000 or 4M or N/A"
-                        className="w-full rounded-lg border border-gray-200 p-3 text-gray-800"
-                      />
-                      <p className="text-xs text-gray-400 mt-1">Start with digits or enter 'N/A'</p>
-                      {renderError("approxVolume")}
-                    </div>
+<>
+  {submission.feasible !== false && (
+    <div>
+      <label className="block mb-2 text-sm font-medium text-gray-700">
+        Approx Volume <span className="text-red-500">*</span>
+      </label>
+      <input
+        type="text"
+        name="approxVolume"
+        value={submission.approxVolume}
+        onChange={handleChange}
+        placeholder="e.g. 45000 or 4M or N/A"
+        className="w-full rounded-lg border border-gray-200 p-3 text-gray-800"
+      />
+      <p className="text-xs text-gray-400 mt-1">
+        Start with digits or enter 'N/A'
+      </p>
+      {renderError("approxVolume")}
+    </div>
+  )}
+</>
                   </div>
                 )}
 
                 {/* SECTION 2 - Platform Configuration */}
-                {section.id === 2 && (
+                {section.id === 2 && submission.feasible !== false && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                     {/* Method */}
@@ -959,10 +977,11 @@ const SubmitTaskUI: React.FC<SubmitTaskProps> = ({ taskData }) => {
 
                   </div>
                 )}
+                
                 {/* SECTION 3 - Documents */}
                 {section.id === 3 && (
                   <div className="grid md:grid-cols-1 gap-4">
-
+                    {submission.feasible !== false  && (
                     <div>
                       <div className="md:col-span-3">
                         <label className="block mb-2 text-sm font-medium text-gray-700">GitHub Repo Link</label>
@@ -977,6 +996,7 @@ const SubmitTaskUI: React.FC<SubmitTaskProps> = ({ taskData }) => {
                         {renderError("githubLink")}
                       </div>
                     </div>
+                    )}
                     <p className="text-sm text-gray-600 mt-1">
                       <span className="text-red-500">Note:</span> JSON file is not uploadable. Please upload a <span className="text-red-500">JSON file link instead.</span>
                     </p>
@@ -1061,6 +1081,7 @@ const SubmitTaskUI: React.FC<SubmitTaskProps> = ({ taskData }) => {
                         onChange={(e) => setSubmission((prev) => ({ ...prev, remark: e.target.value }))}
                         className="w-full rounded-lg border border-gray-200 p-3 h-28"
                       />
+                      {renderError("remark")}
                     </div>
 
                     {/* Buttons */}

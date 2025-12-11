@@ -28,32 +28,32 @@ import upload from "../middleware/multer.js";
 
 
 
-router.post("/tasks", authorize(['Admin', 'Sales', 'Manager']), upload.fields([
+router.post("/tasks", authorize(['Admin', 'Sales', 'Manager','SuperAdmin']), upload.fields([
   { name: "sowFile", maxCount: 10 },
   { name: "inputFile", maxCount: 10 },
   { name: "clientSampleSchemaFiles", maxCount: 20 },
 ]), createTask);
 
-router.get("/tasks/list",authorize(['Admin', 'Sales', 'Manager']), getTaskList);
+router.get("/tasks/list",authorize(['Admin', 'Sales', 'Manager','SuperAdmin']), getTaskList);
 
 
 router.get("/tasks/:id/reopen-data",
-  authorize(['Admin', 'Sales', 'Manager']),
+  authorize(['Admin', 'Sales', 'Manager','SuperAdmin']),
   getReopenTaskData
 );
 
 
-router.put("/tasks/:id/reopen",upload.fields([{ name: "sowFile", maxCount: 20 }]), authorize(['Admin', 'Sales', 'Manager']), reOpenTask);
+router.put("/tasks/:id/reopen",upload.fields([{ name: "sowFile", maxCount: 20 }]), authorize(['Admin', 'Sales', 'Manager','SuperAdmin']), reOpenTask);
 
 router.put(
   "/tasks/domain-status",
-  authorize(['TL', 'Manager', 'Admin']),
+  authorize(['TL', 'Manager', 'Admin','SuperAdmin']),
   upload.single('file'),
   updateTaskDomainStatus
 );
 router.put(
   "/tasks/:id",
-  authorize(['Admin', 'Sales', 'TL', 'Manager']),
+  authorize(['Admin', 'Sales', 'TL', 'Manager','SuperAdmin']),
   upload.fields([
     { name: "sowFile", maxCount: 10 },
     { name: "inputFile", maxCount: 10 },
@@ -63,14 +63,14 @@ router.put(
   updateTask
 );
 
-router.post("/tasks/:id/submit", authorize(['Admin', 'TL', 'Developer', 'Manager']), upload.fields([
+router.post("/tasks/:id/submit", authorize(['Admin', 'TL', 'Developer', 'Manager','SuperAdmin']), upload.fields([
   { name: "outputFiles", maxCount: 20 },
 ]), submitTask);
 
 router.post(
   "/tasks/:id/edit-submission",
 
-  authorize(['Admin', 'TL', 'Developer', 'Manager']),
+  authorize(['Admin', 'TL', 'Developer', 'Manager','SuperAdmin']),
   upload.fields([
     { name: "outputFiles", maxCount: 20 },
     { name: "newOutputFiles", maxCount: 20 }
@@ -78,24 +78,24 @@ router.post(
   editDomainSubmission
 );
 
-router.get("/tasks/developers", authorize(['Manager', 'Admin', 'TL']), getDevelopersDomainStatus);
-router.get("/tasks/stats", authorize(['Admin', 'Sales', 'TL', 'Developer', 'Manager']), getDomainStats);
-router.get("/tasks", authorize(['Admin', 'Sales', 'TL', 'Developer', 'Manager']), developerOnly, getTask);
+router.get("/tasks/developers", authorize(['Manager', 'Admin', 'TL','SuperAdmin']), getDevelopersDomainStatus);
+router.get("/tasks/stats", authorize(['Admin', 'Sales', 'TL', 'Developer', 'Manager','SuperAdmin']), getDomainStats);
+router.get("/tasks", authorize(['Admin', 'Sales', 'TL', 'Developer', 'Manager','SuperAdmin']), developerOnly, getTask);
 router.get(
   "/tasks/:id/domain/:domainName",
-  authorize(['Admin', 'Sales', 'TL', 'Developer', 'Manager']),
+  authorize(['Admin', 'Sales', 'TL', 'Developer', 'Manager','SuperAdmin']),
   getTaskDomain
 );
 
-router.get("/tasks/:id", authorize(['Admin', 'Sales', 'TL', 'Developer', 'Manager']), getSingleTask);
+router.get("/tasks/:id", authorize(['Admin', 'Sales', 'TL', 'Developer', 'Manager','SuperAdmin']), getSingleTask);
 // TL and Manager can update domain status
-router.get("/tasks/single/:id",authorize(['Admin', 'Sales', 'TL', 'Manager']), getSingleTaskList);
+router.get("/tasks/single/:id",authorize(['Admin', 'Sales', 'TL', 'Manager','SuperAdmin']), getSingleTaskList);
 
 
-router.get("/tasks/developers", authorize(['Manager', 'TL',]), getDevelopersDomainStatus);
-router.get("/tasks/created/by-all-users", authorize(['Manager', 'Sales','Admin',]), getAllUsersTaskCreatedStats);
+router.get("/tasks/developers", authorize(['Manager', 'TL','SuperAdmin']), getDevelopersDomainStatus);
+router.get("/tasks/created/by-all-users", authorize(['Manager', 'Sales','Admin','SuperAdmin']), getAllUsersTaskCreatedStats);
 
-router.put("/tasks/domain/terminate", authorize([ 'Manager', 'Admin']), terminateDomain);
+router.put("/tasks/domain/terminate", authorize([ 'Manager', 'Admin','SuperAdmin','TL']), terminateDomain);
 
 
 export default router;
