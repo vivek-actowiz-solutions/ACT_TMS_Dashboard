@@ -109,7 +109,7 @@ const AppSidebar: React.FC = () => {
 
   const role = user?.role?.toLowerCase();
 
-const canAccessAdmin = role === "admin" || role === "superadmin";
+const canAccessAdmin =  role === "superadmin";
 
 const mainNav = canAccessAdmin
   ? navItems

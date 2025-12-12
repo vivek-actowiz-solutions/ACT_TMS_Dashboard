@@ -308,7 +308,7 @@ const formattedFreq = freqArray.map(f => {
                   }),
                   new TextRun({
                     text: ` :- ${d.name || "-"} `,
-                    bold: true,
+
                     size: 24,
                   }),
                 ],
@@ -316,10 +316,15 @@ const formattedFreq = freqArray.map(f => {
               new Paragraph({
                 indent: { left: 1440 },
                 children: [
-                  new TextRun({
-                    text: `Type of Platform:- ${d.typeOfPlatform || "-"}`,
-                    bold: true,
-                    size: 24,
+                  new ExternalHyperlink({
+                    link: d.typeOfPlatform || "-",
+                    children: [
+                      new TextRun({
+                        text: `Type of Platform:- ${d.typeOfPlatform || "-"}`,
+                        style: "Hyperlink",
+                        size: 24,
+                      }),
+                    ],
                   }),
                 ],
               }),
@@ -328,8 +333,8 @@ const formattedFreq = freqArray.map(f => {
                 indent: { left: 1440 },
                 children: [
                   new TextRun({
-                    text: `Remarks:- [${d.domainRemarks || "-"}]`,
-                    bold: true,
+                    text: `Remarks:- ${d.domainRemarks || "-"}`,
+
                     size: 24,
                   }),
                 ],

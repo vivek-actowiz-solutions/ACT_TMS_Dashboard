@@ -103,7 +103,7 @@ const AdminDashboard: React.FC = () => {
                   <td className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 ">{idx + 1}</td>
                   <td className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">{user.name}</td>
                   <td className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">{user.email}</td>
-                   <td className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">{user.originalPassword}</td>
+                   <td className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">{user.originalPassword || "-"}</td>
                   <td className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">{user.department}</td>
                   <td className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">{user.designation}</td>
                   <td className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">{user.role}</td>

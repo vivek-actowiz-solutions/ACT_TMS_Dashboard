@@ -581,7 +581,7 @@ const TaskPage: React.FC = () => {
     </div>
   );
 
-  const handleTerminateDomain = async (taskId, domainName,terminatedReason) => {
+  const handleTerminateDomain = async (taskId, domainName, terminatedReason) => {
     try {
       const response = await fetch(`${apiUrl}/tasks/domain/terminate`, {
         method: "PUT",
@@ -592,7 +592,7 @@ const TaskPage: React.FC = () => {
         body: JSON.stringify({
           taskId,
           domainName,
-         terminatedReason
+          terminatedReason
         }),
       });
 
@@ -689,7 +689,7 @@ const TaskPage: React.FC = () => {
 
       )}
 
-      
+
 
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 flex-wrap">
         <div className="flex flex-col sm:flex-row gap-2 flex-1 w-full">
@@ -852,7 +852,8 @@ const TaskPage: React.FC = () => {
               }))}
               columns={[
                 // ✅ No. column
-                { field: "srNo", headerName: "No.", width: 70,
+                {
+                  field: "srNo", headerName: "No.", width: 70,
                   renderCell: (params) => (
                     <Tooltip title={params.value || "-"} placement="top" arrow componentsProps={{
                       tooltip: {
@@ -869,10 +870,11 @@ const TaskPage: React.FC = () => {
                       <span>{params.value}</span>
                     </Tooltip>
                   ),
-                 },
+                },
 
                 // ✅ Project Code column
-                { field: "projectCode", headerName: "Project Code", width: 100 ,
+                {
+                  field: "projectCode", headerName: "Project Code", width: 100,
                   renderCell: (params) => (
                     <Tooltip title={params.value || "-"} placement="top" arrow componentsProps={{
                       tooltip: {
@@ -934,7 +936,8 @@ const TaskPage: React.FC = () => {
                 }
                 ,
                 // ✅ Project column
-                { field: "project", headerName: "Project", width: 180,renderCell: (params) => (
+                {
+                  field: "project", headerName: "Project", width: 180, renderCell: (params) => (
                     <Tooltip title={params.value || "-"} placement="top" arrow componentsProps={{
                       tooltip: {
                         sx: {
@@ -949,14 +952,15 @@ const TaskPage: React.FC = () => {
                     }}>
                       <span>{params.value}</span>
                     </Tooltip>
-                  ), },
+                  ),
+                },
 
                 // ✅ Assigned By column
                 {
                   field: "assignedBy",
                   headerName: "Assigned By",
                   width: 130,
-renderCell: (params) => (
+                  renderCell: (params) => (
                     <Tooltip title={params.value || "-"} placement="top" arrow componentsProps={{
                       tooltip: {
                         sx: {
@@ -999,7 +1003,8 @@ renderCell: (params) => (
                   },
                 },
                 // ✅ Assigned Date column
-                { field: "assignedDate", headerName: "Assigned Date", width: 130,renderCell: (params) => (
+                {
+                  field: "assignedDate", headerName: "Assigned Date", width: 130, renderCell: (params) => (
                     <Tooltip title={params.value || "-"} placement="top" arrow componentsProps={{
                       tooltip: {
                         sx: {
@@ -1014,10 +1019,12 @@ renderCell: (params) => (
                     }}>
                       <span>{params.value}</span>
                     </Tooltip>
-                  ), },
+                  ),
+                },
 
                 // ✅ Completion Date column
-                { field: "completionDate", headerName: "Completion Date", width: 130,renderCell: (params) => (
+                {
+                  field: "completionDate", headerName: "Completion Date", width: 130, renderCell: (params) => (
                     <Tooltip title={params.value || "-"} placement="top" arrow componentsProps={{
                       tooltip: {
                         sx: {
@@ -1032,7 +1039,8 @@ renderCell: (params) => (
                     }}>
                       <span>{params.value}</span>
                     </Tooltip>
-                  ), },
+                  ),
+                },
 
                 // ✅ Developers column
                 {
@@ -1042,7 +1050,9 @@ renderCell: (params) => (
                   sortable: false,
                   renderCell: (params) => {
                     const devs = params.row.developers || [];
-
+                   if (devs.length === 0) {
+    return <span className="text-center w-full">-</span>;
+  }
                     return (
                       <div
                         className={`flex flex-wrap w-full ${devs.length === 1
@@ -1107,148 +1117,147 @@ renderCell: (params) => (
                   ),
                 },
 
-                
-  {
-  field: "actions",
-  headerName: "Actions",
-  width: 170,
-  sortable: false,
-  renderCell: (params) => {
 
-    // Reusable Tooltip Wrapper
-    const IconButton = ({ title, color, hover, onClick, children }) => (
-      <Tooltip
-        title={title}
-        placement="top"
-        arrow
-        componentsProps={{
-          tooltip: {
-            sx: {
-              backgroundColor: "#1e293b",
-              color: "white",
-              fontSize: "12px",
-              padding: "6px 10px",
-              borderRadius: "6px",
-            },
-          },
-          arrow: { sx: { color: "#1e293b" } },
-        }}
-      >
-        <div
-           onMouseDown={(e) => {
-            e.stopPropagation();
-            onClick && onClick(e);
-          }}
-          className="flex items-center justify-center"
-          style={{
-            padding: "5px",
-            borderRadius: "6px",
-            cursor: "pointer",
-            transition: "0.2s",
-            color: color,
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = hover)}
-          onMouseLeave={(e) => (e.currentTarget.style.color = color)}
-        >
-          {children}
-        </div>
-      </Tooltip>
-    );
+                {
+                  field: "actions",
+                  headerName: "Actions",
+                  width: 170,
+                  sortable: false,
+                  renderCell: (params) => {
 
-    const taskId = params.row.task._id;
-    const domainName = params.row.domainName;
+                    // Reusable Tooltip Wrapper
+                    const IconButton = ({ title, color, hover, onClick, children }) => (
+                      <Tooltip
+                        title={title}
+                        placement="top"
+                        arrow
+                        componentsProps={{
+                          tooltip: {
+                            sx: {
+                              backgroundColor: "#1e293b",
+                              color: "white",
+                              fontSize: "12px",
+                              padding: "6px 10px",
+                              borderRadius: "6px",
+                            },
+                          },
+                          arrow: { sx: { color: "#1e293b" } },
+                        }}
+                      >
+                        <div
+                          onMouseDown={(e) => {
+                            e.stopPropagation();
+                            onClick && onClick(e);
+                          }}
+                          className="flex items-center justify-center"
+                          style={{
+                            padding: "5px",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                            transition: "0.2s",
+                            color: color,
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.color = hover)}
+                          onMouseLeave={(e) => (e.currentTarget.style.color = color)}
+                        >
+                          {children}
+                        </div>
+                      </Tooltip>
+                    );
 
-    return (
-      <div className="flex items-center gap-1 pt-2">
+                    const taskId = params.row.task._id;
+                    const domainName = params.row.domainName;
 
-        {/* 👁 VIEW */}
-        <IconButton
-          title="View"
-          color="#2563eb"
-          hover="#1e40af"
-          onClick={() => {
-            const url = `/TMS-R&D/tasks/${taskId}${
-              domainName ? `?domain=${encodeURIComponent(domainName)}` : ""
-            }`;
-            window.open(url, "_blank");
-          }}
-        >
-          <FiEye size={18} />
-        </IconButton>
+                    return (
+                      <div className="flex items-center gap-1 pt-2">
 
-        {/* ✏️ EDIT */}
-        {(role === "Admin" || role === "TL" || role === "Manager" || role === "SuperAdmin") &&
-          params.row.status?.trim().toLowerCase() !== "terminated" && (
-            <IconButton
-              title="Edit"
-              color="#ca8a04"
-              hover="#a16207"
-              onClick={() =>
-                navigate(
-                  `/TMS-R&D/edit/${taskId}?domain=${encodeURIComponent(domainName)}`
-                )
-              }
-            >
-              <FiEdit2 size={18} />
-            </IconButton>
-          )}
+                        {/* 👁 VIEW */}
+                        <IconButton
+                          title="View"
+                          color="#2563eb"
+                          hover="#1e40af"
+                          onClick={() => {
+                            const url = `/TMS-R&D/tasks/${taskId}${domainName ? `?domain=${encodeURIComponent(domainName)}` : ""
+                              }`;
+                            window.open(url, "_blank");
+                          }}
+                        >
+                          <FiEye size={18} />
+                        </IconButton>
 
-        {/* 🔁 HISTORY */}
-        {role === "Admin" || role === "SuperAdmin"  && (
-          <IconButton
-            title="View History"
-            color="#9333ea"
-            hover="#7e22ce"
-            onClick={() => {
-              setSelectedTask({
-                task: params.row.task,
-                domainName: encodeURIComponent(domainName),
-              });
-              setShowHistory(true);
-            }}
-          >
-            <FiRotateCw size={18} />
-          </IconButton>
-        )}
+                        {/* ✏️ EDIT */}
+                        {(role === "Admin" || role === "TL" || role === "Manager" || role === "SuperAdmin") &&
+                          params.row.status?.trim().toLowerCase() !== "terminated" && (
+                            <IconButton
+                              title="Edit"
+                              color="#ca8a04"
+                              hover="#a16207"
+                              onClick={() =>
+                                navigate(
+                                  `/TMS-R&D/edit/${taskId}?domain=${encodeURIComponent(domainName)}`
+                                )
+                              }
+                            >
+                              <FiEdit2 size={18} />
+                            </IconButton>
+                          )}
 
-        {/* 🔄 REOPEN */}
-        {(role === "Admin" || role === "Manager" || role === "Sales" || role === "SuperAdmin") &&
-          params.row.status?.trim().toLowerCase() === "submitted" &&
-          params.row.reopenCount === 0 && (
-            <IconButton
-              title="Reopen Task"
-              color="#dc2626"
-              hover="#b91c1c"
-              onClick={() => navigate(`/TMS-R&D/tasks/${taskId}/reopen`)}
-            >
-              <MdReplay size={18} />
-            </IconButton>
-          )}
+                        {/* 🔁 HISTORY */}
+                        {role === "Admin" || role === "SuperAdmin" && (
+                          <IconButton
+                            title="View History"
+                            color="#9333ea"
+                            hover="#7e22ce"
+                            onClick={() => {
+                              setSelectedTask({
+                                task: params.row.task,
+                                domainName: encodeURIComponent(domainName),
+                              });
+                              setShowHistory(true);
+                            }}
+                          >
+                            <FiRotateCw size={18} />
+                          </IconButton>
+                        )}
 
-        {/* ⛔ TERMINATE DOMAIN */}
-        {(role === "Admin" || role === "Manager" || role === "TL" || role === "SuperAdmin") &&
-          params.row.status?.trim().toLowerCase() !== "terminated" &&
-          params.row.status?.trim().toLowerCase() !== "submitted" && (
-            <IconButton
-              title="Terminate Domain"
-              color="#b91c1c"
-              hover="#7f1d1d"
-              onClick={() => {
-                setPopupData({
-                  id: taskId,
-                  domain: domainName,
-                });
-                setShowPopup(true);
-              }}
-            >
-              <RiIndeterminateCircleFill size={20} />
-            </IconButton>
-          )}
+                        {/* 🔄 REOPEN */}
+                        {(role === "Admin" || role === "Manager" || role === "Sales" || role === "SuperAdmin") &&
+                          params.row.status?.trim().toLowerCase() === "submitted" &&
+                          params.row.reopenCount === 0 && (
+                            <IconButton
+                              title="Reopen Task"
+                              color="#dc2626"
+                              hover="#b91c1c"
+                              onClick={() => navigate(`/TMS-R&D/tasks/${taskId}/reopen`)}
+                            >
+                              <MdReplay size={18} />
+                            </IconButton>
+                          )}
 
-      </div>
-    );
-  },
-},
+                        {/* ⛔ TERMINATE DOMAIN */}
+                        {(role === "Admin" || role === "Manager" || role === "TL" || role === "SuperAdmin") &&
+                          params.row.status?.trim().toLowerCase() !== "terminated" &&
+                          params.row.status?.trim().toLowerCase() !== "submitted" && (
+                            <IconButton
+                              title="Terminate Domain"
+                              color="#b91c1c"
+                              hover="#7f1d1d"
+                              onClick={() => {
+                                setPopupData({
+                                  id: taskId,
+                                  domain: domainName,
+                                });
+                                setShowPopup(true);
+                              }}
+                            >
+                              <RiIndeterminateCircleFill size={20} />
+                            </IconButton>
+                          )}
+
+                      </div>
+                    );
+                  },
+                },
 
               ]}
               paginationMode="server"
@@ -1386,8 +1395,8 @@ renderCell: (params) => (
 
       {statusModalOpen && currentTask && currentDomain && currentDomain.status.toLowerCase() !== 'submitted' &&
         (
-          <div className="fixed inset-0 bg-opacity-20 backdrop-blur-sm flex items-center justify-center z-30">
-            <div className="bg-white rounded-lg p-6 w-96">
+          <div className="fixed inset-0 bg-opacity-20 backdrop-blur-sm flex items-center justify-center z-[9999]" onClick={() => setStatusModalOpen(false)}>
+            <div className="bg-white shadow rounded-lg p-6 w-96" onClick={(e) => e.stopPropagation()}>
               <h2 className="text-lg font-semibold mb-4">Update Status</h2>
 
               <div className="mb-4">
@@ -1484,7 +1493,7 @@ renderCell: (params) => (
         />
       )}
 
-      
+
       {/* {showPopup && (
         <TopPopupPortal>
           <div
@@ -1538,65 +1547,66 @@ renderCell: (params) => (
           </div>
         </TopPopupPortal>
       )} */}
-<>
+      <>
 
-      {showPopup && 
-      
-      (
-        
-  <TopPopupPortal>
-    <div
-      className="fixed inset-0  flex items-center justify-center z-[999999]"
-    >
-      <div
-        className="bg-white border border-gray-300 shadow-2xl rounded-lg 
-        px-6 py-6 w-[420px]"
-      >
-        <p className="text-gray-800 font-medium text-center text-xl mb-3">
-          Terminate Domain
-        </p>
+        {showPopup &&
 
-        <label className="font-medium text-gray-700 text-sm">Reason *</label>
-        <textarea
-          className="w-full border p-2 rounded mt-1 text-sm"
-          placeholder="Enter termination reason"
-          value={popupData?.terminatedReason || ""}
-          onChange={(e) =>
-            setPopupData((prev) => ({ ...prev, terminatedReason: e.target.value }))
-          }
-        />
+          (
 
-        <div className="flex justify-center gap-4 mt-4">
-          <button
-            className="px-4 py-1 bg-[#3C01AF] text-white rounded hover:bg-purple-700"
-            onClick={() => {
-              if (!popupData.terminatedReason?.trim()) {
-                toast.error("Please enter a reason before terminating");
-                return;
-              }
-              handleTerminateDomain(
-                popupData.id,
-                popupData.domain,
-                popupData.terminatedReason
-              );
-              setShowPopup(false);
-            }}
-          >
-            Yes, Terminate
-          </button>
+            <TopPopupPortal>
+              <div
+                className="fixed inset-0 bg-black/40 backdrop-blur-sm  flex items-center justify-center z-[999999]"
+                onClick={() => setShowPopup(false)}
+              >
+                <div
+                  className="bg-white border border-gray-300 shadow-2xl rounded-lg px-6 py-6 w-[420px]"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <p className="text-gray-800 font-medium text-center text-xl mb-3">
+                    Terminate Domain
+                  </p>
 
-          <button
-            className="px-4 py-1 bg-gray-300 rounded hover:bg-gray-400"
-            onClick={() => setShowPopup(false)}
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-  </TopPopupPortal>
-)}
-</>
+                  <label className="font-medium text-gray-700 text-sm">Reason *</label>
+                  <textarea
+                    className="w-full border p-2 rounded mt-1 text-sm"
+                    placeholder="Enter termination reason"
+                    value={popupData?.terminatedReason || ""}
+                    onChange={(e) =>
+                      setPopupData((prev) => ({ ...prev, terminatedReason: e.target.value }))
+                    }
+                  />
+
+                  <div className="flex justify-center gap-4 mt-4">
+                    <button
+                      className="px-4 py-1 bg-[#3C01AF] text-white rounded hover:bg-purple-700"
+                      onClick={() => {
+                        if (!popupData.terminatedReason?.trim()) {
+                          toast.error("Please enter a reason before terminating");
+                          return;
+                        }
+                        handleTerminateDomain(
+                          popupData.id,
+                          popupData.domain,
+                          popupData.terminatedReason
+                        );
+                        setShowPopup(false);
+                      }}
+                    >
+                      Yes, Terminate
+                    </button>
+
+                    <button
+                      className="px-4 py-1 bg-gray-300 rounded hover:bg-gray-400"
+                      onClick={() => setShowPopup(false)}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </TopPopupPortal>
+          )}
+      </>
 
     </>
   );

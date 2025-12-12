@@ -972,7 +972,7 @@ export const editDomainSubmission = async (req, res) => {
   }
 };
 
-// Get All Tasks
+// Get All Tasks 
 export const getTask = async (req, res) => {
   try {
 
@@ -1188,16 +1188,20 @@ export const getTaskList = async (req, res) => {
     const tasks = await Task.find({
       assignedBy: new mongoose.Types.ObjectId(userId),
     })
-      .select("title projectCode assignedBy")
+      .select("title projectCode assignedBy domains")
       .populate("assignedBy", "name role")
       .sort({ createdAt: -1 });
 
+const submittedTasks = tasks.filter(task => {
+      if (!task.domains || task.domains.length === 0) return false;
+      return task.domains.every((d) => d.status === "submitted");
+    });
 
 
 
     // Attach POC information to each task
     const tasksWithPOC = await Promise.all(
-      tasks.map(async (task) => {
+      submittedTasks.map(async (task) => {
         const poc = await POC.findOne({ taskId: task._id });
 
         return {
@@ -1208,6 +1212,7 @@ export const getTaskList = async (req, res) => {
         };
       })
     );
+
 
     // FINAL RETURN (only this one)
     return res.status(200).json({ tasks: tasksWithPOC });
