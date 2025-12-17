@@ -122,10 +122,7 @@ const safeParseArray = (value) => {
 // CREATE TASK
 export const createTask = async (req, res) => {
 
-  // console.log("🔍 Received Domains in Backend:", req.body);
-  // console.log("Received File:", req.file);
-
-
+  
   try {
     const raw = req.body || {};
     const developers = encodeDevelopers(raw.developers);

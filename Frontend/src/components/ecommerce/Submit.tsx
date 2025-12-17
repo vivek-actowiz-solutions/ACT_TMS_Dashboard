@@ -260,7 +260,11 @@ const SubmitTaskUI: React.FC<SubmitTaskProps> = ({ taskData }) => {
 
       if (submission.feasible===true && !submission.perRequestCredit) newErrors.perRequestCredit = "Per Request Credit is required.";
 
+      if (submission.feasible===true && submission.perRequestCredit?.length === 0) newErrors.perRequestCredit = "Per Request Credit most be greater than 0.";
+
       if (submission.feasible===true && !submission.totalRequest) newErrors.totalRequest = "Total Request is required.";
+
+      if (submission.feasible===true && submission.totalRequest?.length === 0) newErrors.totalRequest = "Total Request most be greater than 0.";
     }
 
     if (submission.feasible===true && (!submission.outputFiles || submission.outputFiles.length === 0) && !submission.outputUrls?.[0]) {
@@ -922,7 +926,7 @@ const SubmitTaskUI: React.FC<SubmitTaskProps> = ({ taskData }) => {
                           <input
                             type="number"
                             name="perRequestCredit"
-                            min={0}
+                            min={1}
                             value={submission.perRequestCredit}
                             onChange={handleChange}
                             placeholder="Ex:- 1,2,5,10"
@@ -943,7 +947,7 @@ const SubmitTaskUI: React.FC<SubmitTaskProps> = ({ taskData }) => {
                           <input
                             type="number"
                             name="totalRequest"
-                            min={0}
+                            min={1}
 
                             value={submission.totalRequest}
                             onChange={handleChange}
