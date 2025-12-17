@@ -979,7 +979,7 @@ const assignedBySlack = assignedByUser?.slackId
       CC: <@${process.env.SLACK_RND_MANAGER_ID}>,<@${process.env.SLACK_RND_TL_ID}>
     `;
 
-    await sendSlackMessage(process.env.SALES_RD_CHANNEL_DEV, slackMessage2);
+    await sendSlackMessage(process.env.RD_DEVELOPER_CHANNEL_TEST, slackMessage2);
     res.json({
       message: "Domain submission updated successfully",
       task,
