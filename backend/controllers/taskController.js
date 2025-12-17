@@ -184,7 +184,7 @@ export const createTask = async (req, res) => {
 
     const sowFilePath = await generateSOWDocxFromTemplate({
       title: raw.title,
-      date: new Date().toLocaleDateString(),
+      date: assignedDate.toLocaleDateString(),
       typeOfDelivery: raw.typeOfDelivery,
       domains: formattedDomains,
       inputDescription: raw.inputUrls,
@@ -741,10 +741,13 @@ export const submitTask = async (req, res) => {
           ? `Yes, Credit: ${sub.perRequestCredit || 0}, Name: ${sub.proxyName || "-"}, Request: ${sub.totalRequest || 0}`
           : "No";
 
+          const remark = sub.remark || "";
+
         return (
           `• \`${d.name}\`\n` +
           `   \`Feasible: ${feasible}\`\n` +
           `   \`Proxy: ${proxyLine}\``
+          `\n   \`Remark: ${remark}\``
         );
       })
       .join("\n")}`;
