@@ -949,8 +949,28 @@ export const editDomainSubmission = async (req, res) => {
 
     const taskUrl = `${process.env.FRONTEND_URL}/TMS-R&D/tasks`;
 
+   const assignedByUser = await User.findById(task.assignedBy).lean();
+
+const assignedBySlack = assignedByUser?.slackId
+  ? `<@${assignedByUser.slackId}>`
+  : "Unknown User";
+
+     
+
     const slackMessage = `
-      :pencil: *Domain Submission Edited*
+      :pencil: *Domain Submission Edited* ${assignedBySlack}
+      ${space}:briefcase: *Task:* ${task.title}
+      ${space}:page_facing_up: *Domain:* \`${domainName}\`
+      ${space}:bust_in_silhouette: *Edited By:* ${editedBySlack}
+      ${space}:paperclip: *Details:* Sample data and feasibility report have been edited. Please review and confirm.
+      :link: *View Task:* <${taskUrl}|Open Dashboard>
+      CC: <@${process.env.SLACK_RND_MANAGER_ID}>,<@${process.env.SLACK_SALES_MANAGER_ID}>
+    `;
+
+    await sendSlackMessage(process.env.SALES_RD_CHANNEL_TEST, slackMessage);
+
+    const slackMessage2 = `
+      :pencil: *Domain Submission Edited* 
       ${space}:briefcase: *Task:* ${task.title}
       ${space}:page_facing_up: *Domain:* \`${domainName}\`
       ${space}:bust_in_silhouette: *Edited By:* ${editedBySlack}
@@ -959,8 +979,7 @@ export const editDomainSubmission = async (req, res) => {
       CC: <@${process.env.SLACK_RND_MANAGER_ID}>,<@${process.env.SLACK_RND_TL_ID}>
     `;
 
-    await sendSlackMessage(process.env.SALES_RD_CHANNEL_TEST, slackMessage);
-
+    await sendSlackMessage(process.env.SALES_RD_CHANNEL_DEV, slackMessage2);
     res.json({
       message: "Domain submission updated successfully",
       task,
