@@ -1494,59 +1494,7 @@ const TaskPage: React.FC = () => {
       )}
 
 
-      {/* {showPopup && (
-        <TopPopupPortal>
-          <div
-            style={{
-  position: "fixed",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  zIndex: 999999,
-}}
-
-            className="bg-white border border-gray-300 shadow-2xl rounded-lg 
-         px-6 py-6 w-[420px] animate-slideDown"
-          >
-            <p className="text-gray-800 font-medium text-center text-xl mb-3">
-              Terminate Domain
-            </p>
-
-            <label className="font-medium text-gray-700 text-sm">Reason *</label>
-            <textarea
-              className="w-full border p-2 rounded mt-1 text-sm"
-              placeholder="Enter termination reason"
-              value={popupData?. terminatedReason || ""}
-              onChange={(e) =>
-                setPopupData((prev) => ({ ...prev,  terminatedReason: e.target.value }))
-              }
-            />
-
-            <div className="flex justify-center gap-4 mt-4">
-              <button
-                className="px-4 py-1 bg-[#3C01AF] text-white rounded hover:bg-purple-700"
-                onClick={() => {
-                  if (!popupData.terminatedReason?.trim()) {
-                    toast.error("Please enter a reason before terminating");
-                    return;
-                  }
-                  handleTerminateDomain(popupData.id, popupData.domain, popupData. terminatedReason);
-                  setShowPopup(false);
-                }}
-              >
-                Yes, Terminate
-              </button>
-
-              <button
-                className="px-4 py-1 bg-gray-300 rounded hover:bg-gray-400"
-                onClick={() => setShowPopup(false)}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </TopPopupPortal>
-      )} */}
+     
       <>
 
         {showPopup &&
