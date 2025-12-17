@@ -746,7 +746,7 @@ export const submitTask = async (req, res) => {
         return (
           `• \`${d.name}\`\n` +
           `   \`Feasible: ${feasible}\`\n` +
-          `   \`Proxy: ${proxyLine}\``
+          `   \`Proxy: ${proxyLine}\``+
           `\n   \`Remark: ${remark}\``
         );
       })
