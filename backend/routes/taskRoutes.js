@@ -36,7 +36,7 @@ router.post("/tasks", authorize(['Admin', 'Sales', 'Manager','SuperAdmin']), upl
 ]), createTask);
 
 router.get("/tasks/list",authorize(['Admin', 'Sales', 'Manager','SuperAdmin']), getTaskList);
-router.get("/tasks/assigned-to",authorize(['Admin', 'Sales', 'Manager','SuperAdmin']), getAssignedToDomainStatus);
+router.get("/tasks/assigned-to",authorize(['Admin', 'Sales', 'Manager','SuperAdmin','TL']), getAssignedToDomainStatus);
 
 
 router.get("/tasks/:id/reopen-data",

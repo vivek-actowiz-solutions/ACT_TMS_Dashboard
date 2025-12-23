@@ -85,22 +85,22 @@ const Dashboard: React.FC = () => {
   const [taskCreatorsLoading, setTaskCreatorsLoading] = useState<boolean>(false);
 
   const [assignedStats, setAssignedStats] = useState<AssignedDomainStats[]>([]);
-const [assignedLoading, setAssignedLoading] = useState<boolean>(false);
+  const [assignedLoading, setAssignedLoading] = useState<boolean>(false);
 
-const [assignedSortBy, setAssignedSortBy] =
-  useState<keyof AssignedDomainStats | "none">("none");
+  const [assignedSortBy, setAssignedSortBy] =
+    useState<keyof AssignedDomainStats | "none">("none");
 
-const [assignedSortOrder, setAssignedSortOrder] =
-  useState<"asc" | "desc">("desc");
+  const [assignedSortOrder, setAssignedSortOrder] =
+    useState<"asc" | "desc">("desc");
 
-const sortedAssignedStats = [...assignedStats].sort((a, b) => {
-  if (assignedSortBy === "none") return 0;
+  const sortedAssignedStats = [...assignedStats].sort((a, b) => {
+    if (assignedSortBy === "none") return 0;
 
-  const aVal = a[assignedSortBy] ?? 0;
-  const bVal = b[assignedSortBy] ?? 0;
+    const aVal = a[assignedSortBy] ?? 0;
+    const bVal = b[assignedSortBy] ?? 0;
 
-  return assignedSortOrder === "asc" ? aVal - bVal : bVal - aVal;
-});
+    return assignedSortOrder === "asc" ? aVal - bVal : bVal - aVal;
+  });
 
 
 
@@ -202,24 +202,24 @@ const sortedAssignedStats = [...assignedStats].sort((a, b) => {
   };
 
   const fetchAssignedDomainStats = async (token: string) => {
-  setAssignedLoading(true);
-  try {
-    const res = await fetch(`${apiUrl}/tasks/assigned-to`, {
-      method: "GET",
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-      credentials: "include",
-    });
+    setAssignedLoading(true);
+    try {
+      const res = await fetch(`${apiUrl}/tasks/assigned-to`, {
+        method: "GET",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        credentials: "include",
+      });
 
-    if (!res.ok) throw new Error("Failed to fetch assigned domain stats");
+      if (!res.ok) throw new Error("Failed to fetch assigned domain stats");
 
-    const data = await res.json();
-    setAssignedStats(data);
-  } catch (err) {
-    console.error("Assigned domain stats error:", err);
-  } finally {
-    setAssignedLoading(false);
-  }
-};
+      const data = await res.json();
+      setAssignedStats(data);
+    } catch (err) {
+      console.error("Assigned domain stats error:", err);
+    } finally {
+      setAssignedLoading(false);
+    }
+  };
 
 
   useEffect(() => {
@@ -394,124 +394,124 @@ const sortedAssignedStats = [...assignedStats].sort((a, b) => {
       )}
 
       {/* Assigned To – Domain Status Summary */}
-{(userRole === "Admin" ||
-  userRole === "Manager" ||
-  userRole === "TL" ||
-  userRole === "SuperAdmin") && (
-  <div className="overflow-x-auto bg-gray-100 rounded-lg shadow p-4 mt-6">
-    <h2 className="text-xl font-semibold mb-4">
-      TL Summary
-    </h2>
+      {(userRole === "Admin" ||
+        userRole === "Manager" ||
+        userRole === "TL" ||
+        userRole === "SuperAdmin") && (
+          <div className="overflow-x-auto bg-gray-100 rounded-lg shadow p-4 mt-6">
+            <h2 className="text-xl font-semibold mb-4">
+              TL Summary
+            </h2>
 
-    {assignedLoading ? (
-      <div className="flex justify-center items-center py-10">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-4 border-blue-600"></div>
-      </div>
-    ) : sortedAssignedStats.length > 0 ? (
-      <table className="w-full border-collapse bg-white text-sm">
-        <thead className="bg-gray-300">
-          <tr>
-            <th className="border px-4 py-2">No.</th>
+            {assignedLoading ? (
+              <div className="flex justify-center items-center py-10">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-4 border-blue-600"></div>
+              </div>
+            ) : sortedAssignedStats.length > 0 ? (
+              <table className="w-full border-collapse bg-white text-sm">
+                <thead className="bg-gray-300">
+                  <tr>
+                    <th className="border px-4 py-2">No.</th>
 
-            {[
-               
-              { key: "name", label: "Assigned To" },
-              { key: "total", label: "Total" },
-              { key: "pending", label: "Pending" },
-              { key: "in-progress", label: "In Progress" },
-              { key: "in-R&D", label: "In R&D" },
-              { key: "submitted", label: "Submitted" },
-              { key: "delayed", label: "Delayed" },
-              { key: "Reopened", label: "Reopened" },
-              { key: "Terminated", label: "Terminated" },
-              
-            ].map((col) => (
-              <th
-                key={col.key}
-                className="border px-4 py-2 cursor-pointer whitespace-nowrap"
-                onClick={() => {
-                  if (assignedSortBy === col.key) {
-                    setAssignedSortOrder(
-                      assignedSortOrder === "asc" ? "desc" : "asc"
-                    );
-                  } else {
-                    setAssignedSortBy(col.key as any);
-                    setAssignedSortOrder("desc");
-                  }
-                }}
-              >
-                {col.label}
-                {assignedSortBy === col.key
-                  ? assignedSortOrder === "asc"
-                    ? " ↑"
-                    : " ↓"
-                  : ""}
-              </th>
-            ))}
-          </tr>
-        </thead>
+                    {[
 
-        <tbody>
-          {sortedAssignedStats.map((row, idx) => (
-            <tr key={idx} className="hover:bg-gray-100 text-center">
-              <td className="border px-4 py-2">{idx + 1}</td>
-              
-              <td className="border px-4 py-2 font-medium text-left">
-                {row.name}
-              </td>
-              <td className="border px-4 py-2 font-semibold">
-                {row.total}
-              </td>
-              <td className="border px-4 py-2">{row.pending}</td>
-              <td className="border px-4 py-2">{row["in-progress"]}</td>
-              <td className="border px-4 py-2">{row["in-R&D"]}</td>
-              <td className="border px-4 py-2">{row.submitted}</td>
-              <td className="border px-4 py-2">{row.delayed}</td>
-              <td className="border px-4 py-2">{row.Reopened}</td>
-              <td className="border px-4 py-2">{row.Terminated}</td>
-              
-            </tr>
-          ))}
+                      { key: "name", label: "Assigned To" },
+                      { key: "total", label: "Total" },
+                      { key: "pending", label: "Pending" },
+                      { key: "in-progress", label: "In Progress" },
+                      { key: "in-R&D", label: "In R&D" },
+                      { key: "submitted", label: "Submitted" },
+                      { key: "delayed", label: "Delayed" },
+                      { key: "Reopened", label: "Reopened" },
+                      { key: "Terminated", label: "Terminated" },
 
-          {/* ⭐ Total Row */}
-          <tr className="bg-gray-200 font-bold text-center">
-            <td className="border px-4 py-2"></td>
-            <td className="border px-4 py-2">Total</td>
-            <td className="border px-4 py-2">
-              {assignedStats.reduce((s, r) => s + r.total, 0)}
-            </td>
-            <td className="border px-4 py-2">
-              {assignedStats.reduce((s, r) => s + r.pending, 0)}
-            </td>
-            <td className="border px-4 py-2">
-              {assignedStats.reduce((s, r) => s + r["in-progress"], 0)}
-            </td>
-            <td className="border px-4 py-2">
-              {assignedStats.reduce((s, r) => s + r["in-R&D"], 0)}
-            </td>
-            <td className="border px-4 py-2">
-              {assignedStats.reduce((s, r) => s + r.submitted, 0)}
-            </td>
-            <td className="border px-4 py-2">
-              {assignedStats.reduce((s, r) => s + r.delayed, 0)}
-            </td>
-            <td className="border px-4 py-2">
-              {assignedStats.reduce((s, r) => s + r.Reopened, 0)}
-            </td>
-            <td className="border px-4 py-2">
-              {assignedStats.reduce((s, r) => s + r.Terminated, 0)}
-            </td>
-            
-          </tr>
-        </tbody>
-      </table>
-    ) : (
-      <p className="text-center text-gray-600 py-6">
-        No assigned domain data found
-      </p>
-    )}
-  </div>
-)}
+                    ].map((col) => (
+                      <th
+                        key={col.key}
+                        className="border px-4 py-2 cursor-pointer whitespace-nowrap"
+                        onClick={() => {
+                          if (assignedSortBy === col.key) {
+                            setAssignedSortOrder(
+                              assignedSortOrder === "asc" ? "desc" : "asc"
+                            );
+                          } else {
+                            setAssignedSortBy(col.key as any);
+                            setAssignedSortOrder("desc");
+                          }
+                        }}
+                      >
+                        {col.label}
+                        {assignedSortBy === col.key
+                          ? assignedSortOrder === "asc"
+                            ? " ↑"
+                            : " ↓"
+                          : ""}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {sortedAssignedStats.map((row, idx) => (
+                    <tr key={idx} className="hover:bg-gray-100 text-center">
+                      <td className="border px-4 py-2">{idx + 1}</td>
+
+                      <td className="border px-4 py-2 font-medium text-left">
+                        {row.name}
+                      </td>
+                      <td className="border px-4 py-2 font-semibold">
+                        {row.total}
+                      </td>
+                      <td className="border px-4 py-2">{row.pending}</td>
+                      <td className="border px-4 py-2">{row["in-progress"]}</td>
+                      <td className="border px-4 py-2">{row["in-R&D"]}</td>
+                      <td className="border px-4 py-2">{row.submitted}</td>
+                      <td className="border px-4 py-2">{row.delayed}</td>
+                      <td className="border px-4 py-2">{row.Reopened}</td>
+                      <td className="border px-4 py-2">{row.Terminated}</td>
+
+                    </tr>
+                  ))}
+
+                  {/* ⭐ Total Row */}
+                  <tr className="bg-gray-200 font-bold text-center">
+                    <td className="border px-4 py-2"></td>
+                    <td className="border px-4 py-2">Total</td>
+                    <td className="border px-4 py-2">
+                      {assignedStats.reduce((s, r) => s + r.total, 0)}
+                    </td>
+                    <td className="border px-4 py-2">
+                      {assignedStats.reduce((s, r) => s + r.pending, 0)}
+                    </td>
+                    <td className="border px-4 py-2">
+                      {assignedStats.reduce((s, r) => s + r["in-progress"], 0)}
+                    </td>
+                    <td className="border px-4 py-2">
+                      {assignedStats.reduce((s, r) => s + r["in-R&D"], 0)}
+                    </td>
+                    <td className="border px-4 py-2">
+                      {assignedStats.reduce((s, r) => s + r.submitted, 0)}
+                    </td>
+                    <td className="border px-4 py-2">
+                      {assignedStats.reduce((s, r) => s + r.delayed, 0)}
+                    </td>
+                    <td className="border px-4 py-2">
+                      {assignedStats.reduce((s, r) => s + r.Reopened, 0)}
+                    </td>
+                    <td className="border px-4 py-2">
+                      {assignedStats.reduce((s, r) => s + r.Terminated, 0)}
+                    </td>
+
+                  </tr>
+                </tbody>
+              </table>
+            ) : (
+              <p className="text-center text-gray-600 py-6">
+                No assigned domain data found
+              </p>
+            )}
+          </div>
+        )}
 
 
       {/* Task Created Summary (Sales Only) */}
