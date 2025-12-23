@@ -10,6 +10,9 @@ import { GrCompliance } from "react-icons/gr"; // View, Edit, Submit
 
 import Tooltip from "@mui/material/Tooltip";
 
+
+
+
 import TopPopupPortal from "../TopPopupPortal";
 import { useRef } from "react";
 import { RiIndeterminateCircleFill } from "react-icons/ri";
@@ -1044,34 +1047,41 @@ const TaskPage: React.FC = () => {
 
                 // ✅ Developers column
                 {
-                  field: "developers",
-                  headerName: "Developers",
-                  width: 130,
-                  sortable: false,
-                  renderCell: (params) => {
-                    const devs = params.row.developers || [];
-                   if (devs.length === 0) {
-    return <span className="text-center w-full">-</span>;
-  }
-                    return (
-                      <div
-                        className={`flex flex-wrap w-full ${devs.length === 1
-                          ? "justify-center items-center text-center pt-4"   // center for 1 name
-                          : "justify-start"                             // normal for multiple
-                          }`}
-                      >
-                        {devs.map((dev, index) => (
-                          <span
-                            key={index}
-                            className="px-1 py-[2px] text-xs font-medium"
-                          >
-                            {dev}
-                          </span>
-                        ))}
-                      </div>
-                    );
-                  },
-                }
+  field: "developers",
+  headerName: "Developers",
+  width: 130,
+  sortable: false,
+  renderCell: (params) => {
+    const devs: string[] = params.row.developers || [];
+
+    if (devs.length === 0) {
+      return <span className="text-center w-full">-</span>;
+    }
+
+    if (devs.length === 1) {
+      return (
+        <div className="flex justify-center items-center w-full pt-4">
+          <span className="px-1 text-xs font-medium">
+            {devs[0]}
+          </span>
+        </div>
+      );
+    }
+
+    // ✅ More than one developer
+    return (
+      <div className="flex justify-center items-center w-full pt-4">
+       <Tooltip title={devs.join(", ")}>
+  <span className="px-1  text-xs font-medium cursor-pointer">
+    {devs[0]} ...
+  </span>
+</Tooltip>
+
+      </div>
+    );
+  },
+}
+
                 ,
 
                 // ✅ Status column

@@ -3,6 +3,8 @@ import { useParams, useNavigate, useLocation } from "react-router";
 import { FileText, Users, Calendar, Folder, ArrowLeft, CheckCircle2, XCircle, Info, Code, Server, Lock, Globe, Download, StickyNote, Link2, MessageSquare, Delete } from "lucide-react";
 import PageBreadcrumb from "../common/PageBreadCrumb";
 import { useAuth } from "../../hooks/useAuth";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 interface Submission {
   files?: string[];
@@ -177,9 +179,19 @@ const TaskDetail: React.FC = () => {
   };
 
 
+  const proxyRows = submission?.proxyDetailes
+    ? Object.entries(submission.proxyDetailes)
+      .filter(([key, value]: any) => !isNaN(Number(key)) && value?.proxy)
+      .map(([_, value]: any) => value)
+    : [];
+  const hasProxyDetails = proxyRows.length > 0;
 
 
-  // const isFeasible = submission.feasible === true || submission.feasible === "true";
+
+
+
+
+  
 
 
   return (
@@ -190,6 +202,23 @@ const TaskDetail: React.FC = () => {
           { title: "Tasks", path: "/TMS-R&D/tasks" },
           { title: task.projectCode },
         ]}
+      />
+      <ToastContainer
+        position="top-center"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={true}
+        closeOnClick
+        pauseOnHover
+        draggable
+        theme="colored"
+        style={{
+          position: "fixed",
+          top: "10px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          zIndex: 99999
+        }}
       />
 
       <div className="min-h-screen bg-gradient-to-br  py-10 px-4">
@@ -557,11 +586,14 @@ const TaskDetail: React.FC = () => {
                             : submission.country || "-"
                         }
                       />
-                      {submission.feasible == "true" && (
-                        <>
-                          <DetailRow label="Approx Volume" value={submission.approxVolume || "-"} />
-                        </>
+                      {submission.feasible === "true" && !hasProxyDetails && (
+                        <DetailRow
+                          label="Approx Volume"
+                          value={submission.approxVolume || "-"}
+                        />
                       )}
+
+
                       {submission.method === "third-party-api" && (
                         <DetailRow label="API Name" value={submission.apiName || "-"} />
                       )}
@@ -572,11 +604,14 @@ const TaskDetail: React.FC = () => {
                   {submission.feasible == "true" && (
                     <>
                       <SubmissionCard
-                        title="Authentication & Security"
+                        title="Authentication"
                         icon={<Lock size={20} className="text-amber-600" />}
                       >
                         <div className="space-y-4">
                           {/* User Login */}
+                          {/* {(submission.proxyDetailes?.length > 0 ) && (
+                            
+                          )} */}
                           <DetailRow
                             label="User Login Required"
                             value={
@@ -602,23 +637,25 @@ const TaskDetail: React.FC = () => {
                           )}
 
                           {/* Proxy Section */}
-                          <DetailRow
-                            label="Proxy Required"
-                            value={
-                              <span
-                                className={`px-2 py-1 rounded text-xs font-semibold ${submission.proxyUsed === "true" || submission.proxyUsed === true
-                                  ? "bg-sky-100 text-sky-700"
-                                  : "bg-gray-100 text-gray-600"
-                                  }`}
-                              >
-                                {submission.proxyUsed === "true" || submission.proxyUsed === true
-                                  ? "Yes"
-                                  : "No"}
-                              </span>
-                            }
-                          />
+                          {!hasProxyDetails && (
+                            <DetailRow
+                              label="Proxy Required"
+                              value={
+                                <span
+                                  className={`px-2 py-1 rounded text-xs font-semibold ${submission.proxyUsed === "true" || submission.proxyUsed === true
+                                    ? "bg-sky-100 text-sky-700"
+                                    : "bg-gray-100 text-gray-600"
+                                    }`}
+                                >
+                                  {submission.proxyUsed === "true" || submission.proxyUsed === true
+                                    ? "Yes"
+                                    : "No"}
+                                </span>
+                              }
+                            />
 
-                          {/* Only show proxy details if proxyUsed is true */}
+                          )}
+
                           {(submission.proxyUsed === "true" || submission.proxyUsed === true) && (
                             <>
                               <DetailRow label="Proxy Name" value={submission.proxyName || "-"} />
@@ -632,33 +669,98 @@ const TaskDetail: React.FC = () => {
                               />
                             </>
                           )}
+
+
                         </div>
                       </SubmissionCard>
+
+
+
                     </>
                   )}
 
 
                 </div>
+                <div>
+                  {submission.feasible == "true" && proxyRows.length > 0 && (
+                    <SubmissionCard
+                      title="Request & Proxy Details"
+                      icon={<Server size={20} className="text-indigo-600" />}
+                    >
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full border border-gray-200 rounded-lg overflow-hidden">
+                          <thead className="bg-slate-100">
+                            <tr className="text-left text-sm font-semibold text-gray-700">
+                              <th className="px-4 py-3 border">#</th>
+                              <th className="px-4 py-3 border">Request Endpoint</th>
+                              <th className="px-4 py-3 border">Security</th>
+                              
+                              <th className="px-4 py-3 border">Tested Volume</th>
+                              <th className="px-4 py-3 border">Proxy</th>
+                              <th className="px-4 py-3 border text-right">Credit</th>
+                            </tr>
+                          </thead>
+
+                          <tbody>
+                            {proxyRows.map((row: any, index: number) => (
+                              <tr
+                                key={index}
+                                className="text-sm text-gray-700 hover:bg-gray-50"
+                              >
+                                <td className="px-4 py-2 border font-medium">
+                                  {index + 1}
+                                </td>
+                                <td className="px-4 py-2 border break-words whitespace-normal max-w-[250px]">
+                                  {row.endpoint || "-"}
+                                </td>
+                                <td className="px-4 py-2 border">{row.security || "-"}</td>
+                                
+
+                                
+
+
+                                <td className="px-4 py-2 border">{row.volume || "-"}</td>
+                                <td className="px-4 py-2 border">{row.proxy || "-"}</td>
+                                <td className="px-4 py-2 border text-right font-semibold">
+                                  {row.credit ?? 0}
+                                </td>
+
+                              </tr>
+                            ))}
+                          </tbody>
+
+                          {/* Footer Totals */}
+                          <tfoot className="bg-slate-50">
+                            <tr>
+                              <td colSpan={6} className="px-4 py-3 border">
+                                <div className="flex justify-center items-center gap-8 text-sm font-semibold text-gray-800">
+                                  <span>
+                                    Total Requests:
+                                    <span className="ml-1 text-indigo-600">
+                                      {submission.proxyDetailes?.totalRequest ?? 0}
+                                    </span>
+                                  </span>
+
+                                  <span>
+                                    Total Credit:
+                                    <span className="ml-1 text-emerald-600">
+                                      {submission.proxyDetailes?.totalCredit ?? 0}
+                                    </span>
+                                  </span>
+                                </div>
+                              </td>
+                            </tr>
+                          </tfoot>
+
+                        </table>
+                      </div>
+                    </SubmissionCard>
+                  )}
+                </div>
+
 
                 {/* Technical Details */}
-                {submission.githubLink && (
-                  <div className="bg-slate-50 rounded-lg border border-slate-200 p-5">
-                    <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                      <Code size={18} className="text-slate-600" />
-                      GitHub Repository
-                    </h3>
-                    <a
-                      href={submission.githubLink}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-2 text-sm font-medium text-sky-700 hover:text-sky-800 underline"
-                    >
 
-
-                      view Repository
-                    </a>
-                  </div>
-                )}
 
                 {/* Remarks */}
                 {submission.remark && (

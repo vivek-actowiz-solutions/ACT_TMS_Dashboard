@@ -80,6 +80,8 @@ export const computeTaskOverallStatus = (task) => {
   return task.status;
 };
 
+
+
 const safeParseArray = (value) => {
   if (!value) return [];
 
@@ -117,12 +119,50 @@ const safeParseArray = (value) => {
   return cleaned;
 };
 
+const calculateTotals = (proxyDetailes = {}) => {
+  const values = Object.entries(proxyDetailes)
+    .filter(([k]) => !isNaN(k))
+    .map(([, v]) => v);
+
+  const totalRequest = values.length;
+
+  const totalCredit = values.reduce((sum, obj) => {
+    const credit = Number(obj?.credit);
+    return sum + (isNaN(credit) ? 0 : credit);
+  }, 0);
+
+  return { totalRequest, totalCredit };
+};
+
+const buildProxyDetails = (body, existing = {}) => {
+  const index = Object.keys(existing).filter(k => !isNaN(k)).length;
+  const getScalar = (v) => (Array.isArray(v) ? v[0] : v);
+  existing[index] = {
+    security: getScalar(body.security),
+    endpoint: getScalar(body.endpoint),
+    volume: getScalar(body.volume),
+    proxy: getScalar(body.proxy),
+    credit:
+      getScalar(body.proxy) === "N/A"
+        ? 0
+        : Number(getScalar(body.credit)) || 0,
+  };
+
+  const { totalRequest, totalCredit } = calculateTotals(existing);
+
+  existing.totalRequest = totalRequest;
+  existing.totalCredit = totalCredit;
+
+  return existing;
+};
+
+
 /* ------------------ Controllers ------------------ */
 
 // CREATE TASK
 export const createTask = async (req, res) => {
 
-  
+
   try {
     const raw = req.body || {};
     const developers = encodeDevelopers(raw.developers);
@@ -389,11 +429,14 @@ export const updateTask = async (req, res) => {
 
         domain.developers = uniqueDevs;
         domain.status =
-          domain.status === "submitted"
-            ? "submitted"
-            : uniqueDevs.length > 0
-              ? "in-progress"
-              : "pending";
+          domain.status === "in-R&D"
+            ? "in-R&D"
+            : domain.status === "submitted"
+              ? "submitted"
+              : uniqueDevs.length > 0
+                ? "in-progress"
+                : "pending";
+
       }
 
       task.markModified("domains");
@@ -484,9 +527,16 @@ export const updateTask = async (req, res) => {
 
       // ✅ Only notify if NEW devs assigned
 
+      const currentUser = await User.findById(req.user.id)
+        .select("name email slackId")
+        .lean();
+
       if (req.newAssignedDevs && req.newAssignedDevs.length > 0) {
         const assignedBy = await User.findById(populatedTask.assignedTo).lean();
-        const slackTag_AssignedBy = assignedBy?.slackId ? `<@${assignedBy.slackId}>` : assignedBy?.email;
+        const slackTag_AssignedBy = currentUser ? `<@${currentUser.slackId}>` : currentUser?.email;
+
+
+
 
         // ✅ Get NEW developer users
         const newDevs = await User.find({ _id: { $in: req.newAssignedDevs } }).lean();
@@ -507,6 +557,8 @@ export const updateTask = async (req, res) => {
      ${space}:link: *View Task:* <${taskUrl}|Open Dashboard>
 CC: <@${process.env.SLACK_RND_MANAGER_ID}>,<@${process.env.SLACK_RND_TL_ID}>
 `;
+
+
         await sendSlackMessage(process.env.RD_DEVELOPER_CHANNEL_TEST, slackMessage);
       }
 
@@ -526,17 +578,28 @@ CC: <@${process.env.SLACK_RND_MANAGER_ID}>,<@${process.env.SLACK_RND_TL_ID}>
 
 // SUBMIT TASK
 export const submitTask = async (req, res) => {
+
+
   try {
     const { id } = req.params;
 
-
     const body = req.body;   // ← DO NOT CLEAN FILE FORM DATA!
-
-    // console.log(req.body);
-    // console.log("this nkodsmnvpifs", req.files)
     const task = await Task.findById(id);
     if (!task) return res.status(404).json({ error: "Task not found" });
 
+    let parsedProxyDetails = {};
+
+    if (req.body.proxyDetails) {
+      try {
+        parsedProxyDetails =
+          typeof req.body.proxyDetails === "string"
+            ? JSON.parse(req.body.proxyDetails)
+            : req.body.proxyDetails;
+      } catch (err) {
+        console.error("Invalid proxyDetails JSON", err);
+        parsedProxyDetails = {};
+      }
+    }
 
 
     // Safely parse domains from body, ensuring it's an array
@@ -629,19 +692,16 @@ export const submitTask = async (req, res) => {
       // feasible: body.feasible === true || body.feasible === "true",
       country: getArray(body.country),
       feasibleFor: getScalar(body.feasibleFor),
-      approxVolume: getScalar(body.approxVolume),
+
       method: getScalar(body.method),
       userLogin: getScalar(body.userLogin),
       loginType: getScalar(body.loginType),
       complexity: getScalar(body.complexity),
-      //typeOfDelivery: getScalar(body.typeOfDelivery),
-      //typeOfPlatform: getScalar(body.typeOfPlatform),
+
       apiName: getScalar(body.apiName),
-      proxyUsed: getScalar(body.proxyUsed),
+
       feasible: getScalar(body.feasible),
-      proxyName: getScalar(body.proxyName),
-      perRequestCredit: Number(getScalar(body.perRequestCredit)),
-      totalRequest: Number(getScalar(body.totalRequest)),
+
       lastCheckedDate: getScalar(body.lastCheckedDate),
       githubLink: getScalar(body.githubLink),
       outputFiles: submissionOutputFiles,
@@ -649,6 +709,11 @@ export const submitTask = async (req, res) => {
       loginType: getScalar(body.loginType),
       credentials: getScalar(body.credentials),
       status: body.status ? String(body.status).toLowerCase() : "submitted",
+      proxyDetailes: {
+        ...parsedProxyDetails,
+        totalRequest: Number(req.body.totalRequest || 0),
+        totalCredit: Number(req.body.totalCredit || 0),
+      },
       remark: getScalar(body.remark || "")
     };
 
@@ -683,7 +748,29 @@ export const submitTask = async (req, res) => {
         if (domainIndex !== -1) {
           task.domains[domainIndex].status = submissionData.status;
           task.domains[domainIndex].completeDate = new Date();
-          task.domains[domainIndex].submission = submissionData; // Save submission details on the domain object
+          const domain = task.domains[domainIndex];
+
+          // calculate totals safely
+          const values = Object.entries(parsedProxyDetails)
+            .filter(([k]) => !isNaN(k))
+            .map(([, v]) => v);
+
+          const totalRequest = values.length;
+          const totalCredit = values.reduce(
+            (sum, v) => sum + Number(v?.credit || 0),
+            0
+          );
+
+          domain.submission = {
+            ...submissionData,
+            proxyDetailes: {
+              ...parsedProxyDetails,
+              totalRequest,
+              totalCredit
+            }
+          };
+
+          task.markModified("domains");
         }
       });
 
@@ -738,12 +825,12 @@ export const submitTask = async (req, res) => {
           ? `Yes, Credit: ${sub.perRequestCredit || 0}, Name: ${sub.proxyName || "-"}, Request: ${sub.totalRequest || 0}`
           : "No";
 
-          const remark = sub.remark || "";
+        const remark = sub.remark || "";
 
         return (
           `• \`${d.name}\`\n` +
           `   \`Feasible: ${feasible}\`\n` +
-          `   \`Proxy: ${proxyLine}\``+
+          `   \`Proxy: ${proxyLine}\`` +
           `\n   \`Remark: ${remark}\``
         );
       })
@@ -765,7 +852,7 @@ export const submitTask = async (req, res) => {
       }
       if (!submittedDevId) submittedDevId = task.assignedTo;
 
-      const dev = await User.findById(submittedDevId).lean();
+      const dev = await User.findById(req.user.id).lean();
 
       // ✅ Normalize submitted domain names
       const submittedDomainNames = [
@@ -786,29 +873,9 @@ export const submitTask = async (req, res) => {
       // ✅ Remove duplicates
       submittedDevelopers = [...new Set(submittedDevelopers)];
 
-      // ✅ Convert dev IDs → Slack IDs
-      const developerUsers = await User.find({ _id: { $in: submittedDevelopers } }).lean();
-      const submittedDevMentions = developerUsers
-        .map(u => u.slackId ? `<@${u.slackId}>` : '')
-        .filter(Boolean)
-        .join(", ") || "N/A";
-
-      const submittedDomainsText = submittedDomainNames.join(", ");
-
-      const proxyUsed = submissionData.proxyUsed === true || submissionData.proxyUsed === "true";
-      const feasible = submissionData.feasible === true || submissionData.feasible === "true";
-
-
-      // const feasibleText = feasible ? "Yes" : "No";
-
-      // const proxyText = proxyUsed
-      //   ? `:satellite: Proxy: Yes , Proxy Credit: ${submissionData.perRequestCredit}, Proxy Name: ${submissionData.proxyName}`
-      //   : `:satellite: Proxy: No`;
 
 
       const taskUrl = `${process.env.FRONTEND_URL}/tasks`;
-
-
 
 
       const slackMsg =
@@ -825,8 +892,6 @@ CC: <@${process.env.SLACK_RND_MANAGER_ID}>,<@${process.env.SLACK_SALES_MANAGER_I
 `;
 
 
-      const taskAssigner = await User.findById(task.assignedBy).lean();
-
       const slackMsg2 =
         `:white_check_mark: *Task Submitted Successfully*
      ${space}:briefcase: *Task:*  ${task.title || task.projectCode}
@@ -836,9 +901,6 @@ CC: <@${process.env.SLACK_RND_MANAGER_ID}>,<@${process.env.SLACK_SALES_MANAGER_I
 CC: <@${process.env.SLACK_RND_MANAGER_ID}>,<@${process.env.SLACK_RND_TL_ID}>
 `
 
-
-
-      // ✅ Send to 2 channels
       try {
         if (allDomainsSubmitted) {
           await sendSlackMessage(process.env.SALES_RD_CHANNEL_TEST, slackMsg);
@@ -860,7 +922,7 @@ CC: <@${process.env.SLACK_RND_MANAGER_ID}>,<@${process.env.SLACK_RND_TL_ID}>
     // Assuming these helper functions exist to decode the fields before sending
     obj.developers = decodeDevelopers(obj.developers || {});
     obj.submissions = decodeSubmissions(obj.submissions || {});
-    res.json(obj);
+    res.status(200).json({ message: "Task submitted successfully" });
 
   } catch (err) {
 
@@ -873,6 +935,9 @@ CC: <@${process.env.SLACK_RND_MANAGER_ID}>,<@${process.env.SLACK_RND_TL_ID}>
 
 // ✅ Edit domain submission
 export const editDomainSubmission = async (req, res) => {
+  console.log("Submit Details", req.body);
+  console.log("red.files", req.files)
+  res.status(200).json({ message: "Task submitted successfully" });
   try {
     const { id } = req.params;
 
@@ -881,8 +946,42 @@ export const editDomainSubmission = async (req, res) => {
       domainOutputUrls,
       existingOutputFiles,
       remark,
+      proxyDetails,
       ...submissionData
     } = req.body;
+
+    let parsedProxyDetailes = {};
+
+    if (proxyDetails) {
+      try {
+        parsedProxyDetailes =
+          typeof proxyDetails === "string"
+            ? JSON.parse(proxyDetails)
+            : proxyDetails;
+      } catch (err) {
+        return res.status(400).json({ message: "Invalid proxyDetails format" });
+      }
+    }
+
+
+    const proxyEntries = Object.entries(parsedProxyDetailes || {})
+      .filter(([k]) => !isNaN(Number(k)));
+
+    const totalRequest = proxyEntries.length;
+
+    const totalCredit = proxyEntries.reduce(
+      (sum, [, p]) => sum + Number(p?.credit || 0),
+      0
+    );
+
+    for (const [i, p] of proxyEntries) {
+      if (!p.security || !p.endpoint || !p.volume || !p.proxy) {
+        return res.status(400).json({
+          message: `Proxy row ${Number(i) + 1} has missing fields`,
+        });
+      }
+    }
+
 
     if (!domainName) {
       return res.status(400).json({ message: "domainName is required" });
@@ -917,9 +1016,17 @@ export const editDomainSubmission = async (req, res) => {
       outputUrls: newUrls,
       outputFiles: [...keptFiles, ...newFiles],
 
+      proxyDetailes: {
+        ...parsedProxyDetailes,
+        totalRequest,
+        totalCredit,
+      },
+
       // ❌ REMOVE in-review
       status: "submitted", // or "in-progress"
     };
+
+    task.markModified("domains");
 
     // 6. Update domain status (remove in-review)
     if (domain.status !== "completed") {
@@ -942,18 +1049,13 @@ export const editDomainSubmission = async (req, res) => {
     const userInfo = await User.findById(req.user.id).select("slackId name");
     const editedBySlack = userInfo?.slackId ? `<@${userInfo.slackId}>` : userInfo?.name;
 
-    //console.log("editedBySlack", editedBySlack);
-
     const taskUrl = `${process.env.FRONTEND_URL}/TMS-R&D/tasks`;
 
-   const assignedByUser = await User.findById(task.assignedBy).lean();
+    const assignedByUser = await User.findById(task.assignedBy).lean();
 
-const assignedBySlack = assignedByUser?.slackId
-  ? `<@${assignedByUser.slackId}>`
-  : "Unknown User";
-
-     
-
+    const assignedBySlack = assignedByUser?.slackId
+      ? `<@${assignedByUser.slackId}>`
+      : "Unknown User";
     const slackMessage = `
       :pencil: *Domain Submission Edited* ${assignedBySlack}
       ${space}:briefcase: *Task:* ${task.title}
@@ -977,11 +1079,11 @@ const assignedBySlack = assignedByUser?.slackId
     `;
 
     await sendSlackMessage(process.env.RD_DEVELOPER_CHANNEL_TEST, slackMessage2);
-    res.json({
+
+    res.status(200).json({
       message: "Domain submission updated successfully",
       task,
     });
-
   } catch (error) {
     console.error("Error editing submission:", error);
     res.status(500).json({
@@ -1211,7 +1313,7 @@ export const getTaskList = async (req, res) => {
       .populate("assignedBy", "name role")
       .sort({ createdAt: -1 });
 
-const submittedTasks = tasks.filter(task => {
+    const submittedTasks = tasks.filter(task => {
       if (!task.domains || task.domains.length === 0) return false;
       return task.domains.every((d) => d.status === "submitted");
     });
@@ -1707,10 +1809,12 @@ export const updateTaskDomainStatus = async (req, res) => {
       }
       if (!submittedDevId) submittedDevId = task.assignedTo;
 
-      const dev = await User.findById(submittedDevId).lean();
+      const dev = await User.findById(req.user.id).lean();
 
       const space = "   ";
       const taskUrl = `${process.env.FRONTEND_URL}/tasks`;
+
+
 
       const DomainName = `\`${domain.name}\``
 
@@ -1720,7 +1824,7 @@ export const updateTaskDomainStatus = async (req, res) => {
 ${space}:briefcase: *Task:*  ${task.title || task.projectCode}
 ${space}:jigsaw: *Domain:* ${DomainName}
 ${space}:bust_in_silhouette: *Sales Person:* <@${assigner?.slackId || ''}> (Sales Team)
-${space}:female-technologist: *Submitted By:* <@${dev?.slackId || ''}> (Developer)
+${space}:female-technologist: *Submitted By:* <@${dev?.slackId || ''}> (R&D)
 ${space}:memo: *Reason:* ${reason}
 ${space}:bar_chart: *View Task:*  <${taskUrl}|Open Dashboard>
 CC: <@${process.env.SLACK_RND_MANAGER_ID}>,<@${process.env.SLACK_SALES_MANAGER_ID}>
@@ -1767,372 +1871,6 @@ export const getReopenTaskData = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
-// export const reOpenTask = async (req, res) => {
-//   try {
-//     const { id } = req.params;
-
-//     // const task = await Task.findById(id).select(
-//     //   "title projectCode description typeOfDelivery mandatoryFields optionalFields frequency oputputFormat domains inputUrls clientSampleSchemaUrls sowFiles sampleFileRequired requiredValumeOfSampleFile assignedBy assignedTo reopenCount status taskAssignedDate targetDate completeDate"
-//     // ).populate("assignedBy", "name slackId")
-//     //   .populate("assignedTo", "name slackId")
-//     //   .populate("domains", "name");
-
-//     const task = await Task.findById(id).select(
-//       "title projectCode description typeOfDelivery mandatoryFields optionalFields frequency oputputFormat domains inputUrls clientSampleSchemaUrls sowFiles sampleFileRequired requiredValumeOfSampleFile assignedBy assignedTo reopenCount taskAssignedDate targetDate completeDate"
-//     )
-//       .populate("assignedBy", "name slackId")
-//       .populate("assignedTo", "name slackId");
-
-
-//     if (!task) return res.status(404).json({ message: "Task not found" });
-
-//     // 🚫 Block if already reopened once
-//     if (task.reopenCount >= 1) {
-//       return res.status(400).json({
-//         message: "Task can be reopened only once"
-//       });
-//     }
-
-
-//     // taskAssignedDate → reset to now
-//     const assignedDate = new Date();
-//     task.taskAssignedDate = assignedDate;
-
-//     // completeDate → reset
-//     task.completeDate = null;
-
-//     // targetDate → +2 days from assigned date
-//     const targetDate = new Date(assignedDate);
-//     targetDate.setDate(assignedDate.getDate() + 2);
-
-//     task.targetDate = targetDate;
-
-
-
-//     const oldTaskData = JSON.parse(JSON.stringify(task.toObject()));
-
-//     // FIX OUTPUT FORMAT mismatch
-//     if (oldTaskData.oputputFormat) {
-//       oldTaskData.outputFormat = Array.isArray(oldTaskData.oputputFormat)
-//         ? oldTaskData.oputputFormat
-//         : oldTaskData.oputputFormat.split(",").map(v => v.trim());
-//     }
-
-//     // 3️⃣ FIX: domains missing on reopen
-//     if (oldTaskData.domains) {
-//       oldTaskData.domains = oldTaskData.domains.map(d => ({
-//         name: d.name || "-",
-//         typeOfPlatform: d.typeOfPlatform || "-",
-//         domainRemarks: d.domainRemarks || "-"
-//       }));
-//     } else {
-//       oldTaskData.domains = [];
-//     }
-
-//     // 4️⃣ FIX: input URLs
-//     oldTaskData.inputDescription = Array.isArray(oldTaskData.inputUrls)
-//       ? oldTaskData.inputUrls.join(", ")
-//       : oldTaskData.inputUrls || "-";
-
-//     // 5️⃣ FIX: Client Sample Schema URLs
-//     oldTaskData.clientSampleSchemaUrls = Array.isArray(oldTaskData.clientSampleSchemaUrls)
-//       ? oldTaskData.clientSampleSchemaUrls.join(", ")
-//       : oldTaskData.clientSampleSchemaUrls || "-";
-
-
-//     let updateData = req.body || {};
-
-//     // Parse JSON from FormData
-//     Object.keys(updateData).forEach((key) => {
-//       try {
-//         if (typeof updateData[key] === "string" && updateData[key].startsWith("{"))
-//           updateData[key] = JSON.parse(updateData[key]);
-
-//         if (typeof updateData[key] === "string" && updateData[key].startsWith("["))
-//           updateData[key] = JSON.parse(updateData[key]);
-//       } catch (_) { }
-//     });
-
-//     // Boolean + Numbers
-//     if (updateData.sampleFileRequired !== undefined) {
-//       updateData.sampleFileRequired =
-//         updateData.sampleFileRequired === "true" || updateData.sampleFileRequired === true;
-//     }
-
-//     if (updateData.requiredValumeOfSampleFile !== undefined) {
-//       updateData.requiredValumeOfSampleFile =
-//         updateData.requiredValumeOfSampleFile === "" ||
-//           updateData.requiredValumeOfSampleFile === null
-//           ? undefined
-//           : Number(updateData.requiredValumeOfSampleFile);
-//     }
-
-
-//     // 🔥 BUILD changedFields CORRECTLY (NEW VALUES ONLY)
-//     const changedFields = {};
-
-//     Object.keys(updateData).forEach((key) => {
-//       const skipFields = ["sampleFileRequired", "requiredValumeOfSampleFile"];
-//       if (skipFields.includes(key)) return;
-
-//       if (key === "domains") return;
-
-//       const oldValue = task[key];
-//       let newValue = updateData[key];
-
-//       // ❌ If frontend sent empty or undefined → ignore
-//       if (newValue === "" || newValue === null || newValue === undefined) return;
-
-//       // Normalize ObjectId → string
-//       const oldNormalized =
-//         typeof oldValue === "object" && oldValue !== null && oldValue.toString
-//           ? oldValue.toString()
-//           : oldValue;
-
-//       const newNormalized =
-//         typeof newValue === "object" && newValue !== null && newValue.toString
-//           ? newValue.toString()
-//           : newValue;
-
-//       // If array → convert to clean string
-//       if (Array.isArray(newNormalized)) {
-//         if (JSON.stringify(oldNormalized) !== JSON.stringify(newNormalized)) {
-//           changedFields[key] = newNormalized.join(", ").replace(/,\s*$/, "");
-//         }
-//         return;
-//       }
-
-//       // Final compare
-//       if (JSON.stringify(oldNormalized) !== JSON.stringify(newNormalized)) {
-//         changedFields[key] = newNormalized;
-//       }
-//     });
-
-//     let oldSowFiles = [];
-//     let newSowFile = null;
-
-//     // let oldDomainsForCompare = JSON.parse(JSON.stringify(task.domains || []));
-//     // // 1️⃣ Update domains
-//     // if (updateData.domains) {
-//     //   if (!Array.isArray(task.previousDomain)) task.previousDomain = [];
-
-//     //   task.previousDomain.push({
-//     //     oldValue: JSON.parse(JSON.stringify(task.domains)),
-//     //     changedAt: new Date(),
-//     //   });
-
-//     //   const parsedDomains = Array.isArray(updateData.domains)
-//     //     ? updateData.domains
-//     //     : JSON.parse(updateData.domains);
-
-//     //   task.domains = parsedDomains.map((d) => ({
-//     //     ...d,
-//     //     status: "Reopened",
-//     //   }));
-//     // }
-
-//     // ------------------------------------------
-//     // DOMAIN CHANGE DETECTION (CRITICAL LOGIC)
-//     // ------------------------------------------
-//     let oldDomainsForCompare = JSON.parse(JSON.stringify(task.domains || []));
-//     let newDomains = [];
-
-//     if (updateData.domains) {
-//       newDomains = Array.isArray(updateData.domains)
-//         ? updateData.domains
-//         : JSON.parse(updateData.domains);
-//     } else {
-//       newDomains = oldDomainsForCompare; // no changes sent
-//     }
-
-//     // Normalize for comparison (remove status field)
-//     const normalize = (arr) =>
-//       arr.map((d) => ({
-//         name: d.name,
-//         typeOfPlatform: d.typeOfPlatform,
-//         domainRemarks: d.domainRemarks || "",
-//       }));
-
-//     const hasDomainChanged =
-//       JSON.stringify(normalize(oldDomainsForCompare)) !== JSON.stringify(normalize(newDomains));
-
-//     console.log("DOMAIN CHANGED?", hasDomainChanged);
-
-//     // ------------------------------------------
-//     // UPDATE DOMAIN ONLY IF CHANGED
-//     // ------------------------------------------
-//     if (hasDomainChanged) {
-//       console.log("➡ Updating domain status to Reopened");
-
-//       if (!Array.isArray(task.previousDomain)) task.previousDomain = [];
-
-//       task.previousDomain.push({
-//         oldValue: JSON.parse(JSON.stringify(task.domains)),
-//         changedAt: new Date(),
-//       });
-
-//       task.domains = newDomains.map((d) => ({
-//         ...d,
-//         status: "Reopened",
-//       }));
-//       task.markModified("domains");
-
-//       // Add to changedFields so SOW is generated
-//       changedFields.domains = normalize(newDomains);
-
-//     } else {
-//       console.log("➡ Domains unchanged → NOT updating domain status");
-//     }
-
-
-//     let changedDomainList = [];
-
-
-//     if (updateData.domains) {
-//       const newDomains = Array.isArray(updateData.domains)
-//         ? updateData.domains
-//         : JSON.parse(updateData.domains);
-
-//       const onlyNewDomains = [];
-
-//       newDomains.forEach((newD) => {
-//         const oldD = oldDomainsForCompare.find(od => od.name === newD.name);
-
-//         // ✅ It is NEW if NOT found in old list
-//         if (!oldD) {
-//           onlyNewDomains.push({
-//             name: newD.name || "-",
-//             typeOfPlatform: newD.typeOfPlatform || "-",
-//             domainRemarks: newD.domainRemarks || "-"
-//           });
-//         }
-//       });
-
-//       // If new domains exist → add ONLY them to changedFields
-//       if (onlyNewDomains.length > 0) {
-//         changedFields.domains = onlyNewDomains;
-//       }
-//     }
-
-
-//     // 2️⃣ Update normal fields
-//     Object.keys(updateData).forEach((key) => {
-//       if (key !== "domains") task[key] = updateData[key];
-//     });
-
-
-//     // 3️⃣ Generate SOW only if changed fields exist
-//     if (Object.keys(changedFields).length > 0) {
-//       console.log("🔥 Generating SOW...");
-
-//       oldSowFiles = [...(task.sowFiles || [])];
-
-//       const mergedTaskData = oldTaskData;
-
-
-//       newSowFile = await generateSOWDocxFromTemplate(
-//         mergedTaskData,
-//         changedFields,   // <-- NOW CORRECT
-//         "edit"
-//       );
-
-//       task.sowFiles = [newSowFile];
-
-//       console.log("✅ SOW Generated:", newSowFile);
-//     } else {
-//       console.log("⚠ No changed fields → SOW not generated");
-//     }
-//     if (newSowFile) {
-//       task.reopenCount = (task.reopenCount || 0) + 1;
-//     }
-
-//     if (Object.keys(changedFields).length > 0) {
-//   //console.log("🔄 Updating ALL domain statuses to Reopened due to ANY change");
-
-//   task.domains.forEach((d) => {
-//     d.status = "Reopened";
-//   });
-
-//   task.markModified("domains");
-// }
-
-
-//     // 4️⃣ Save task
-//     await task.save();
-
-//     // 5️⃣ Delete old SOW files
-//     oldSowFiles.forEach((filePath) => {
-//       if (filePath !== newSowFile) {   // 🔥 prevent deleting new file
-//         const fullPath = path.join(process.cwd(), filePath);
-//         if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
-//       }
-//     });
-
-//     //log genrate 
-
-//     try {
-//       const domainList = task.domains?.map(d => d.name) || ["-"];
-
-//       for (const domain of domainList) {
-//         await ActivityLog.create({
-//           taskId: task._id,
-//           domainName: domain,   // <-- single domain
-//           action: "Task Reopened",
-//           changedBy: req.user?.name || "Unknown",
-//           role: req.user?.role || "Unknown",
-//         });
-//       }
-
-
-
-//     } catch (err) {
-//       console.error("Failed to create ActivityLog:", err);
-//     }
-
-
-
-//     const dashboardUrl = `${process.env.FRONTEND_URL}/tasks`;
-//     const assignedByName = task.assignedBy?.slackId
-//       ? `<@${task.assignedBy.slackId}>`
-//       : ``;
-
-//     const assignedToName = task.assignedTo?.slackId
-//       ? `<@${task.assignedTo.slackId}>`
-//       : ``;
-
-
-//     // slack notification
-//     const slackMessage = `
-// :repeat: Task Reopened
-// ${space}:briefcase: Task: ${task.title}
-// ${space}:bust_in_silhouette: Assigned By: ${assignedByName}(Sales Team)
-// ${space}:date:Assigned To: ${assignedToName} (R&D ATL)
-// ${space}:memo: Details: The task has been reopened due to required updates. Please review the changes and proceed accordingly.
-// ${space}:link: <${dashboardUrl} |Open Dashboard>
-// CC: <@${process.env.SLACK_RND_MANAGER_ID}>, <@${process.env.SLACK_SALES_MANAGER_ID}>
-// `
-
-//     // send slack message whene files are uploaded
-//     if (newSowFile) {
-//       await sendSlackMessage(process.env.SALES_RD_CHANNEL_TEST, slackMessage);
-//     }
-
-//     return res.json({
-//       message: "Task reopened and SOW generated",
-//       newSowFile,
-//       changedFields,
-//       task,
-//     });
-
-//   } catch (err) {
-//     console.error("ReOpenTask Error:", err);
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
-
-
-// TERMINATE DOMAIN (domain-wise)
 
 export const reOpenTask = async (req, res) => {
   try {
@@ -2308,30 +2046,13 @@ export const reOpenTask = async (req, res) => {
 
 
 
-    //console.log("DOMAIN CHANGED?", hasDomainChanged);
+
 
     // ------------------------------------------
     // UPDATE DOMAIN ONLY IF CHANGED
     // ------------------------------------------
     if (hasDomainChanged) {
-      //console.log("➡ Updating domain status to Reopened");
 
-
-
-
-
-      //       task.domains = newDomains.map((d) => ({
-      //         ...d,
-      //         status: "Reopened",
-      //       }));
-      //       task.markModified("domains");
-
-      //       // Add to changedFields so SOW is generated
-      //      changedFields.domains = newDomains.map(d => ({
-      //   name: d.name,
-      //   typeOfPlatform: d.typeOfPlatform,
-      //   domainRemarks: d.domainRemarks || ""
-      // }));
 
     } else {
       //console.log("➡ Domains unchanged → NOT updating domain status");
@@ -2374,7 +2095,6 @@ export const reOpenTask = async (req, res) => {
     Object.keys(updateData).forEach((key) => {
       if (key !== "domains") task[key] = updateData[key];
     });
-
 
 
 
@@ -2478,11 +2198,16 @@ export const reOpenTask = async (req, res) => {
       ? `<@${task.assignedTo.slackId}>`
       : task.assignedTo?.name;
 
+    const reopenBy = await User.findById(req.user.id);
+    const reopenByName = reopenBy?.slackId
+      ? `<@${reopenBy.slackId}>`
+      : reopenBy?.name;
 
     // slack notification
     const slackMessage = `
 :repeat: Task Reopened
 ${space}:briefcase: Task: ${task.title}
+${space}:bust_in_silhouette: Reopened By: ${reopenByName}
 ${space}:bust_in_silhouette: Assigned By: ${assignedByName}(Sales)
 ${space}:date:Assigned To: ${assignedToName} (R&D ATL)
 ${space}:memo: Details: The task has been reopened due to required updates. Please review the changes and proceed accordingly.
@@ -2554,7 +2279,9 @@ export const terminateDomain = async (req, res) => {
     const assignedToSlack = assignedToUser?.slackId ? `<@${assignedToUser.slackId}>` : assignedToUser?.name || "-";
 
 
+    const TerminatBy = await User.findById(req.user.id).lean();
 
+    const TerminatByName = TerminatBy?.slackId ? `<@${TerminatBy.slackId}>` : TerminatBy?.name || "-";
 
     const slackMessage = `
     *Task Terminated*:no_entry_sign: 
@@ -2562,6 +2289,7 @@ ${space}:briefcase: *Task:* ${task.title || task.projectCode}
 ${space}:bust_in_silhouette: *Assigned By:* ${assignedBySlack}
 ${space}:date: *Assigned To:* ${assignedToSlack}
 ${space}:jigsaw: *Domain:* \`${domain.name}\`
+${space}:memo: *TerminatBy:* ${TerminatByName || "Unknown User"}
 ${space}:memo: *Reason:* ${terminatedReason}
 ${space}:memo: *Details:* This task is now terminated and no further updates are allowed.
 ${space}:link: *View Task:* <${process.env.FRONTEND_URL}/tasks|Open Dashboard>
@@ -2583,7 +2311,7 @@ CC: <@${process.env.SLACK_RND_MANAGER_ID}>, <@${process.env.SLACK_SALES_MANAGER_
   }
 };
 
-// GET ALL USERS + TASKS CREATED BY EACH USER + STATUS COUNT
+
 export const getAllUsersTaskCreatedStats = async (req, res) => {
   try {
     // 1️⃣ Get all users
@@ -2659,3 +2387,101 @@ export const getAllUsersTaskCreatedStats = async (req, res) => {
     });
   }
 };
+
+
+export const getAssignedToDomainStatus = async (req, res) => {
+  try {
+    const data = await Task.aggregate([
+      {
+        $match: {
+          assignedTo: { $ne: null },
+        },
+      },
+
+      // Join user
+      {
+        $lookup: {
+          from: "users",
+          localField: "assignedTo",
+          foreignField: "_id",
+          as: "assignedUser",
+        },
+      },
+      { $unwind: "$assignedUser" },
+
+      // ✅ Only TL
+      {
+        $match: {
+          "assignedUser.role": "TL",
+        },
+      },
+
+      // Break domains
+      { $unwind: "$domains" },
+
+      // Group by assignedTo + status
+      {
+        $group: {
+          _id: {
+            assignedTo: "$assignedTo",
+            status: "$domains.status",
+          },
+          count: { $sum: 1 },
+          // 👇 keep name for next group
+          name: { $first: "$assignedUser.name" },
+        },
+      },
+
+      // Regroup by assignedTo
+      {
+        $group: {
+          _id: "$_id.assignedTo",
+          statuses: {
+            $push: {
+              k: "$_id.status",
+              v: "$count",
+            },
+          },
+          total: { $sum: "$count" },
+          // 👇 carry name forward
+          name: { $first: "$name" },
+        },
+      },
+
+      {
+        $addFields: {
+          statusObj: {
+            $arrayToObject: "$statuses",
+          },
+        },
+      },
+
+      // Final shape
+      {
+        $project: {
+          _id: 0,
+          name: 1,
+          total: 1,
+          pending: { $ifNull: ["$statusObj.pending", 0] },
+          "in-progress": { $ifNull: ["$statusObj.in-progress", 0] },
+          "in-R&D": { $ifNull: ["$statusObj.in-R&D", 0] },
+          submitted: { $ifNull: ["$statusObj.submitted", 0] },
+          delayed: { $ifNull: ["$statusObj.delayed", 0] },
+          Reopened: { $ifNull: ["$statusObj.Reopened", 0] },
+          Terminated: { $ifNull: ["$statusObj.Terminated", 0] },
+        },
+      },
+
+      { $sort: { total: -1 } },
+    ]);
+
+    res.status(200).json(data);
+  } catch (error) {
+    console.error("AssignedTo Domain Status Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch assigned domain status summary",
+    });
+  }
+};
+

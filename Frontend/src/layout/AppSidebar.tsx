@@ -21,7 +21,7 @@ import {
 
 } from "../icons";
 
-import { FiUsers, FiCheckSquare, FiGrid, FiHome } from "react-icons/fi"; // Users and Task icons
+import { FiUsers, FiCheckSquare, FiGrid} from "react-icons/fi"; // Users and Task icons
 
 import { useSidebar } from "../context/SidebarContext";
 // import SidebarWidget from "./SidebarWidget";
@@ -50,7 +50,6 @@ const navItems: NavItem[] = [
     icon: <FiUsers className="w-6 h-6" />,
     name: "User",
     path: "/TMS-R&D/admin"
-
   },
 
 

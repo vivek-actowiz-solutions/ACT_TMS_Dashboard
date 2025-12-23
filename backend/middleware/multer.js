@@ -54,17 +54,7 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-  // Allow JSON uploads
-  if (
-    file.mimetype === "application/json" ||
-    file.mimetype === "text/json" ||
-    file.mimetype === "application/octet-stream" ||
-    file.mimetype === "text/plain"
-  ) {
-    cb(null, true);
-  } else {
-    cb(null, true);
-  }
+cb(null, true);
 };
 
 

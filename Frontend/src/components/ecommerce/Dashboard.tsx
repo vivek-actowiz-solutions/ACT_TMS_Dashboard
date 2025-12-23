@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { FiClipboard, FiClock, FiCheckCircle,  FiPlay, FiBox,FiAlertTriangle } from "react-icons/fi";
+import { FiClipboard, FiClock, FiCheckCircle, FiPlay, FiBox, FiAlertTriangle } from "react-icons/fi";
 import { GoIssueReopened } from "react-icons/go";
 import { LuClockAlert } from "react-icons/lu";
 
@@ -24,7 +24,7 @@ interface Stats {
   inRD: number;
   Reopened: number
   Terminated: number
-} 
+}
 
 interface DeveloperTask {
   name: string;
@@ -36,6 +36,19 @@ interface DeveloperTask {
   Reopened: number;
   Terminated: number;
 }
+
+interface AssignedDomainStats {
+  name: string;
+  total: number;
+  pending: number;
+  "in-progress": number;
+  "in-R&D": number;
+  submitted: number;
+  delayed: number;
+  Reopened: number;
+  Terminated: number;
+}
+
 
 const Dashboard: React.FC = () => {
   const [domainStats, setDomainStats] = useState<Record<string, DomainStats>>({});
@@ -54,14 +67,14 @@ const Dashboard: React.FC = () => {
   const [userRole, setUserRole] = useState<string>("");
   const navigate = useNavigate();
   const apiUrl = import.meta.env.VITE_API_URL;
-  const [sortBy, setSortBy] = useState<keyof DeveloperTask | "total" | "completed" | "inProgress" | "inRD" | "delayed" | "assigned" |  "Reopened" |"none">("none");
+  const [sortBy, setSortBy] = useState<keyof DeveloperTask | "total" | "completed" | "inProgress" | "inRD" | "delayed" | "assigned" | "Reopened" | "none">("none");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   const [creatorSortBy, setCreatorSortBy] = useState<
-  "name" | "total" | "pending" | "in-progress" | "in-R&D" | "submitted" | "delayed" | "Reopened" | "Terminated" | "none"
->("none");
+    "name" | "total" | "pending" | "in-progress" | "in-R&D" | "submitted" | "delayed" | "Reopened" | "Terminated" | "none"
+  >("none");
 
-const [creatorSortOrder, setCreatorSortOrder] = useState<"asc" | "desc">("desc");
+  const [creatorSortOrder, setCreatorSortOrder] = useState<"asc" | "desc">("desc");
 
 
   const [loading, setLoading] = useState<boolean>(true);
@@ -69,7 +82,26 @@ const [creatorSortOrder, setCreatorSortOrder] = useState<"asc" | "desc">("desc")
 
 
   const [taskCreators, setTaskCreators] = useState<any[]>([]);
-const [taskCreatorsLoading, setTaskCreatorsLoading] = useState<boolean>(false);
+  const [taskCreatorsLoading, setTaskCreatorsLoading] = useState<boolean>(false);
+
+  const [assignedStats, setAssignedStats] = useState<AssignedDomainStats[]>([]);
+const [assignedLoading, setAssignedLoading] = useState<boolean>(false);
+
+const [assignedSortBy, setAssignedSortBy] =
+  useState<keyof AssignedDomainStats | "none">("none");
+
+const [assignedSortOrder, setAssignedSortOrder] =
+  useState<"asc" | "desc">("desc");
+
+const sortedAssignedStats = [...assignedStats].sort((a, b) => {
+  if (assignedSortBy === "none") return 0;
+
+  const aVal = a[assignedSortBy] ?? 0;
+  const bVal = b[assignedSortBy] ?? 0;
+
+  return assignedSortOrder === "asc" ? aVal - bVal : bVal - aVal;
+});
+
 
 
   const getCookie = (name: string): string | null => {
@@ -99,8 +131,8 @@ const [taskCreatorsLoading, setTaskCreatorsLoading] = useState<boolean>(false);
         delayed = 0,
         inRD = 0,
         completed = 0;
-        let Reopened = 0;
-        let Terminated = 0;
+      let Reopened = 0;
+      let Terminated = 0;
 
       Object.values(data).forEach((d) => {
         total += d.total || 0;
@@ -113,10 +145,10 @@ const [taskCreatorsLoading, setTaskCreatorsLoading] = useState<boolean>(false);
         Terminated += d.Terminated || 0;
       });
 
-      setStats({ total, pending, inProgress, delayed, inRD, completed ,Reopened, Terminated });
+      setStats({ total, pending, inProgress, delayed, inRD, completed, Reopened, Terminated });
     } catch (err) {
       console.error("Stats fetch error:", err);
-    }finally {
+    } finally {
       setLoading(false);
     }
   };
@@ -138,38 +170,58 @@ const [taskCreatorsLoading, setTaskCreatorsLoading] = useState<boolean>(false);
 
     } catch (err) {
       console.error("Developer fetch error:", err);
-    }finally {
+    } finally {
 
       setDevelopersLoading(false);
     }
   };
 
   const fetchTaskCreators = async (token: string) => {
-  setTaskCreatorsLoading(true);
+    setTaskCreatorsLoading(true);
+    try {
+      const res = await fetch(`${apiUrl}/tasks/created/by-all-users`, {
+        method: "GET",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        credentials: "include",
+      });
+
+      if (!res.ok) throw new Error("Failed to fetch task creators");
+
+      const data = await res.json();
+
+      // Only sales users
+      const salesUsers = (data?.data || []).filter((u: any) => u.role === "Sales");
+
+      setTaskCreators(salesUsers);
+
+    } catch (err) {
+      console.error("Task creators fetch error:", err);
+    } finally {
+      setTaskCreatorsLoading(false);
+    }
+  };
+
+  const fetchAssignedDomainStats = async (token: string) => {
+  setAssignedLoading(true);
   try {
-    const res = await fetch(`${apiUrl}/tasks/created/by-all-users`, {
+    const res = await fetch(`${apiUrl}/tasks/assigned-to`, {
       method: "GET",
       headers: token ? { Authorization: `Bearer ${token}` } : {},
       credentials: "include",
     });
 
-    if (!res.ok) throw new Error("Failed to fetch task creators");
+    if (!res.ok) throw new Error("Failed to fetch assigned domain stats");
 
     const data = await res.json();
-
-    // Only sales users
-    const salesUsers = (data?.data || []).filter((u: any) => u.role === "Sales");
-
-    setTaskCreators(salesUsers);
-
+    setAssignedStats(data);
   } catch (err) {
-    console.error("Task creators fetch error:", err);
+    console.error("Assigned domain stats error:", err);
   } finally {
-    setTaskCreatorsLoading(false);
+    setAssignedLoading(false);
   }
 };
 
- 
+
   useEffect(() => {
     const token = getCookie("token");
     if (!token) {
@@ -184,6 +236,7 @@ const [taskCreatorsLoading, setTaskCreatorsLoading] = useState<boolean>(false);
         await fetchStats(token);
         await fetchDevelopers(token);
         await fetchTaskCreators(token);
+        await fetchAssignedDomainStats(token);
 
         // if (payload.role === "Manager") fetchDevelopers(token);
       } catch (err) {
@@ -215,15 +268,15 @@ const [taskCreatorsLoading, setTaskCreatorsLoading] = useState<boolean>(false);
   });
 
   const sortedTaskCreators = [...taskCreators].sort((a, b) => {
-  if (creatorSortBy === "none") return 0;
+    if (creatorSortBy === "none") return 0;
 
-  const aValue = a[creatorSortBy] || 0;
-  const bValue = b[creatorSortBy] || 0;
+    const aValue = a[creatorSortBy] || 0;
+    const bValue = b[creatorSortBy] || 0;
 
-  return creatorSortOrder === "asc"
-    ? aValue - bValue
-    : bValue - aValue;
-});
+    return creatorSortOrder === "asc"
+      ? aValue - bValue
+      : bValue - aValue;
+  });
 
 
   if (loading) {
@@ -236,7 +289,7 @@ const [taskCreatorsLoading, setTaskCreatorsLoading] = useState<boolean>(false);
 
   return (
     <div className="min-h-screen">
-      
+
 
       <div className="mb-5 text-black w-full">
 
@@ -276,88 +329,93 @@ const [taskCreatorsLoading, setTaskCreatorsLoading] = useState<boolean>(false);
 
 
       {/* Developer Table (Manager only) */}
-      {(userRole === "Admin" || userRole === "Manager" || userRole==="TL" || userRole === "SuperAdmin") && (
-  <div className="overflow-x-auto bg-gray-100 rounded-lg shadow p-4">
-    <h2 className="text-xl font-semibold mb-4">Developer Summary</h2>
+      {(userRole === "Admin" || userRole === "Manager" || userRole === "TL" || userRole === "SuperAdmin") && (
+        <div className="overflow-x-auto bg-gray-100 rounded-lg shadow p-4">
+          <h2 className="text-xl font-semibold mb-4">Developer Summary</h2>
 
-    {developersLoading ? (
-      <div className="flex justify-center items-center py-10">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-4 border-blue-600"></div>
-      </div>
-    ) : developers.length > 0 ? (
-      <table className="w-full border-collapse bg-white">
-        <thead className="bg-gray-300">
-          <tr>
-            <th className="border px-4 py-2">No.</th>
-            <th className="border px-4 py-2">Name</th>
-            {["total", "completed", "inProgress", "inRD", "delayed"].map((col) => (
-              <th
-                key={col}
-                className="border px-4 py-2 cursor-pointer"
-                onClick={() => {
-                  if (sortBy === col) {
-                    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-                  } else {
-                    setSortBy(col as keyof DeveloperTask);
-                    setSortOrder("desc");
-                  }
-                }}
-              >
-                {col === "total" ? "Assigned" : col === "inProgress" ? "In Progress" : col === "inRD" ? "In R&D" : col.charAt(0).toUpperCase() + col.slice(1)}
-                {sortBy === col ? (sortOrder === "asc" ? " ↑" : " ↓") : ""}
-              </th>
-            ))}
-          </tr>
-        </thead>
+          {developersLoading ? (
+            <div className="flex justify-center items-center py-10">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-4 border-blue-600"></div>
+            </div>
+          ) : developers.length > 0 ? (
+            <table className="w-full border-collapse bg-white">
+              <thead className="bg-gray-300">
+                <tr>
+                  <th className="border px-4 py-2">No.</th>
+                  <th className="border px-4 py-2">Name</th>
+                  {["total", "completed", "inProgress", "inRD", "delayed"].map((col) => (
+                    <th
+                      key={col}
+                      className="border px-4 py-2 cursor-pointer"
+                      onClick={() => {
+                        if (sortBy === col) {
+                          setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+                        } else {
+                          setSortBy(col as keyof DeveloperTask);
+                          setSortOrder("desc");
+                        }
+                      }}
+                    >
+                      {col === "total" ? "Assigned" : col === "inProgress" ? "In Progress" : col === "inRD" ? "In R&D" : col.charAt(0).toUpperCase() + col.slice(1)}
+                      {sortBy === col ? (sortOrder === "asc" ? " ↑" : " ↓") : ""}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
 
-        <tbody>
-          {sortedDevelopers.map((dev, idx) => (
-            <tr key={idx} className="hover:bg-gray-100 text-center">
-              <td className="border px-4 py-2">{idx + 1}</td>
-              <td className="border px-4 py-2">{dev.name}</td>
-              <td className="border px-4 py-2">{dev.total}</td>
-              <td className="border px-4 py-2">{dev.completed}</td>
-              <td className="border px-4 py-2">{dev.inProgress}</td>
-              <td className="border px-4 py-2">{dev.inRD}</td>
-              <td className="border px-4 py-2">{dev.delayed}</td>
-            </tr>
-          ))}
+              <tbody>
+                {sortedDevelopers.map((dev, idx) => (
+                  <tr key={idx} className="hover:bg-gray-100 text-center">
+                    <td className="border px-4 py-2">{idx + 1}</td>
+                    <td className="border px-4 py-2">{dev.name}</td>
+                    <td className="border px-4 py-2">{dev.total}</td>
+                    <td className="border px-4 py-2">{dev.completed}</td>
+                    <td className="border px-4 py-2">{dev.inProgress}</td>
+                    <td className="border px-4 py-2">{dev.inRD}</td>
+                    <td className="border px-4 py-2">{dev.delayed}</td>
+                  </tr>
+                ))}
 
-          <tr className="bg-gray-200 font-bold text-center">
-            <td className="border px-4 py-2"></td>
-            <td className="border px-4 py-2">Total</td>
-            <td className="border px-4 py-2">{developers.reduce((sum, dev) => sum + dev.total, 0)}</td>
-            <td className="border px-4 py-2">{developers.reduce((sum, dev) => sum + dev.completed, 0)}</td>
-            <td className="border px-4 py-2">{developers.reduce((sum, dev) => sum + dev.inProgress, 0)}</td>
-            <td className="border px-4 py-2">{developers.reduce((sum, dev) => sum + dev.inRD, 0)}</td>
-            <td className="border px-4 py-2">{developers.reduce((sum, dev) => sum + dev.delayed, 0)}</td>
-          </tr>
-        </tbody>
-      </table>
-    ) : (
-      <p className="text-center text-gray-600 py-6">No developer data found</p>
-    )}
-  </div>
-)}
+                <tr className="bg-gray-200 font-bold text-center">
+                  <td className="border px-4 py-2"></td>
+                  <td className="border px-4 py-2">Total</td>
+                  <td className="border px-4 py-2">{developers.reduce((sum, dev) => sum + dev.total, 0)}</td>
+                  <td className="border px-4 py-2">{developers.reduce((sum, dev) => sum + dev.completed, 0)}</td>
+                  <td className="border px-4 py-2">{developers.reduce((sum, dev) => sum + dev.inProgress, 0)}</td>
+                  <td className="border px-4 py-2">{developers.reduce((sum, dev) => sum + dev.inRD, 0)}</td>
+                  <td className="border px-4 py-2">{developers.reduce((sum, dev) => sum + dev.delayed, 0)}</td>
+                </tr>
+              </tbody>
+            </table>
+          ) : (
+            <p className="text-center text-gray-600 py-6">No developer data found</p>
+          )}
+        </div>
+      )}
 
-{/* Task Created Summary (Sales Only) */}
-{(userRole === "Admin" || userRole === "Manager" || userRole === "Sales" || userRole === "SuperAdmin") && (
+      {/* Assigned To – Domain Status Summary */}
+{(userRole === "Admin" ||
+  userRole === "Manager" ||
+  userRole === "TL" ||
+  userRole === "SuperAdmin") && (
   <div className="overflow-x-auto bg-gray-100 rounded-lg shadow p-4 mt-6">
-    <h2 className="text-xl font-semibold mb-4">Task Created Summary</h2>
+    <h2 className="text-xl font-semibold mb-4">
+      TL Summary
+    </h2>
 
-    {taskCreatorsLoading ? (
+    {assignedLoading ? (
       <div className="flex justify-center items-center py-10">
         <div className="animate-spin rounded-full h-8 w-8 border-t-4 border-blue-600"></div>
       </div>
-    ) : sortedTaskCreators.length > 0 ? (
-      <table className="w-full border-collapse bg-white">
+    ) : sortedAssignedStats.length > 0 ? (
+      <table className="w-full border-collapse bg-white text-sm">
         <thead className="bg-gray-300">
           <tr>
             <th className="border px-4 py-2">No.</th>
 
-            {/* Column Headers With Sorting */}
             {[
-              { key: "name", label: "User" },
+               
+              { key: "name", label: "Assigned To" },
               { key: "total", label: "Total" },
               { key: "pending", label: "Pending" },
               { key: "in-progress", label: "In Progress" },
@@ -366,22 +424,25 @@ const [taskCreatorsLoading, setTaskCreatorsLoading] = useState<boolean>(false);
               { key: "delayed", label: "Delayed" },
               { key: "Reopened", label: "Reopened" },
               { key: "Terminated", label: "Terminated" },
+              
             ].map((col) => (
               <th
                 key={col.key}
-                className="border px-4 py-2 cursor-pointer"
+                className="border px-4 py-2 cursor-pointer whitespace-nowrap"
                 onClick={() => {
-                  if (creatorSortBy === col.key) {
-                    setCreatorSortOrder(creatorSortOrder === "asc" ? "desc" : "asc");
+                  if (assignedSortBy === col.key) {
+                    setAssignedSortOrder(
+                      assignedSortOrder === "asc" ? "desc" : "asc"
+                    );
                   } else {
-                    setCreatorSortBy(col.key as any);
-                    setCreatorSortOrder("desc");
+                    setAssignedSortBy(col.key as any);
+                    setAssignedSortOrder("desc");
                   }
                 }}
               >
                 {col.label}
-                {creatorSortBy === col.key
-                  ? creatorSortOrder === "asc"
+                {assignedSortBy === col.key
+                  ? assignedSortOrder === "asc"
                     ? " ↑"
                     : " ↓"
                   : ""}
@@ -391,18 +452,24 @@ const [taskCreatorsLoading, setTaskCreatorsLoading] = useState<boolean>(false);
         </thead>
 
         <tbody>
-          {sortedTaskCreators.map((u, idx) => (
+          {sortedAssignedStats.map((row, idx) => (
             <tr key={idx} className="hover:bg-gray-100 text-center">
               <td className="border px-4 py-2">{idx + 1}</td>
-              <td className="border px-4 py-2">{u.name}</td>
-              <td className="border px-4 py-2">{u.total}</td>
-              <td className="border px-4 py-2">{u.pending}</td>
-              <td className="border px-4 py-2">{u["in-progress"]}</td>
-              <td className="border px-4 py-2">{u["in-R&D"]}</td>
-              <td className="border px-4 py-2">{u.submitted}</td>
-              <td className="border px-4 py-2">{u.delayed}</td>
-              <td className="border px-4 py-2">{u.Reopened}</td>
-              <td className="border px-4 py-2">{u.Terminated}</td>
+              
+              <td className="border px-4 py-2 font-medium text-left">
+                {row.name}
+              </td>
+              <td className="border px-4 py-2 font-semibold">
+                {row.total}
+              </td>
+              <td className="border px-4 py-2">{row.pending}</td>
+              <td className="border px-4 py-2">{row["in-progress"]}</td>
+              <td className="border px-4 py-2">{row["in-R&D"]}</td>
+              <td className="border px-4 py-2">{row.submitted}</td>
+              <td className="border px-4 py-2">{row.delayed}</td>
+              <td className="border px-4 py-2">{row.Reopened}</td>
+              <td className="border px-4 py-2">{row.Terminated}</td>
+              
             </tr>
           ))}
 
@@ -410,22 +477,129 @@ const [taskCreatorsLoading, setTaskCreatorsLoading] = useState<boolean>(false);
           <tr className="bg-gray-200 font-bold text-center">
             <td className="border px-4 py-2"></td>
             <td className="border px-4 py-2">Total</td>
-            <td className="border px-4 py-2">{taskCreators.reduce((s, u) => s + u.total, 0)}</td>
-            <td className="border px-4 py-2">{taskCreators.reduce((s, u) => s + u.pending, 0)}</td>
-            <td className="border px-4 py-2">{taskCreators.reduce((s, u) => s + u["in-progress"], 0)}</td>
-            <td className="border px-4 py-2">{taskCreators.reduce((s, u) => s + u["in-R&D"], 0)}</td>
-            <td className="border px-4 py-2">{taskCreators.reduce((s, u) => s + u.submitted, 0)}</td>
-            <td className="border px-4 py-2">{taskCreators.reduce((s, u) => s + u.delayed, 0)}</td>
-            <td className="border px-4 py-2">{taskCreators.reduce((s, u) => s + u.Reopened, 0)}</td>
-            <td className="border px-4 py-2">{taskCreators.reduce((s, u) => s + u.Terminated, 0)}</td>
+            <td className="border px-4 py-2">
+              {assignedStats.reduce((s, r) => s + r.total, 0)}
+            </td>
+            <td className="border px-4 py-2">
+              {assignedStats.reduce((s, r) => s + r.pending, 0)}
+            </td>
+            <td className="border px-4 py-2">
+              {assignedStats.reduce((s, r) => s + r["in-progress"], 0)}
+            </td>
+            <td className="border px-4 py-2">
+              {assignedStats.reduce((s, r) => s + r["in-R&D"], 0)}
+            </td>
+            <td className="border px-4 py-2">
+              {assignedStats.reduce((s, r) => s + r.submitted, 0)}
+            </td>
+            <td className="border px-4 py-2">
+              {assignedStats.reduce((s, r) => s + r.delayed, 0)}
+            </td>
+            <td className="border px-4 py-2">
+              {assignedStats.reduce((s, r) => s + r.Reopened, 0)}
+            </td>
+            <td className="border px-4 py-2">
+              {assignedStats.reduce((s, r) => s + r.Terminated, 0)}
+            </td>
+            
           </tr>
         </tbody>
       </table>
     ) : (
-      <p className="text-center text-gray-600 py-6">No task creation data found</p>
+      <p className="text-center text-gray-600 py-6">
+        No assigned domain data found
+      </p>
     )}
   </div>
 )}
+
+
+      {/* Task Created Summary (Sales Only) */}
+      {(userRole === "Admin" || userRole === "Manager" || userRole === "Sales" || userRole === "SuperAdmin") && (
+        <div className="overflow-x-auto bg-gray-100 rounded-lg shadow p-4 mt-6">
+          <h2 className="text-xl font-semibold mb-4">Task Created Summary</h2>
+
+          {taskCreatorsLoading ? (
+            <div className="flex justify-center items-center py-10">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-4 border-blue-600"></div>
+            </div>
+          ) : sortedTaskCreators.length > 0 ? (
+            <table className="w-full border-collapse bg-white">
+              <thead className="bg-gray-300">
+                <tr>
+                  <th className="border px-4 py-2">No.</th>
+
+                  {/* Column Headers With Sorting */}
+                  {[
+                    { key: "name", label: "User" },
+                    { key: "total", label: "Total" },
+                    { key: "pending", label: "Pending" },
+                    { key: "in-progress", label: "In Progress" },
+                    { key: "in-R&D", label: "In R&D" },
+                    { key: "submitted", label: "Submitted" },
+                    { key: "delayed", label: "Delayed" },
+                    { key: "Reopened", label: "Reopened" },
+                    { key: "Terminated", label: "Terminated" },
+                  ].map((col) => (
+                    <th
+                      key={col.key}
+                      className="border px-4 py-2 cursor-pointer"
+                      onClick={() => {
+                        if (creatorSortBy === col.key) {
+                          setCreatorSortOrder(creatorSortOrder === "asc" ? "desc" : "asc");
+                        } else {
+                          setCreatorSortBy(col.key as any);
+                          setCreatorSortOrder("desc");
+                        }
+                      }}
+                    >
+                      {col.label}
+                      {creatorSortBy === col.key
+                        ? creatorSortOrder === "asc"
+                          ? " ↑"
+                          : " ↓"
+                        : ""}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+
+              <tbody>
+                {sortedTaskCreators.map((u, idx) => (
+                  <tr key={idx} className="hover:bg-gray-100 text-center">
+                    <td className="border px-4 py-2">{idx + 1}</td>
+                    <td className="border px-4 py-2">{u.name}</td>
+                    <td className="border px-4 py-2">{u.total}</td>
+                    <td className="border px-4 py-2">{u.pending}</td>
+                    <td className="border px-4 py-2">{u["in-progress"]}</td>
+                    <td className="border px-4 py-2">{u["in-R&D"]}</td>
+                    <td className="border px-4 py-2">{u.submitted}</td>
+                    <td className="border px-4 py-2">{u.delayed}</td>
+                    <td className="border px-4 py-2">{u.Reopened}</td>
+                    <td className="border px-4 py-2">{u.Terminated}</td>
+                  </tr>
+                ))}
+
+                {/* ⭐ Total Row */}
+                <tr className="bg-gray-200 font-bold text-center">
+                  <td className="border px-4 py-2"></td>
+                  <td className="border px-4 py-2">Total</td>
+                  <td className="border px-4 py-2">{taskCreators.reduce((s, u) => s + u.total, 0)}</td>
+                  <td className="border px-4 py-2">{taskCreators.reduce((s, u) => s + u.pending, 0)}</td>
+                  <td className="border px-4 py-2">{taskCreators.reduce((s, u) => s + u["in-progress"], 0)}</td>
+                  <td className="border px-4 py-2">{taskCreators.reduce((s, u) => s + u["in-R&D"], 0)}</td>
+                  <td className="border px-4 py-2">{taskCreators.reduce((s, u) => s + u.submitted, 0)}</td>
+                  <td className="border px-4 py-2">{taskCreators.reduce((s, u) => s + u.delayed, 0)}</td>
+                  <td className="border px-4 py-2">{taskCreators.reduce((s, u) => s + u.Reopened, 0)}</td>
+                  <td className="border px-4 py-2">{taskCreators.reduce((s, u) => s + u.Terminated, 0)}</td>
+                </tr>
+              </tbody>
+            </table>
+          ) : (
+            <p className="text-center text-gray-600 py-6">No task creation data found</p>
+          )}
+        </div>
+      )}
 
 
 

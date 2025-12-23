@@ -18,7 +18,8 @@ import {
   getTaskList,
   getSingleTaskList,
   terminateDomain,
-  getAllUsersTaskCreatedStats
+  getAllUsersTaskCreatedStats,
+  getAssignedToDomainStatus
   
 } from "../controllers/taskController.js";
 
@@ -35,6 +36,7 @@ router.post("/tasks", authorize(['Admin', 'Sales', 'Manager','SuperAdmin']), upl
 ]), createTask);
 
 router.get("/tasks/list",authorize(['Admin', 'Sales', 'Manager','SuperAdmin']), getTaskList);
+router.get("/tasks/assigned-to",authorize(['Admin', 'Sales', 'Manager','SuperAdmin']), getAssignedToDomainStatus);
 
 
 router.get("/tasks/:id/reopen-data",
