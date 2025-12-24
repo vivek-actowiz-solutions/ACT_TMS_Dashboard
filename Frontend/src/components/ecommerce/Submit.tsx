@@ -62,26 +62,22 @@ const SubmitTaskUI: React.FC<SubmitTaskProps> = ({ taskData }) => {
     "json",
   ];
 
-  const isValidDocumentUrl = (url: string) => {
-    const fileExtensionPattern = new RegExp(
-      `^https?:\\/\\/.*\\.(${allowedExtensions.join("|")})(\\?.*)?$`,
-      "i"
-    );
-    const googleDocsPattern = new RegExp(
-      "^https?:\\/\\/docs\\.google\\.com\\/(document|spreadsheets|presentation)\\/d\\/.*$",
-      "i"
-    );
-    const googleDrivePattern = new RegExp(
-      "^https?:\\/\\/drive\\.google\\.com\\/(file|open)\\/d\\/.*$",
-      "i"
-    );
+ const isValidDocumentUrl = (url: string) => {
+  const fileExtensionPattern = new RegExp(
+    `^https?:\\/\\/.*\\.(${allowedExtensions.join("|")})(\\?.*)?$`,
+    "i"
+  );
 
-    return (
-      fileExtensionPattern.test(url) ||
-      googleDocsPattern.test(url) ||
-      googleDrivePattern.test(url)
-    );
-  };
+  const googleDocsPattern = /^https?:\/\/docs\.google\.com\/.+/i;
+
+  const googleDrivePattern = /^https?:\/\/drive\.google\.com\/.+/i;
+
+  return (
+    fileExtensionPattern.test(url) ||
+    googleDocsPattern.test(url) ||
+    googleDrivePattern.test(url)
+  );
+};
 
   const allCountries = getNames().map((name) => ({ value: name, label: name }));
 
