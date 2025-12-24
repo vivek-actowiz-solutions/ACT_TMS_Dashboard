@@ -76,11 +76,15 @@ const TaskDetail: React.FC = () => {
 
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const [showDescModal, setShowDescModal] = useState(false);
+  const [showPlatformModal, setShowPlatformModal] = useState(false);
+
 
 
   const { user } = useAuth();   // <-- this gives user object (name, role, email etc.)
   const role = user?.role || "";
   const userName = user?.name || "";
+
+
 
   useEffect(() => {
     const fetchTask = async () => {
@@ -187,13 +191,6 @@ const TaskDetail: React.FC = () => {
   const hasProxyDetails = proxyRows.length > 0;
 
 
-
-
-
-
-  
-
-
   return (
     <>
       <PageBreadcrumb
@@ -259,12 +256,28 @@ const TaskDetail: React.FC = () => {
                   <h1 className="text-3xl font-bold text-gray-900 mb-3">{task.title}</h1>
 
                   {displayedDomain && (
-                    <div className="grid grid-cols-2  gap-2 text-gray-600">
-                      <div className="flex items-center gap-2">
+                    <div className="grid grid-cols-1  gap-2 text-gray-600">
+                      <div className="flex  gap-2">
                         <Server size={16} />
                         <span className="text-sm font-medium ">Platform:</span>
-                        <span className="text-sm font-semibold text-gray-900 mr-4">{displayedDomain}</span>
+                        <div className="text-sm font-semibold text-gray-900 ">
+                          {displayedDomain.length > 90 ? (
+                            <>
+                              {displayedDomain.slice(0, 80)}...
+                              <button
+                                onClick={() => setShowPlatformModal(true)}
+                                className="text-blue-600 underline ml-1 text-sm"
+                              >
+                                Read More
+                              </button>
+                            </>
+                          ) : (
+                            displayedDomain
+                          )}
+                        </div>
                       </div>
+
+
                       <div className="flex items-center gap-2">
                         <MessageSquare size={16} />
                         <span className="text-sm font-medium ">Remarks:</span>
@@ -274,17 +287,7 @@ const TaskDetail: React.FC = () => {
 
                   )}
 
-                  {/* {task.description && (
-                    <div className="mt-6 bg-slate-50 border border-slate-200 rounded-lg p-5">
-                      <div className="flex items-center gap-2 mb-3">
-                        <FileText size={20} />
-                        <h3 className="text-xs font-semibold text-gray-800 uppercase tracking-wide">
-                          Description
-                        </h3>
-                      </div>
-                      <p className="text-gray-700 leading-relaxed text-sm">{task.description}</p>
-                    </div>
-                  )} */}
+
                   {task.description && (
                     <div className="mt-6 bg-slate-50 border border-slate-200 rounded-lg p-5">
                       <div className="flex items-center gap-2 mb-3">
@@ -694,7 +697,7 @@ const TaskDetail: React.FC = () => {
                               <th className="px-4 py-3 border">#</th>
                               <th className="px-4 py-3 border">Request Endpoint</th>
                               <th className="px-4 py-3 border">Security</th>
-                              
+
                               <th className="px-4 py-3 border">Tested Volume</th>
                               <th className="px-4 py-3 border">Proxy</th>
                               <th className="px-4 py-3 border text-right">Credit</th>
@@ -714,9 +717,9 @@ const TaskDetail: React.FC = () => {
                                   {row.endpoint || "-"}
                                 </td>
                                 <td className="px-4 py-2 border">{row.security || "-"}</td>
-                                
 
-                                
+
+
 
 
                                 <td className="px-4 py-2 border">{row.volume || "-"}</td>
@@ -908,6 +911,32 @@ const TaskDetail: React.FC = () => {
             <div className="flex justify-end mt-5">
               <button
                 onClick={() => setShowDescModal(false)}
+                className="px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white rounded-lg"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showPlatformModal && (
+        <div
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-[99999]"
+          onClick={() => setShowPlatformModal(false)}
+        >
+          <div
+            className="bg-white rounded-xl max-w-3xl w-full p-6 shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-semibold mb-4">Platform</h3>
+
+            <div className="max-h-80  whitespace-pre-line text-gray-700 text-sm break-words">
+              {displayedDomain}
+            </div>
+
+            <div className="flex justify-end mt-5">
+              <button
+                onClick={() => setShowPlatformModal(false)}
                 className="px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white rounded-lg"
               >
                 Close
