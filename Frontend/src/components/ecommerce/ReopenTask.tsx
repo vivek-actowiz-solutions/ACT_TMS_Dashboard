@@ -70,7 +70,7 @@ const ReopenTask: React.FC = () => {
     mandatoryFields: "",
     optionalFields: "",
     frequency: "",
-    RPM:"",
+    RPM: "",
     oputputFormat: [],
     status: "pending",
     sowFile: [],
@@ -104,35 +104,35 @@ const ReopenTask: React.FC = () => {
   ];
 
   const normalize = (task: any) => {
-  return {
-    ...task,
-    // Normalize Output Format
-    oputputFormat: Array.isArray(task.oputputFormat)
-      ? task.oputputFormat
-      : (task.oputputFormat || "").split(",").map((s: string) => s.trim()),
+    return {
+      ...task,
+      // Normalize Output Format
+      oputputFormat: Array.isArray(task.oputputFormat)
+        ? task.oputputFormat
+        : (task.oputputFormat || "").split(",").map((s: string) => s.trim()),
 
-    // Normalize Domains (rename name → domain)
-    domains: (task.domains || []).map((d: any) => ({
-      domain: d.name || "",
-      typeOfPlatform: d.typeOfPlatform || "",
-      domainRemarks: d.domainRemarks || "",
-    })),
+      // Normalize Domains (rename name → domain)
+      domains: (task.domains || []).map((d: any) => ({
+        domain: d.name || "",
+        typeOfPlatform: d.typeOfPlatform || "",
+        domainRemarks: d.domainRemarks || "",
+      })),
 
-    // Normalize inputUrls
-    inputUrls: Array.isArray(task.inputUrls)
-      ? task.inputUrls
-      : task.inputUrls
-        ? [task.inputUrls]
-        : [""] ,
+      // Normalize inputUrls
+      inputUrls: Array.isArray(task.inputUrls)
+        ? task.inputUrls
+        : task.inputUrls
+          ? [task.inputUrls]
+          : [""],
 
-    // Normalize clientSampleSchemaUrls
-    clientSampleSchemaUrls: Array.isArray(task.clientSampleSchemaUrls)
-      ? task.clientSampleSchemaUrls
-      : task.clientSampleSchemaUrls
-        ? [task.clientSampleSchemaUrls]
-        : [""],
+      // Normalize clientSampleSchemaUrls
+      clientSampleSchemaUrls: Array.isArray(task.clientSampleSchemaUrls)
+        ? task.clientSampleSchemaUrls
+        : task.clientSampleSchemaUrls
+          ? [task.clientSampleSchemaUrls]
+          : [""],
+    };
   };
-};
 
 
 
@@ -165,8 +165,8 @@ const ReopenTask: React.FC = () => {
 
         const data = await res.json();
 
-        console.log("DATA",data);
-        
+        console.log("DATA", data);
+
 
         // setOriginalTask({
         //   ...data,
@@ -259,7 +259,7 @@ const ReopenTask: React.FC = () => {
 
 
 
-  
+
   // const handleDomainAdd = () => {
   //   const trimmed = domainInput.trim();
   //   const newErrors: any = {};
@@ -268,12 +268,12 @@ const ReopenTask: React.FC = () => {
   //   }
   //   if (!domainPlatform) newErrors.domainPlatform = "Domain Platform is required";
 
-   
+
 
   //   const INVALID_REMARK_REGEX = /[^a-zA-Z0-9\s.,-]/;
   //   if (domainRemark && INVALID_REMARK_REGEX.test(domainRemark)) {
   //     errors.domainRemark = "Special characters are not allowed in remark";
-      
+
   //   }
 
   //   if (Object.keys(newErrors).length > 0) {
@@ -281,7 +281,7 @@ const ReopenTask: React.FC = () => {
   //     return;
   //   }
 
-    
+
 
 
   //   const newDomain: DomainDetail = {
@@ -308,47 +308,47 @@ const ReopenTask: React.FC = () => {
   // };
 
   const handleDomainAdd = () => {
-  const trimmed = domainInput.trim();
-  const newErrors: any = {};
+    const trimmed = domainInput.trim();
+    const newErrors: any = {};
 
-  if (!trimmed || !/^https?:\/\//i.test(trimmed)) {
-    newErrors.domain = "Platform must start with http:// or https://";
-  }
-  if (!domainPlatform) newErrors.domainPlatform = "Domain Platform is required";
-
-  const INVALID_REMARK_REGEX = /[^a-zA-Z0-9\s.,-]/;
-  if (domainRemark && INVALID_REMARK_REGEX.test(domainRemark)) {
-    newErrors.domainRemark = "Special characters are not allowed in remark";
-  }
-
-  // ❗ STOP here if any validation fail
-  if (Object.keys(newErrors).length > 0) {
-    setErrors((prev) => ({ ...prev, ...newErrors }));
-    return;
-  }
-
-  const newDomain: DomainDetail = {
-    domain: trimmed,
-    typeOfPlatform: domainPlatform,
-    domainRemarks: domainRemark || "",
-  };
-
-  setTask((prev) => {
-    const domainsCopy = [...prev.domainDetails];
-    if (editingIndex !== null) {
-      domainsCopy[editingIndex] = newDomain;
-    } else {
-      domainsCopy.push(newDomain);
+    if (!trimmed || !/^https?:\/\//i.test(trimmed)) {
+      newErrors.domain = "Platform must start with http:// or https://";
     }
-    return { ...prev, domainDetails: domainsCopy };
-  });
+    if (!domainPlatform) newErrors.domainPlatform = "Domain Platform is required";
 
-  // reset
-  setDomainInput("");
-  setDomainPlatform("");
-  setDomainRemark("");
-  setEditingIndex(null);
-};
+    const INVALID_REMARK_REGEX = /[^a-zA-Z0-9\s.,-]/;
+    if (domainRemark && INVALID_REMARK_REGEX.test(domainRemark)) {
+      newErrors.domainRemark = "Special characters are not allowed in remark";
+    }
+
+    // ❗ STOP here if any validation fail
+    if (Object.keys(newErrors).length > 0) {
+      setErrors((prev) => ({ ...prev, ...newErrors }));
+      return;
+    }
+
+    const newDomain: DomainDetail = {
+      domain: trimmed,
+      typeOfPlatform: domainPlatform,
+      domainRemarks: domainRemark || "",
+    };
+
+    setTask((prev) => {
+      const domainsCopy = [...prev.domainDetails];
+      if (editingIndex !== null) {
+        domainsCopy[editingIndex] = newDomain;
+      } else {
+        domainsCopy.push(newDomain);
+      }
+      return { ...prev, domainDetails: domainsCopy };
+    });
+
+    // reset
+    setDomainInput("");
+    setDomainPlatform("");
+    setDomainRemark("");
+    setEditingIndex(null);
+  };
 
 
   const handleDomainEdit = (index: number) => {
@@ -376,7 +376,7 @@ const ReopenTask: React.FC = () => {
     if (!task.typeOfDelivery) newErrors.typeOfDelivery = "Type of Delivery is required";
     if (!task.mandatoryFields) newErrors.mandatoryFields = "Mandatory fields are required";
     if (!task.frequency) newErrors.frequency = "Frequency is required";
-      
+
 
     if (task.frequency === "RPM") {
       if (!task.RPM || String(task.RPM).trim() === "") {
@@ -406,7 +406,7 @@ const ReopenTask: React.FC = () => {
 
       //remarks
 
-      if(domainRemark){
+      if (domainRemark) {
         const INVALID_REMARK_REGEX = /[^a-zA-Z0-9\s.,-]/;
         if (domainRemark && INVALID_REMARK_REGEX.test(domainRemark)) {
           newErrors.domainRemark = "Special characters are not allowed in remark";
@@ -468,7 +468,7 @@ const ReopenTask: React.FC = () => {
   };
 
 
-  
+
 
 
 
@@ -632,7 +632,7 @@ const ReopenTask: React.FC = () => {
                       <label className="block text-gray-700 font-medium mb-2">Task Name <span className="text-red-500">*</span></label>
                       <input type="text" name="title" value={task.title} onChange={handleChange} className="w-full border rounded-lg p-3" readOnly />
                       {renderError("title")}
-                    </div> 
+                    </div>
 
                     <div>
                       <label className="block text-gray-700 font-medium mb-2">Assigned To <span className="text-red-500">*</span></label>
@@ -648,7 +648,7 @@ const ReopenTask: React.FC = () => {
                     <div className="md:col-span-2">
                       <label className="block text-gray-700 font-medium mb-2">Description <span className="text-red-500">*</span></label>
                       <textarea name="description" value={task.description} onChange={handleChange} className="w-full border rounded-lg p-3 h-28" />
-                      
+
                       {renderError("description")}
                     </div>
                   </div>
@@ -664,13 +664,14 @@ const ReopenTask: React.FC = () => {
                         <option value="app">App</option>
                         <option value="both (app & web)">Both (App & Web)</option>
                       </select>
-                      <input type="text" value={domainRemark} onChange={(e) => {setDomainRemark(e.target.value)
+                      <input type="text" value={domainRemark} onChange={(e) => {
+                        setDomainRemark(e.target.value)
                         if (e.target.value) {
                           setErrors(prev => ({ ...prev, domainRemark: "" }));
                         }
                       }
-                      
-                    } placeholder="Remark (optional)" className="flex-1 border rounded-lg p-3" maxLength={100}/>
+
+                      } placeholder="Remark (optional)" className="flex-1 border rounded-lg p-3" maxLength={100} />
                       <button type="button" onClick={handleDomainAdd} className="bg-[#3C01AF] hover:bg-blue-700 text-white px-5 py-2 rounded-lg"> {editingIndex !== null ? "Update" : "Add"}</button>
                     </div>
 
@@ -678,7 +679,13 @@ const ReopenTask: React.FC = () => {
                       <div className="space-y-2">
                         {task.domainDetails.map((d, i) => (
                           <div key={i} className="flex flex-col sm:flex-row justify-between items-center bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
-                            <span className="text-sm font-medium text-gray-800 mb-2 sm:mb-0">{d.domain}</span>
+                            <span
+                              className="text-sm font-medium text-gray-800 mb-2 sm:mb-0
+             max-w-[260px] truncate inline-block"
+                              title={d.domain}  // full text on hover
+                            >
+                              {d.domain}
+                            </span>
                             <span className="text-xs bg-blue-100 text-blue-700 font-semibold px-3 py-1 rounded-full">{d.typeOfPlatform || "-"}</span>
                             {d.domainRemarks && <span className="text-xs bg-blue-100 text-blue-800 px-3 py-1 rounded-full">{d.domainRemarks}</span>}
                             <div className="flex gap-2 mt-2 sm:mt-0">
@@ -761,58 +768,58 @@ const ReopenTask: React.FC = () => {
                       {renderError("frequency")}
                     </div> */}
                     <div>
-  <label className="block text-gray-700 font-medium mb-2">
-    Frequency <span className="text-red-500">*</span>
-  </label>
+                      <label className="block text-gray-700 font-medium mb-2">
+                        Frequency <span className="text-red-500">*</span>
+                      </label>
 
-  <CreatableSelect
-  isMulti
-  name="frequency"
+                      <CreatableSelect
+                        isMulti
+                        name="frequency"
 
-  // Display: convert comma string → array just for UI
-  value={
-    task.frequency
-      ? task.frequency.split(",").map((f) => ({ label: f, value: f }))
-      : []
-  }
+                        // Display: convert comma string → array just for UI
+                        value={
+                          task.frequency
+                            ? task.frequency.split(",").map((f) => ({ label: f, value: f }))
+                            : []
+                        }
 
-  onChange={(selected) => {
-    const values = selected.map(o => o.value);
+                        onChange={(selected) => {
+                          const values = selected.map(o => o.value);
 
-    // Save as string (DB format)
-    const finalString = values.join(",");
+                          // Save as string (DB format)
+                          const finalString = values.join(",");
 
-    setTask(prev => ({
-      ...prev,
-      frequency: finalString
-    }));
+                          setTask(prev => ({
+                            ...prev,
+                            frequency: finalString
+                          }));
 
-    // RPM clearing logic
-    if (!values.includes("RPM")) {
-      setTask(prev => ({ ...prev, RPM: "" }));
-    }
+                          // RPM clearing logic
+                          if (!values.includes("RPM")) {
+                            setTask(prev => ({ ...prev, RPM: "" }));
+                          }
 
-    // clear error
-    setErrors(prev => ({ ...prev, frequency: "" }));
-  }}
+                          // clear error
+                          setErrors(prev => ({ ...prev, frequency: "" }));
+                        }}
 
-  options={[
-    { value: "Daily", label: "Daily" },
-    { value: "Weekly", label: "Weekly" },
-    { value: "Bi-Weekly", label: "Bi-Weekly" },
-    { value: "Monthly", label: "Monthly" },
-    { value: "Bi-Monthly", label: "Bi-Monthly" },
-    { value: "Once-Off", label: "Once-Off" },
-    { value: "Hourly", label: "Hourly" },
-    { value: "RPM", label: "Request-Per-Minute" },
-  ]}
+                        options={[
+                          { value: "Daily", label: "Daily" },
+                          { value: "Weekly", label: "Weekly" },
+                          { value: "Bi-Weekly", label: "Bi-Weekly" },
+                          { value: "Monthly", label: "Monthly" },
+                          { value: "Bi-Monthly", label: "Bi-Monthly" },
+                          { value: "Once-Off", label: "Once-Off" },
+                          { value: "Hourly", label: "Hourly" },
+                          { value: "RPM", label: "Request-Per-Minute" },
+                        ]}
 
-  placeholder="Select frequency..."
-/>
+                        placeholder="Select frequency..."
+                      />
 
 
-  {renderError("frequency")}
-</div>
+                      {renderError("frequency")}
+                    </div>
 
 
                     {/* {task.frequency === "RPM" && (
@@ -824,24 +831,24 @@ const ReopenTask: React.FC = () => {
                         {renderError("RPM")}
                       </div>
                     )} */}
-{task.frequency.includes("RPM") && (
-  <div>
-    <label className="block text-gray-700 font-medium mb-2">
-      RPM <span className="text-red-500">*</span>
-    </label>
+                    {task.frequency.includes("RPM") && (
+                      <div>
+                        <label className="block text-gray-700 font-medium mb-2">
+                          RPM <span className="text-red-500">*</span>
+                        </label>
 
-    <input
-      type="number"
-      name="RPM"
-      value={task.RPM}
-      onChange={handleChange}
-      className="w-full border rounded-lg p-3"
-      placeholder="Enter RPM"
-    />
+                        <input
+                          type="number"
+                          name="RPM"
+                          value={task.RPM}
+                          onChange={handleChange}
+                          className="w-full border rounded-lg p-3"
+                          placeholder="Enter RPM"
+                        />
 
-    {renderError("RPM")}
-  </div>
-)}
+                        {renderError("RPM")}
+                      </div>
+                    )}
 
 
 
@@ -914,14 +921,14 @@ const ReopenTask: React.FC = () => {
             ))}
 
             <div className="flex justify-end">
-             <button
-  type="submit"
-  disabled={!isChanged || loading}
-  className={`px-8 py-3 font-semibold rounded-lg text-white
+              <button
+                type="submit"
+                disabled={!isChanged || loading}
+                className={`px-8 py-3 font-semibold rounded-lg text-white
     ${!isChanged || loading ? "bg-gray-400 cursor-not-allowed" : "bg-[#3C01AF] hover:bg-blue-700"}`}
->
-  {loading ? "Saving..." : "Update"}
-</button>
+              >
+                {loading ? "Saving..." : "Reopen"}
+              </button>
 
 
             </div>
