@@ -4,9 +4,9 @@ import PageBreadcrumb from "../common/PageBreadCrumb";
 import { useNavigate } from "react-router";
 import { format } from "date-fns";
 import { useAuth } from "../../hooks/useAuth";
-import { jwtDecode } from "jwt-decode";
+
 import { FiEye, FiEdit2, FiRotateCw } from "react-icons/fi";
-import { GrCompliance } from "react-icons/gr"; // View, Edit, Submit
+
 
 import Tooltip from "@mui/material/Tooltip";
 
@@ -169,28 +169,29 @@ const TaskPage: React.FC = () => {
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
-    };
+    }; 
   }, [openStatusDropdown]);
 
 
-  const fetchSalesUsers = async () => {
-    try {
-      const response = await fetch(`${apiUrl}/users/all`, {
-        headers: {
-          Authorization: token ? `Bearer ${token}` : "",
-        },
-      });
+ const fetchSalesUsers = async () => {
+  try {
+    const response = await fetch(`${apiUrl}/users?roles=Sales`, {
+      headers: {
+        Authorization: token ? `Bearer ${token}` : "",
 
-      const users = await response.json();
+      },
+      credentials: "include",
+    });
 
-      // Filter only Sales
-      const sales = users.filter((u: any) => u.role === "Sales");
+    const data = await response.json();
 
-      setSalesList(sales);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    }
-  };
+    // ✅ backend already sends only Sales users
+    setSalesList(data.users || []);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+  }
+};
+
 
   useEffect(() => {
     fetchSalesUsers();
@@ -313,23 +314,7 @@ const TaskPage: React.FC = () => {
     { label: "Terminated", value: stats.Terminated || 0, icon: <MdDeleteOutline />, bgColor: "bg-gray-50", textColor: "text-gray-500" },
   ];
 
-  if (token) {
-    const decoded = jwtDecode<TokenPayload>(token);
-    //console.log("Decoded user info:", decoded);
-  }
-
-  const limit = 10;
-
-  const statuses = [
-    "All",
-    "Pending",
-    "In-Progress",
-    "Submitted",
-    "Delayed",
-    "In-R&D",
-    "Reopened",
-    "Terminated",
-  ];
+ 
   const statusDisplayMap = {
     "pending": "Pending",
     "in-progress": "In-Progress",
@@ -339,11 +324,6 @@ const TaskPage: React.FC = () => {
     "Reopened": "Reopened",
     "Terminated": "Terminated",
   };
-
-
-
-
-
 
 
   const fetchTasks = async () => {

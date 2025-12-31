@@ -147,6 +147,31 @@ export const getAllUsers = async (req, res) => {
   const users = await User.find().select("-password");
   res.json(users);
 }
+ 
+export const getUsersByRole = async (req, res) => {
+  try {
+    const { roles } = req.query;
+
+    const query = {
+      isActive: true,
+    };
+
+    if (roles) {
+      const roleArray = roles.split(","); // ["Developer", "Sales"]
+      query.role = { $in: roleArray };
+    }
+
+    const users = await User.find(query)
+      .select("_id name role");
+
+    res.json({ users });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
 
 export const getUserProfile = async (req, res) => {
   const requestedUserId = req.params.id; // from URL
@@ -173,12 +198,12 @@ export const getUserProfile = async (req, res) => {
 export const editUser = async (req, res) => {
   try {
     const userId = req.params.id;
-    console.log("UserId",userId);
-    
-    const { name, email, department, designation, role , slackId,isActive} = req.body;
+    console.log("UserId", userId);
+
+    const { name, email, department, designation, role, slackId, isActive, reportingTo } = req.body;
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { name, email, department, designation, role, slackId,isActive },
+      { name, email, department, designation, role, slackId, isActive, reportingTo },
       { new: true }
     ).select("-password");
     if (!updatedUser) return res.status(404).json({ message: "User not found" });

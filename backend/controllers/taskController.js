@@ -950,7 +950,7 @@ export const editDomainSubmission = async (req, res) => {
       ...submissionData
     } = req.body;
 
-    let parsedProxyDetailes = {};
+    let parsedProxyDetailes= {};
 
     if (proxyDetails) {
       try {

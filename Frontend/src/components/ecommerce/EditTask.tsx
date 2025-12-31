@@ -60,38 +60,40 @@ const EditTaskUI: React.FC<{ taskData?: Task }> = ({ taskData }) => {
   const [activeTab, setActiveTab] = useState<"task" | "submit">("task");
 
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const res = await fetch(`${apiUrl}/users/all`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          credentials: "include"
-        });
-        const data = await res.json();
-        setUsers(data);
-      } catch (err) {
-        console.error("Error fetching users:", err);
-      }
-    };
+  useEffect(() => { 
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch(`${apiUrl}/users?roles=Developer,TL`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        credentials: "include",
+      });
 
-    fetchUsers();
-  }, []);
+      const data = await res.json();
+
+      // ✅ CORRECT
+      setUsers(data.users || []);
+    } catch (err) {
+      console.error("Error fetching users:", err);
+    }
+  };
+
+  fetchUsers();
+}, [apiUrl]); 
 
   // Filtered user options
- const developerOptions = users.filter(
-  (u) => (u.role === "Developer" || u.role === "TL") && u.isActive
-);
+ const developerOptions = users
 
-  const normalizeUserId = (user: any) => {
+
+  function normalizeUserId(user: any) {
     if (!user) return "";
     if (typeof user === "string" && /^[0-9a-fA-F]{24}$/.test(user)) return user;
     if (user._id) return user._id;
     // Try to map from users list by name
     const mapped = users.find((u) => u.name === user);
     return mapped ? mapped._id : "";
-  };
+  }
 
 
   // Simplified validateForm - only checking domain array length
@@ -694,51 +696,7 @@ const EditTaskUI: React.FC<{ taskData?: Task }> = ({ taskData }) => {
                           </div>
 
 
-                          {/* {(role === "TL" || role === "Manager" || role === "Admin") && (
-                            <>
-                              <div className="flex gap-3 items-end flex-wrap">
-                                <select
-                                  value={developerInput[d.name] || ""}
-                                  onChange={(e) => {
-                                    setDeveloperInput((prev) => ({ ...prev, [d.name]: e.target.value }));
-                                    if (e.target.value) setErrors((prev) => ({ ...prev, domains: "" }));
-                                  }}
-                                  className="flex-1 p-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:text-white/90"
-                                >
-                                  <option value="" hidden>Select Developer</option>
-                                  {developerOptions.map((u) => (
-                                    <option key={u._id} value={u._id}>{u.name}</option>
-                                  ))}
-                                </select>
-                                <button
-                                  type="button"
-                                  onClick={() => handleDeveloperAdd(d.name)}
-                                  className="bg-[#3C01AF] hover:bg-blue-700 text-white px-4 py-3 rounded-lg"
-                                >
-                                  Add Developer
-                                </button>
-                              </div>
-                              <ul className="flex flex-wrap gap-2 mt-2">
-                                {(task.developers[d.name] || []).map((devId) => {
-                                  const devName = users.find(u => u._id === devId)?.name || devId;
-                                  return (
-                                    <li key={devId} className="bg-blue-100 px-2 py-1 rounded flex items-center gap-2 text-blue-800">
-                                      {devName}
-
-                                      <button
-                                        type="button"
-                                        onClick={() => handleDeveloperRemove(d.name, devId)}
-                                        className="text-red-500 hover:text-red-600"
-                                      >
-                                        ❌
-                                      </button>
-                                    </li>
-                                  );
-                                })}
-                              </ul>
-                            </>
-                          )} */}
-
+                          
 
 
 
@@ -775,35 +733,7 @@ const EditTaskUI: React.FC<{ taskData?: Task }> = ({ taskData }) => {
                                 className="rounded-lg  dark:border-gray-600 dark:text-white/90"
                               />
 
-                              {/* Show selected developers */}
-                              {/* <ul className="flex flex-wrap gap-2 mt-2">
-      {(task.developers[d.name] || []).map((devId) => {
-        const devName = users.find((u) => u._id === devId)?.name || devId;
-        return (
-          <li
-            key={devId}
-            className="bg-blue-100 px-2 py-1 rounded flex items-center gap-2 text-blue-800"
-          >
-            {devName}
-            <button
-              type="button"
-              onClick={() => {
-                setTask((prev) => ({
-                  ...prev,
-                  developers: {
-                    ...prev.developers,
-                    [d.name]: prev.developers[d.name].filter((id) => id !== devId),
-                  },
-                }));
-              }}
-              className="text-red-500 hover:text-red-600"
-            >
-              ❌
-            </button>
-          </li>
-        );
-      })}
-    </ul> */}
+                              
                             </div>
                           )}
 

@@ -105,26 +105,28 @@ const CreateTaskUI: React.FC = () => {
     { value: "RPM", label: "Request-Per-Minute" },
   ];
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const res = await fetch(`${apiUrl}/users/all`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
-        const data = await res.json();
+ useEffect(() => {
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch(`${apiUrl}/users?roles=TL,Manager`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        credentials: "include",
+      });
 
-        // Filter by role AND active status
-        const activeUsers = data.filter(
-          (u: any) => (u.role === "TL" || u.role === "Manager") && u.isActive
-        );
+      const data = await res.json();
 
-        setAssignedToOptions(activeUsers);
-      } catch (err) {
-        console.error("Error fetching users:", err);
-      }
-    };
-    fetchUsers();
-  }, []);
+      // ✅ Correct: use data.users
+      setAssignedToOptions(data.users || []);
+    } catch (err) {
+      console.error("Error fetching users:", err);
+    }
+  };
+
+  fetchUsers();
+}, [apiUrl]);
+
 
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {

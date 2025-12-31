@@ -4,9 +4,8 @@ import PageMeta from "../common/PageMeta";
 import PageBreadcrumb from "../common/PageBreadCrumb";
 import CreateUserModal from "./CreateUserModal";
 import EditUserModal from "./EditUserModal";
-import {  FiEdit2 } from "react-icons/fi";
-import { FaThumbtack } from "react-icons/fa";
-import { FaFileExcel } from "react-icons/fa";
+import { FiEdit2 } from "react-icons/fi";
+
 
 interface User {
   _id: string;
@@ -25,24 +24,59 @@ const AdminDashboard: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const apiUrl = import.meta.env.VITE_API_URL;
 
-  useEffect(() => {
-    fetch(`${apiUrl}/users/all`)
-      .then(res => res.json())
-      .then(data => setUsers(data))
-      .catch(err => console.error(err));
+  // useEffect(() => async () => {
+  //   const token = localStorage.getItem("token");
+  //   const response = await fetch(`${apiUrl}/users/all`, {
+  //       headers: {
+  //         Authorization: token ? `Bearer ${token}` : "",
+  //       },
+  //     });
 
-  }, []);
+  //   const data = await response.json();
+  //   if (response.ok) {
+  //     setUsers(data.users);
+  //   } else {
+  //     console.error("Failed to fetch users:", data.message);
+  //   }
+
+  // }, []);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(`${apiUrl}/users/all`, {
+          headers: { Authorization: token ? `Bearer ${token}` : "" },
+          credentials: "include",
+        });
+        const data = await response.json();
+        console.log("API Response:", data);
+
+        // Adjust this depending on your API response
+        const usersFromApi = data.users || data || [];
+        setUsers(usersFromApi);
+
+      } catch (error) {
+        console.error("Network error:", error);
+        setUsers([]);
+      }
+    };
+    fetchUsers();
+  }, [apiUrl]);
+
+
 
   const filteredUsers = useMemo(() => {
     return users.filter(
       (u) =>
         u.name.toLowerCase().includes(searchText.toLowerCase()) ||
         u.email.toLowerCase().includes(searchText.toLowerCase()) ||
-        u.designation?.toLocaleLowerCase().includes(searchText.toLowerCase()) ||
-        (u.department?.toLowerCase().includes(searchText.toLowerCase()) ?? false) ||
-        (u.role?.toLowerCase().includes(searchText.toLowerCase()) ?? false)
+        u.designation?.toLowerCase().includes(searchText.toLowerCase()) ||
+        u.department?.toLowerCase().includes(searchText.toLowerCase()) ||
+        u.role?.toLowerCase().includes(searchText.toLowerCase())
     );
   }, [users, searchText]);
+
 
   const handleEditClick = (user: User) => {
     setSelectedUser(user);
@@ -78,13 +112,13 @@ const AdminDashboard: React.FC = () => {
           </button>
         </div>
 
-         
+
         {/* Users Table */}
         <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
           <table className="min-w-full text-left text-sm">
             <thead className="bg-gray-100 dark:bg-gray-800/50">
               <tr>
-                {["Sr", "Name", "Email","Password", "Department", "Designation", "Role", "Actions"].map((h) => (
+                {["Sr", "Name", "Email", "Password", "Department", "Designation", "Role", "Actions"].map((h) => (
                   <th
                     key={h}
                     className="px-4 py-3 text-gray-700 dark:text-gray-300 font-medium border-b border-gray-200 dark:border-gray-700"
@@ -103,7 +137,7 @@ const AdminDashboard: React.FC = () => {
                   <td className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 ">{idx + 1}</td>
                   <td className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">{user.name}</td>
                   <td className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">{user.email}</td>
-                   <td className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">{user.originalPassword || "-"}</td>
+                  <td className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">{user.originalPassword || "-"}</td>
                   <td className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">{user.department}</td>
                   <td className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">{user.designation}</td>
                   <td className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">{user.role}</td>

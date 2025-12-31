@@ -51,6 +51,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, user, on
       // Only update state and close modal after successful API call
       onUpdate(data);
       onClose();
+       window.location.reload();
     } catch (err) {
       console.error("Error updating user:", err);
       alert("Error updating user. Please try again.");
