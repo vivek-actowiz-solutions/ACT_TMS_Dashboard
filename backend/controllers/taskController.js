@@ -950,7 +950,7 @@ export const editDomainSubmission = async (req, res) => {
       ...submissionData
     } = req.body;
 
-    let parsedProxyDetailes= {};
+    let parsedProxyDetailes = {};
 
     if (proxyDetails) {
       try {
@@ -973,15 +973,16 @@ export const editDomainSubmission = async (req, res) => {
       (sum, [, p]) => sum + Number(p?.credit || 0),
       0
     );
+    if (submissionData?.feasible === 'true') {
 
-    for (const [i, p] of proxyEntries) {
-      if (!p.security || !p.endpoint || !p.volume || !p.proxy) {
-        return res.status(400).json({
-          message: `Proxy row ${Number(i) + 1} has missing fields`,
-        });
+      for (const [i, p] of proxyEntries) {
+        if (!p.security || !p.endpoint || !p.volume || !p.proxy) {
+          return res.status(400).json({
+            message: `Proxy row ${Number(i) + 1} has missing fields`,
+          });
+        }
       }
     }
-
 
     if (!domainName) {
       return res.status(400).json({ message: "domainName is required" });
@@ -2410,36 +2411,36 @@ export const reOpenTask = async (req, res) => {
 
 
     if (updateData.domains) {
-  const incomingDomains = Array.isArray(updateData.domains)
-    ? updateData.domains
-    : JSON.parse(updateData.domains);
+      const incomingDomains = Array.isArray(updateData.domains)
+        ? updateData.domains
+        : JSON.parse(updateData.domains);
 
-  const existingDomains = task.domains || [];
-  const existingNames = existingDomains.map(d => d.name);
+      const existingDomains = task.domains || [];
+      const existingNames = existingDomains.map(d => d.name);
 
-  const onlyNewDomains = incomingDomains.filter(
-    d => !existingNames.includes(d.name)
-  );
+      const onlyNewDomains = incomingDomains.filter(
+        d => !existingNames.includes(d.name)
+      );
 
-  // ✅ ADD new domains to DB
-  if (onlyNewDomains.length > 0) {
-    task.domains = [
-      ...existingDomains,
-      ...onlyNewDomains.map(d => ({
-        name: d.name,
-        typeOfPlatform: d.typeOfPlatform,
-        domainRemarks: d.domainRemarks,
-        status: "Reopened",
-        submission: [],
-        completeDate: null,
-        rejectDomainCount: 0
-      }))
-    ];
+      // ✅ ADD new domains to DB
+      if (onlyNewDomains.length > 0) {
+        task.domains = [
+          ...existingDomains,
+          ...onlyNewDomains.map(d => ({
+            name: d.name,
+            typeOfPlatform: d.typeOfPlatform,
+            domainRemarks: d.domainRemarks,
+            status: "Reopened",
+            submission: [],
+            completeDate: null,
+            rejectDomainCount: 0
+          }))
+        ];
 
-    changedFields.domains = onlyNewDomains;
-    task.markModified("domains");
-  }
-}
+        changedFields.domains = onlyNewDomains;
+        task.markModified("domains");
+      }
+    }
 
 
 
