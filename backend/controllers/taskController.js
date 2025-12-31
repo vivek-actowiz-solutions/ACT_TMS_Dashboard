@@ -935,9 +935,9 @@ CC: <@${process.env.SLACK_RND_MANAGER_ID}>,<@${process.env.SLACK_RND_TL_ID}>
 
 // ✅ Edit domain submission
 export const editDomainSubmission = async (req, res) => {
-  console.log("Submit Details", req.body);
-  console.log("red.files", req.files)
-  res.status(200).json({ message: "Task submitted successfully" });
+  // console.log("Submit Details", req.body);
+  // console.log("red.files", req.files)
+  // res.status(200).json({ message: "Task submitted successfully" });
   try {
     const { id } = req.params;
 
