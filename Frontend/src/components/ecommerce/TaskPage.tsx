@@ -289,7 +289,7 @@ const TaskPage: React.FC = () => {
   if (!token) return navigate("/TMS-R&D/login");
 
   useEffect(() => { 
-    try {
+    try { 
       const payload = JSON.parse(atob(token.split(".")[1]));
       setUserRole(payload.role);
       setUserId(payload.id || payload._id || payload.email);

@@ -88,7 +88,7 @@ const taskSchema = new mongoose.Schema(
     credentials: { type: String },
 
     country: { type: [String] },
-    feasibleFor: { type: String },
+    feasible: { type: String },
 
     // approxVolume: { type: String },
     method: { type: String },

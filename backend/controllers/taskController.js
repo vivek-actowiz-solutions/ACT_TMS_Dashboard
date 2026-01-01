@@ -691,7 +691,7 @@ export const submitTask = async (req, res) => {
       // proxyUsed: body.proxyUsed === true || body.proxyUsed === "true",
       // feasible: body.feasible === true || body.feasible === "true",
       country: getArray(body.country),
-      feasibleFor: getScalar(body.feasibleFor),
+      
 
       method: getScalar(body.method),
       userLogin: getScalar(body.userLogin),
