@@ -815,29 +815,58 @@ export const submitTask = async (req, res) => {
 
     const space = "   ";
 
+    // const domainInfoLines = `${task.domains
+    //   .map((d) => {
+    //     const sub = d.submission || {};
+    //     const feasible = sub.feasible === true || sub.feasible === "true" ? "Yes" : "No";
+    //     const proxy = sub.feasible === true && sub.proxyDetailes && Object.keys(sub.proxyDetailes).some(k => !isNaN(k)) ;
+
+
+
+    //     const proxyLine = proxy
+    //       ? `Yes, Credit: ${sub.proxyDetailes.totalCredit}, Request: ${sub.proxyDetailes.totalRequest}`
+    //       : "No";
+
+    //     const remark = sub.remark || "";
+
+    //     return (
+    //       `• \`${d.name}\`\n` +
+    //       `   \`Feasible: ${feasible}\`\n` +
+    //       `   \`Proxy: ${proxyLine}\`` +
+    //       `\n   \`Remark: ${remark}\``
+    //     );
+    //   })
+    //   .join("\n")}`;
     const domainInfoLines = `${task.domains
       .map((d) => {
         const sub = d.submission || {};
-        const feasible = sub.feasible === true || sub.feasible === "true" ? "Yes" : "No";
-        const proxy = sub.proxyDetailes && Object.keys(sub.proxyDetailes).some(k => !isNaN(k)) ;
 
-        
+        const isFeasible =
+          sub.feasible === true || sub.feasible === "true";
 
-        const proxyLine = proxy
-          ? `Yes, Credit: ${sub.proxyDetailes.totalCredit}, Request: ${sub.proxyDetailes.totalRequest}`
-          : "No";
+        const feasibleText = isFeasible ? "Yes" : "No";
+
+        let proxyBlock = "";
+
+        // ✅ Add proxy ONLY when feasible is Yes
+        if (
+          isFeasible &&
+          sub.proxyDetailes &&
+          Object.keys(sub.proxyDetailes).some((k) => !isNaN(k))
+        ) {
+          proxyBlock = `\n   \`Proxy: Yes, Credit: ${sub.proxyDetailes.totalCredit}, Request: ${sub.proxyDetailes.totalRequest}\``;
+        }
 
         const remark = sub.remark || "";
 
         return (
           `• \`${d.name}\`\n` +
-          `   \`Feasible: ${feasible}\`\n` +
-          `   \`Proxy: ${proxyLine}\`` +
+          `   \`Feasible: ${feasibleText}\`` +
+          proxyBlock +
           `\n   \`Remark: ${remark}\``
         );
       })
       .join("\n")}`;
-
     try {
       // fetch assigner & submitter user info
       const assigner = await User.findById(task.assignedBy).lean();

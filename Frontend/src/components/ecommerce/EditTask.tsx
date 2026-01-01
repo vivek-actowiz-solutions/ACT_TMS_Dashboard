@@ -291,36 +291,16 @@ const EditTaskUI: React.FC<{ taskData?: Task }> = ({ taskData }) => {
     setEditDomainInput(null);
   };
 
-
-  const handleDeveloperAdd = (domainName: string) => {
-    const devId = developerInput[domainName];
-    if (!devId) return;
-
-    // const alreadyAssigned = Object.values(task.developers).some(arr => arr.includes(devId));
-    // if (alreadyAssigned) {
-    //   toast.error("This developer is already assigned!");
-    //   return;
-    // }
-
-    setTask(prev => ({
-      ...prev,
-      developers: {
-        ...prev.developers,
-        [domainName]: [...(prev.developers[domainName] || []), devId],
-      },
-    }));
-    setDeveloperInput(prev => ({ ...prev, [domainName]: "" }));
+  const getCookie = (name: string) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop()?.split(";").shift() || null;
+    return null;
   };
 
-  const handleDeveloperRemove = (domainName: string, devId: string) => {
-    setTask(prev => ({
-      ...prev,
-      developers: {
-        ...prev.developers,
-        [domainName]: prev.developers[domainName].filter(d => d !== devId),
-      },
-    }));
-  };
+const token = getCookie("token");
+  if (!token) return navigate("/TMS-R&D/login");
+  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

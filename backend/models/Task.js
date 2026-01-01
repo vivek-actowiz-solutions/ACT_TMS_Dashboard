@@ -64,7 +64,7 @@ const taskSchema = new mongoose.Schema(
     // NEW: domain-wise array
     domains: { type: [domainSchema], default: [] },
 
-    proxyDetailes: { type: Object, default: {} },
+    proxyDetailes: { type: Object },
     security: { type: String },
     endpoint: { type: String },
 

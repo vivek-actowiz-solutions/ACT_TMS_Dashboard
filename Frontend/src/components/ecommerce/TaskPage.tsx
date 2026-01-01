@@ -288,7 +288,7 @@ const TaskPage: React.FC = () => {
   const token = getCookie("token");
   if (!token) return navigate("/TMS-R&D/login");
 
-  useEffect(() => {
+  useEffect(() => { 
     try {
       const payload = JSON.parse(atob(token.split(".")[1]));
       setUserRole(payload.role);
