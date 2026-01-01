@@ -147,6 +147,8 @@ export const getAllUsers = async (req, res) => {
   const users = await User.find().select("-password");
   res.json(users);
 }
+
+
  
 export const getUsersByRole = async (req, res) => {
   try {
@@ -409,3 +411,4 @@ export const logout = (req, res) => {
 };
   
 
+ 

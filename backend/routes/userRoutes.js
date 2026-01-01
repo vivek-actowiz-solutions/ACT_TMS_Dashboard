@@ -10,13 +10,13 @@ import { authorize, developerOnly } from "../middleware/Autho.js";
 
 router.post("/register",authorize(['SuperAdmin']), createUser);
 router.post("/login",  loginUser);
-router.get("/all",authorize(['SuperAdmin',"Sales","TL"]),getAllUsers);
+router.get("/all",authorize(['SuperAdmin',"Sales","TL","Manager","Admin"]),getAllUsers);
 router.get(
   "/",
-  authorize(["SuperAdmin", "Sales", "TL"]),
+  authorize(["SuperAdmin", "Sales", "TL", "Manager", "Admin",]),
   getUsersByRole
 );
-
+ 
 router.get("/profile/:id",verifyToken, getUserProfile);
 router.put("/edit/:id",verifyToken,authorize(['SuperAdmin']), editUser);
 router.put("/change-password/", verifyToken, changePassword);

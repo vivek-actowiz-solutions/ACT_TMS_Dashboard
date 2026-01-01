@@ -819,10 +819,12 @@ export const submitTask = async (req, res) => {
       .map((d) => {
         const sub = d.submission || {};
         const feasible = sub.feasible === true || sub.feasible === "true" ? "Yes" : "No";
-        const proxy = sub.proxyUsed === true || sub.proxyUsed === "true";
+        const proxy = sub.proxyDetailes && Object.keys(sub.proxyDetailes).some(k => !isNaN(k)) ;
+
+        
 
         const proxyLine = proxy
-          ? `Yes, Credit: ${sub.perRequestCredit || 0}, Name: ${sub.proxyName || "-"}, Request: ${sub.totalRequest || 0}`
+          ? `Yes, Credit: ${sub.proxyDetailes.totalCredit}, Request: ${sub.proxyDetailes.totalRequest}`
           : "No";
 
         const remark = sub.remark || "";
